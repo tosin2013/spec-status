@@ -1,12 +1,12 @@
 # Technical plan — proposed architecture, no implementation
 
-**Draft PROFILE-R1.** Requires DC-01–06 clarification and separate implementation authorization. This file contains design, not executable code, configuration or evidence that the product exists.
+**Draft PROFILE-R1.** This file remains the design record. A development implementation now exists beside it and uses these proposals as reversible defaults, not as owner approval. This file contains no executable code.
 
 ## Architecture and processing boundaries
 
 Propose a small Go standard-library application with logically separate responsibilities, not necessarily a mandated directory tree:
 
-1. **Invocation/configuration:** parse working command/options; establish whether JSON is requested early enough to format invocation errors; explicit flags over documented defaults, no configuration file in candidate profile. Validate root and threshold without executing anything.
+1. **Invocation/configuration:** parse commands and flags with the owner-approved Cobra dependency; establish whether JSON is requested early enough to format invocation errors without mixing Cobra usage text into the JSON envelope; explicit flags over documented defaults, no configuration file in candidate profile. Validate root and threshold without executing anything. Parsing and filesystem code stay outside Cobra.
 2. **Root-confined input boundary:** sole component permitted to inspect filesystem state. Normalize proposed path bases, enforce root/symlink/mount/regular-file and sensitive-name policy before reads, account every byte/file/path/work budget. Return stable categorized errors and source metadata, not raw secret contents or platform exception text.
 3. **Narrow parser:** stream bounded UTF-8 lines/fence state into roadmap occurrences and explicitly linked supported documents. Separate raw strings/source spans from parsed values; no arbitrary Markdown library, AI or semantic parser. Reject unsupported item-like structures that make inventory unreliable. Preserve duplicate occurrences and unknown statuses.
 4. **Graph and structural validation:** build unique-ID lookup plus ambiguity index. Validate dependency and supersession graphs independently with bounded, non-recursive cycle analysis. Record direct links/cycle membership and supersession validity without rewriting input or relationships.

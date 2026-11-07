@@ -57,7 +57,7 @@ Each row lists specification location plus a detailed contract when applicable, 
 | J-02 | Deterministic document order and sorted findings/rounding | FS-07; proposed schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
 | J-03 | One JSON fatal document, no stdout logs or secret text | FS-07; proposed schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
 | J-04 | Compatibility rules and parity | FS-07; proposed schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
-| S-01 | Stdlib Go, CGO_ENABLED=0, no Go on user runtime | FS-08; sole I/O boundary; [plan.md](plan.md) | AC-13–16, AC-19 | TASK-05, TASK-08, TASK-15 |
+| S-01 | Stdlib parsing and confined reads, CGO_ENABLED=0, no Go on a future installed runtime; Cobra is the owner-approved command exception | FS-08; sole I/O boundary; [plan.md](plan.md) | AC-13–16, AC-19 | TASK-05, TASK-08, TASK-15 |
 | S-02 | No runtime side effects or hidden store | FS-08; sole I/O boundary; [plan.md](plan.md) | AC-13–16, AC-19 | TASK-05, TASK-08, TASK-15 |
 | S-03 | Root confinement, traversal and symlink escape rejection | FS-08; sole I/O boundary; [plan.md](plan.md) | AC-13–16, AC-19 | TASK-05, TASK-08, TASK-15 |
 | S-04 | Sensitive exclusions with safe skipped-reference finding | FS-08; sole I/O boundary; [plan.md](plan.md) | AC-13–16, AC-19 | TASK-05, TASK-08, TASK-15 |
@@ -119,8 +119,14 @@ DC-01–08 and D-01A–D-06A in decisions.md cover exact grammar/path precedence
 - Human/JSON one model, raw unknowns, null denominators, weighted tasks and deterministic ordering are shared across specification and contracts.
 - Strict supersession is retained, not optionally cut; invalid-reference metrics are explicitly proposed, not smuggled into source authority. No silent dependency redirect, even verified successor.
 - Inferred quarters omitted from interface, schema, algorithms, denominators and future implementation backlog. Explicit timing is not transformed into a new forecast/evidence source.
-- Core stdlib/offline/read-only, safety-constrained and extension-independent. Future writer approval/reread isolated and no deferred dashboard/notification feature promoted.
-- Compile versus runtime verification and unsigned integrity versus identity remain distinct. No current binaries, tests, release, platform support or chosen license claimed.
+- Parsing and confined reads stay in the standard library. Cobra is the owner-approved command, help, and flag exception, pinned in go.mod, and is not a network, telemetry, or styling dependency. The core stays offline, read-only, and extension-independent. Future writer approval and reread stay isolated, and no deferred dashboard or notification feature is promoted.
+- Compile versus runtime verification and unsigned integrity versus identity remain distinct. A development CLI and implementer-run tests now exist. They are not independent verification, a release, a supported platform list, a signature, or a chosen license.
 - README/docs stage does not remain under an obsolete drafting hold; implementation and release gates remain. Public-facing text includes no private coordination/source handles/paths.
+
+## Implementation slice
+
+The development CLI covers the read-only reporting path: narrow roadmap parsing, raw statuses, separate checkbox and recorded-verified counts, history-safe supersession, human-review dependencies, shared text/JSON results, exits 0/1/2, and root-confined reads. In-repo tests exercise malformed input, deterministic output, and adversarial filesystem cases. Those tests were run by the implementer.
+
+Still open as product work, not silently dropped: owner approval of DC-01–08, real dogfood roadmaps, release identity and multi-platform execution, signing, license, and phase-two mutation. Acceptance rows AC-21–AC-25 are not met. AC-20 has one host measurement and is not a passed certification.
 
 Documentation review still must assess details, not only identifier counts. Cases where ambiguity remains (grammar/source provenance, metadata races, unsafe skips versus fatal, duplicate counts and stage matrix) are labelled as implementation blockers or candidate policies rather than falsely resolved requirements.

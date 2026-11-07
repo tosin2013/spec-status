@@ -6,7 +6,7 @@
 
 - Omit inferred quarters entirely from v1. Preserve recorded timing, without inventing dates or treating question IDs as calendar data.
 - Retain strict v1 history-preserving supersession and human review of its dependents; no automatic dependency redirection.
-- Offline read-only Go standard-library core, `CGO_ENABLED=0`; no runtime AI/network/subprocess/Git/credentials/writes/extensions.
+- Offline read-only core, `CGO_ENABLED=0`; no runtime AI/network/subprocess/Git/credentials/writes/extensions. Parsing and confined reads stay in the standard library. On 7 November 2026 the owner approved Cobra for command, help, and flag handling only. That exception does not approve other dependencies, styling, telemetry, or a security review of Cobra. The command process unsets `BASH_COMP_DEBUG_FILE` for the call so Cobra cannot append that log, including on hidden `__complete` errors, then restores the previous value. Concurrent calls in one process are serialized for that reason. The product binary makes one call. Generated completion scripts remain shell text and are not executed by spec.
 - Preserve raw statuses and unknowns, recorded-verified versus checkbox progress, JSON/text parity, default threshold error and exits 0/1/2.
 - Future extension write-back is optional, separate and per-mutation approved; optional integrations remain deferred.
 - Public project documentation targets [tosin2013/spec-status](https://github.com/tosin2013/spec-status). Repository establishment is separate from this package; no license, code implementation or release is created here.
@@ -44,10 +44,23 @@ These make contracts draftable; they are new technical recommendations, not hidd
 | Documentation drafting | Authorized; this package is draft work |
 | Required review returns | Received; semantic/compatibility decisions remain, not missing replies |
 | Source certainty | Requirements coverage assembled; original input-format prose partly condensed, not fully verbatim recovered |
-| PROFILE-R1 adoption | Pending owner/technical clarification, per DC-01–08 |
-| Implementation start | Not authorized by this package; blocked on relevant decisions and separate direction |
-| Public repository | tosin2013/spec-status established separately; no repository operations performed by this package |
-| Release | No authorization, workflow, binary or tests; release evidence and approvals still required |
+| PROFILE-R1 adoption | Still pending owner approval, per DC-01–08. Code uses the proposals below as reversible defaults. |
+| Implementation start | Owner authorized implementation on 7 November 2026. That authorization does not approve DC-01–08. |
+| Public repository | tosin2013/spec-status. This decision log does not perform repository operations. |
+| Release | Not authorized. In-repo tests have been run by the implementer; they are not independent verification or release evidence. No workflow or published binary. |
+
+## Implementation proposals in the development build
+
+These are reversible defaults chosen so a useful read-only v1 could be built. They are not owner approvals, and repeating them here does not close DC-01–08. Cobra is separate: the owner approved it for command handling, and it is not one of these unresolved proposals.
+
+- Narrow grammar from DC-01 and D-01A: `### NNN — Title [status: token]`, the six field labels in roadmap-format.md, UTF-8 with optional BOM and CRLF, and no table items. `..` in a reference is rejected. Spec directories are root-relative. Task links are relative to the tasks file. Task bullets may use `-`, `*`, or `+`.
+- History metrics from DC-02 and D-02A: only a fully valid acyclic chain is removed from the active counts. An invalid `superseded-by` value is kept and diagnosed, and the row stays active. A displayed terminal ID does not rewrite dependencies.
+- Dependencies from DC-03 and D-03A: satisfaction means recorded `verified` only. Human review of a superseded dependency is a warning. An active row counts once in the blocked summary. The stage file matrix is the D-03B candidate.
+- Interface from DC-04: command `spec status`, no config file, no `--as-of`, candidate JSON schema 1.0, half-up percentages to two decimals, and one count per distinct tasks file.
+- Confinement from DC-05 and D-05A/D-05B: regular files only, symlink components rejected, Linux `O_NOFOLLOW` plus `/proc/self/fd` and a device-id check, and the candidate sensitive-name matcher. A detected size or mtime change invalidates the read.
+- Budgets from DC-06 and D-06A: 2 MiB per file, 32 MiB total, 1,024 opened files, 4,096-byte paths, 32 nesting levels, 1,024 items, 16,384 edges, and 100,000 checkboxes.
+
+Not chosen, and not implemented: the implemented-or-verified dependency alternative, a date flag, signing, a support matrix, a license, and phase-two writes.
 
 ## Change procedure
 

@@ -1,6 +1,6 @@
 # Feature specification — deterministic roadmap status
 
-**Draft feature SS-001, proposed specification version 0.1.** This is a documentation-stage specification, not an implementation or release. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 is pending [DC-01–08](decisions.md); drafting does not ratify it.
+**Draft feature SS-001, proposed specification version 0.1.** This file is the specification, not a release. A development CLI now implements a read-only slice; that code does not ratify the open choices below. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 is pending [DC-01–08](decisions.md); drafting does not ratify it.
 
 ## 1. Product outcome and users
 
@@ -14,7 +14,7 @@ The value is deterministic roadmap reporting, reference integrity and declared-s
 - **PROFILE-R1:** recommended, internally coherent draft behavior, not approved.
 - **Future/deferred:** no v1 implementation obligation.
 
-In v1 the runtime reads supported files only. No AI/network/accounts/credentials/subprocess/Git/tests/builds/extensions/writes, no cache or second state store. Development tools may test/build the product separately. The runtime is Go standard library only; static build target `CGO_ENABLED=0`, with disclosed exceptions rather than blanket portability claims.
+In v1 the runtime reads supported files only. No AI/network/accounts/credentials/subprocess/Git/tests/builds/extensions/writes, no cache or second state store. Development tools may test/build the product separately. Parsing and root-confined reads stay in the Go standard library. The owner-approved exception is Cobra for command, help, and flag handling only; it is not a styling, network, or telemetry dependency, and it is not an independent security review. Static build target `CGO_ENABLED=0`, with disclosed exceptions rather than blanket portability claims.
 
 Inferred quarters are omitted entirely. No quarter calculations, percentages, denominators, flags or JSON inference fields. Explicit supported timing is recorded source text, not date interpretation. No v1 dashboard, trend store, notifications, digest, multi-repo aggregation or package-manager channel. Optional future extension write-back is specified separately in [phase2.md](phase2.md).
 

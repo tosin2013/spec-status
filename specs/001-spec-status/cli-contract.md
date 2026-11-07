@@ -2,9 +2,13 @@
 
 **Draft PROFILE-R1, pending DC-01/DC-04.** Commands here describe intended behavior, not currently runnable software or install instructions. CLI release version, interface draft version, JSON schema version and roadmap input version are separate identities.
 
+## Command dependency
+
+The development CLI uses Cobra for commands, help, and flags. The owner approved that dependency on 7 November 2026. Cobra does not provide visual styling; this contract does not add color, ANSI in JSON or noninteractive output, or another UI framework. Parsing, metrics, and root-confined reads remain standard-library code. Shell completion is an explicit `spec completion` command that prints a script to stdout and does not install it. For that process, `BASH_COMP_DEBUG_FILE` is unset and then restored so Cobra's hidden `__complete` error path cannot create or append the log. Concurrent `Run` calls in one process wait on that restoration. The product binary calls it once. The generated script is shell text and is not executed by spec; if a person sources it, the shell may append to that variable. Other interface choices below remain PROFILE-R1 proposals unless this section says the owner approved them.
+
 ## Working command surface
 
-`spec status` is the working name, not an established executable. Candidate status options:
+`spec status` is the working command. The development build also exposes `spec version`, `spec completion`, and `spec help`. Candidate status options:
 
 | Option | Candidate behavior / retained constraint |
 |---|---|
@@ -14,7 +18,7 @@
 | `--roadmap PATH` | Override input; relative to selected root, or absolute only if confined within that root |
 | `--help` | Candidate usage/scope/version guidance; no filesystem/project input required |
 
-Working identity command `spec --version` will report CLI version, tagged commit, Go version and target; development builds clearly labelled. Version/help are metadata operations, not a roadmap report. PROFILE-R1 recommends a separate error for mixing help/version/status flags; exact parser behavior needs approval. Do not invent a working binary today.
+Working identity commands `spec version` and `spec --version` report CLI version, commit, Go version, and target; development builds are clearly labelled. Version and help are metadata operations, not a roadmap report. Mixing help or version with status or JSON is an invocation error. The development build is not a release.
 
 No quarter option exists. `--as-of` is not part of the advertised candidate profile unless a concrete non-quarter deterministic use is chosen under DC-04. No inferred date or inert compatibility flag. `--format=json` is not an approved alias. No write/agent/sync/Git/network option belongs to status.
 
