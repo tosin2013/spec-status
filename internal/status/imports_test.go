@@ -53,7 +53,7 @@ func TestProductCodeDoesNotImportSideEffectPackages(t *testing.T) {
 			return err
 		}
 		text := string(body)
-		for _, needle := range []string{"os.WriteFile", "os.Create", "os.Remove", "os.Mkdir", "os.Rename", "exec.Command", "http.Get"} {
+		for _, needle := range []string{"os.WriteFile", "os.Create", "os.OpenFile", "os.Remove", "os.Mkdir", "os.Rename", "exec.Command", "http.Get"} {
 			if strings.Contains(text, needle) {
 				t.Errorf("%s contains %s", path, needle)
 			}

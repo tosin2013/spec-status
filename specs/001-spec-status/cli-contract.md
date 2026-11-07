@@ -4,7 +4,7 @@
 
 ## Command dependency
 
-The development CLI uses Cobra for commands, help, and flags. The owner approved that dependency on 7 November 2026. Cobra does not provide visual styling; this contract does not add color, ANSI in JSON or noninteractive output, or another UI framework. Parsing, metrics, and root-confined reads remain standard-library code. Shell completion is an explicit `spec completion` command that prints a script to stdout and does not install it. Other interface choices below remain PROFILE-R1 proposals unless this section says the owner approved them.
+The development CLI uses Cobra for commands, help, and flags. The owner approved that dependency on 7 November 2026. Cobra does not provide visual styling; this contract does not add color, ANSI in JSON or noninteractive output, or another UI framework. Parsing, metrics, and root-confined reads remain standard-library code. Shell completion is an explicit `spec completion` command that prints a script to stdout and does not install it. For that process, `BASH_COMP_DEBUG_FILE` is unset and then restored so Cobra's hidden `__complete` error path cannot create or append the log. Concurrent `Run` calls in one process wait on that restoration. The product binary calls it once. The generated script is shell text and is not executed by spec; if a person sources it, the shell may append to that variable. Other interface choices below remain PROFILE-R1 proposals unless this section says the owner approved them.
 
 ## Working command surface
 

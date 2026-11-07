@@ -12,7 +12,7 @@ The roadmap and explicitly linked supported files are the truth source. Human ou
 
 Roadmap parsing and root-confined reads stay in the Go standard library. The owner approved one dependency exception on 7 November 2026: command, help, and flag handling may use Cobra. That exception does not authorize styling libraries, color, network clients, telemetry, or other frameworks. The approved module and its required transitive modules are pinned in go.mod and go.sum. Adopting Cobra is not an independent security review of those modules.
 
-The build target remains `CGO_ENABLED=0`, with fast cold start and honest platform exceptions. Runtime must perform no network access, subprocess/Git invocation, AI calls, account/credential access or writes, including telemetry, caches or a parallel status store. An explicit completion command may print a script to stdout and must not install it. Development/release tooling is not a runtime dependency.
+The build target remains `CGO_ENABLED=0`, with fast cold start and honest platform exceptions. Runtime must perform no network access, subprocess/Git invocation, AI calls, account/credential access or writes, including telemetry, caches or a parallel status store. An explicit completion command may print a script to stdout and must not install it. The process must not create or append `BASH_COMP_DEBUG_FILE`, even when that variable is already set. A sourced completion script is shell behavior, not a write by spec. Development/release tooling is not a runtime dependency.
 
 ## Article III — Narrow, safe input
 

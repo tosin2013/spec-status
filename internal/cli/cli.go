@@ -12,8 +12,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -33,8 +35,27 @@ func init() {
 	cobra.MousetrapHelpText = ""
 }
 
+// completionDebugEnv is read by Cobra's hidden __complete error path.
+// CompDebug opens it with O_APPEND|O_CREATE when set. Cobra exposes no hook
+// to disable that write.
+const completionDebugEnv = "BASH_COMP_DEBUG_FILE"
+
+// completionDebugMu serializes the process-global environment around Run.
+// Concurrent Run calls in one process wait here so one call cannot restore
+// the variable while another is still inside Cobra. The product binary calls
+// Run once from main. A caller must not assume the variable stays visible to
+// other goroutines for the duration of Run.
+var completionDebugMu sync.Mutex
+
 // Run executes one invocation and returns the process exit code.
 func Run(args []string, cwd string, stdout, stderr io.Writer) int {
+	completionDebugMu.Lock()
+	defer completionDebugMu.Unlock()
+	restore, hideErr := hideCompletionDebugFile()
+	if hideErr != nil {
+		return fail(countFlag(args, "--json") > 0, "SS_INVOCATION_INVALID", "Completion debug file setting could not be ignored.", stdout, stderr)
+	}
+	defer restore()
 	jsonMode := countFlag(args, "--json") > 0
 	if msg := precheck(args); msg != "" {
 		return fail(jsonMode, "SS_INVOCATION_INVALID", msg, stdout, stderr)
@@ -52,6 +73,23 @@ func Run(args []string, cwd string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	return fail(jsonMode, "SS_INVOCATION_INVALID", oneLine(err.Error()), stdout, stderr)
+}
+
+// hideCompletionDebugFile unsets BASH_COMP_DEBUG_FILE for this process and
+// returns a function that restores the previous value. Cobra reads the
+// variable with os.Getenv during hidden completion errors; clearing it is
+// the supported way to keep that path from creating or appending a log.
+func hideCompletionDebugFile() (func(), error) {
+	prev, ok := os.LookupEnv(completionDebugEnv)
+	if !ok {
+		return func() {}, nil
+	}
+	if err := os.Unsetenv(completionDebugEnv); err != nil {
+		return nil, err
+	}
+	return func() {
+		_ = os.Setenv(completionDebugEnv, prev)
+	}, nil
 }
 
 func newRoot(cwd string) *cobra.Command {
@@ -168,6 +206,8 @@ func newCompletion() *cobra.Command {
 		Use:   "completion",
 		Short: "Print a shell completion script to stdout",
 		Long: `Print a shell completion script to stdout. This command does not install the script or modify files.
+
+The script is shell text from Cobra. spec does not run it. If you later source that script, the shell—not spec—may append to BASH_COMP_DEBUG_FILE when that variable is set in the shell.
 
   spec completion bash
   spec completion zsh
