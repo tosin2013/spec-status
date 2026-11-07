@@ -52,6 +52,8 @@ Default satisfaction is a recorded `verified` dependency. An implemented-or-veri
 
 Every dependency on a superseded row requires HUMAN REVIEW even with a verified successor. Keep original dependency and replacement visible. Never redirect, auto-satisfy or infer replacement scope equivalence. PROFILE-R1 warning severity, separate review count and once-per-dependent active blocked count await DC-03 approval. Per-item reasons are shown even for inactive rows; active summary scope is labelled. Cycle membership and direct blockers are reported, not dates or transitive delivery predictions.
 
+Human text may also apply a view. `--status`, `--blocked`, `--human-review`, `--active`, `--historical`, and `--explain` change which item rows are printed and whether mechanical reasons are printed with them. They do not change the summary panel, the diagnostic list, the exit threshold, or the JSON document. A view that matches nothing prints a clear message and is not itself fatal. Exact rules are in the CLI contract. This view is not a dashboard and does not infer quarters.
+
 ### FS-06 — Structural findings, not semantic mismatch claims
 
 Report duplicates, unknown statuses, missing linked directories, missing stage-appropriate files/spec links, invalid dependency/replacement edges and broken explicit local task references. Planned missing spec link is informational; specced-or-later missing spec reference is a finding. Exact stage/file requirements are an open approved-matrix gate; PROFILE-R1 candidate is not a source-proven lifecycle law.

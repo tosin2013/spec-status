@@ -2,7 +2,7 @@
 
 This public catalogue maps the reconciled PRD baseline identifiers to the specification, acceptance oracle and dependency-ordered future work. IDs are requirement labels, not execution receipts or claims of approval. Source-only coordination and private review links are intentionally excluded.
 
-**97 baseline entries are accounted for: 91 requirement/user/acceptance entries and six reconciliation notes.** Presence in this table establishes documented coverage, not semantic correctness, implemented behavior, passing tests, independent verification or approval of PROFILE-R1. Exact original input-format prose was partly reconstructed from summaries; approved fixtures must resolve compatibility before implementation. No claim of complete verbatim source recovery is made.
+**97 baseline entries are accounted for: 91 requirement/user/acceptance entries and six reconciliation notes.** F-05 is a later owner-approved human-text view and is not one of those 97. Presence in this table establishes documented coverage, not semantic correctness, implemented behavior, passing tests, independent verification or approval of PROFILE-R1. Exact original input-format prose was partly reconstructed from summaries; approved fixtures must resolve compatibility before implementation. No claim of complete verbatim source recovery is made.
 
 V-03 has a scoped authority update: documentation drafting is permitted now; earlier drafting hold is historical. Implementation/release still require separate authorization and relevant decision closure. DC-08 public-documentation intent is established; repository home is now tosin2013/spec-status, established separately; license and release readiness remain unresolved. T-01–03 retain complete v1 omission of inferred quarters. Retired algorithms are not tasks.
 
@@ -39,6 +39,7 @@ Each row lists specification location plus a detailed contract when applicable, 
 | F-02 | Active recorded-verified numerator/denominator and null empty | FS-03, FS-06; result metrics; [json-contract.md](json-contract.md) | AC-03, AC-06, AC-09–12 | TASK-03–04, TASK-10, TASK-13–14 |
 | F-03 | Separate weighted checkbox progress, explicit scope | FS-03, FS-06; result metrics; [json-contract.md](json-contract.md) | AC-03, AC-06, AC-09–12 | TASK-03–04, TASK-10, TASK-13–14 |
 | F-04 | Missing/empty evidence not proven completion | FS-03, FS-06; result metrics; [json-contract.md](json-contract.md) | AC-03, AC-06, AC-09–12 | TASK-03–04, TASK-10, TASK-13–14 |
+| F-05 | Human-text filters and explain are views; full summary, diagnostics, exits, and schema 1.0 JSON stay unfiltered | FS-05 view paragraph; [cli-contract.md](cli-contract.md); [json-contract.md](json-contract.md) | AC-26 | Implementation record, 7 November 2026 |
 | T-01 | Owner omission of all inferred quarters v1 | FS-02/Scope; T omission boundary; [cli-contract.md](cli-contract.md) | AC-19 | TASK-01, TASK-04, TASK-14–15 |
 | T-02 | No inert quarter interface/schema/test obligation | FS-02/Scope; T omission boundary; [cli-contract.md](cli-contract.md) | AC-19 | TASK-01, TASK-04, TASK-14–15 |
 | T-03 | Date flag only if justified separately, decision pending | FS-02/Scope; T omission boundary; [cli-contract.md](cli-contract.md) | AC-19 | TASK-01, TASK-04, TASK-14–15 |
@@ -119,13 +120,13 @@ DC-01–08 and D-01A–D-06A in decisions.md cover exact grammar/path precedence
 - Human/JSON one model, raw unknowns, null denominators, weighted tasks and deterministic ordering are shared across specification and contracts.
 - Strict supersession is retained, not optionally cut; invalid-reference metrics are explicitly proposed, not smuggled into source authority. No silent dependency redirect, even verified successor.
 - Inferred quarters omitted from interface, schema, algorithms, denominators and future implementation backlog. Explicit timing is not transformed into a new forecast/evidence source.
-- Parsing and confined reads stay in the standard library. Cobra is the owner-approved command, help, and flag exception. Lip Gloss is the owner-approved human-text layout and color exception. Neither approval adds a network client, telemetry, Bubble Tea, or a dashboard. The core stays offline, read-only, and extension-independent. Future writer approval and reread stay isolated, and no deferred dashboard or notification feature is promoted.
+- Parsing and confined reads stay in the standard library. Cobra is the owner-approved command, help, and flag exception. Lip Gloss is the owner-approved human-text layout and color exception. The summary panel, filters, and `--explain` are human-text views on that same surface. None of those approvals adds a network client, telemetry, Bubble Tea, or a dashboard. The core stays offline, read-only, and extension-independent. Future writer approval and reread stay isolated, and no deferred dashboard or notification feature is promoted.
 - Compile versus runtime verification and unsigned integrity versus identity remain distinct. A development CLI and implementer-run tests now exist. They are not independent verification, a release, a supported platform list, a signature, or a chosen license.
 - README/docs stage does not remain under an obsolete drafting hold; implementation and release gates remain. Public-facing text includes no private coordination/source handles/paths.
 
 ## Implementation slice
 
-The development CLI covers the read-only reporting path: narrow roadmap parsing, raw statuses, separate checkbox and recorded-verified counts, history-safe supersession, human-review dependencies, shared text/JSON results, exits 0/1/2, and root-confined reads. In-repo tests exercise malformed input, deterministic output, and adversarial filesystem cases. Those tests were run by the implementer.
+The development CLI covers the read-only reporting path: narrow roadmap parsing, raw statuses, separate checkbox and recorded-verified counts, history-safe supersession, human-review dependencies, shared text/JSON results, exits 0/1/2, root-confined reads, a static summary panel, and human-text filters with `--explain`. JSON stays the full schema 1.0 result. In-repo tests exercise malformed input, deterministic output, and adversarial filesystem cases. Those tests were run by the implementer.
 
 Still open as product work, not silently dropped: owner approval of DC-01–08, real dogfood roadmaps, release identity and multi-platform execution, signing, license, and phase-two mutation. Acceptance rows AC-21–AC-25 are not met. AC-20 has one host measurement and is not a passed certification.
 

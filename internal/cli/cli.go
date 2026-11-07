@@ -101,6 +101,7 @@ func newRoot(cwd string) *cobra.Command {
 		rootFlag:    singleString{name: "root"},
 		roadmapFlag: singleString{name: "roadmap"},
 		colorFlag:   singleString{name: "color"},
+		statusFlag:  statusList{name: "status"},
 	}
 	root := &cobra.Command{
 		Use:           "spec",
@@ -126,6 +127,12 @@ func newRoot(cwd string) *cobra.Command {
 	root.PersistentFlags().Var(&opts.rootFlag, "root", "Project directory that contains .specify")
 	root.PersistentFlags().Var(&opts.roadmapFlag, "roadmap", "Roadmap file inside the selected root")
 	root.PersistentFlags().Var(&opts.colorFlag, "color", "Human text color: auto, always, or never")
+	root.PersistentFlags().Var(&opts.statusFlag, "status", "Exact raw status to show; repeat for any listed status")
+	root.PersistentFlags().BoolVar(&opts.blocked, "blocked", false, "Show items with an unsatisfied dependency, including historical items")
+	root.PersistentFlags().BoolVar(&opts.humanReview, "human-review", false, "Show items that need human review of a superseded dependency")
+	root.PersistentFlags().BoolVar(&opts.active, "active", false, "Show active items")
+	root.PersistentFlags().BoolVar(&opts.historical, "historical", false, "Show historical items, including valid supersession")
+	root.PersistentFlags().BoolVar(&opts.explain, "explain", false, "Show mechanical file and line reasons for shown items")
 
 	root.AddCommand(newStatus(opts), newVersion(), newCompletion())
 	return root
@@ -137,10 +144,16 @@ type runOpts struct {
 	version     bool
 	failOn      string
 	color       string
+	blocked     bool
+	humanReview bool
+	active      bool
+	historical  bool
+	explain     bool
 	failOnFlag  singleString
 	rootFlag    singleString
 	roadmapFlag singleString
 	colorFlag   singleString
+	statusFlag  statusList
 }
 
 func (o *runOpts) prepare() {
@@ -168,7 +181,9 @@ This command does not run tests or Git, and it does not change files.`,
 		Example: `  spec status
   spec status --root testdata/example-roadmap
   spec status --json --fail-on warning
-  spec status --color=never`,
+  spec status --color=never
+  spec status --human-review --explain
+  spec status --status planned --blocked`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if opts.version {
@@ -185,7 +200,11 @@ This command does not run tests or Git, and it does not change files.`,
 				fmt.Fprint(cmd.OutOrStdout(), string(status.JSON(rep)))
 				return silentExit{status.ExitCode(rep)}
 			}
-			view := status.View{Width: textColumns(), Color: false}
+			view := status.View{
+				Width: textColumns(), Color: false,
+				Statuses: opts.statusFlag.values, Blocked: opts.blocked, HumanReview: opts.humanReview,
+				Active: opts.active, Historical: opts.historical, Explain: opts.explain,
+			}
 			if rep.Outcome == "fatal" {
 				fmt.Fprint(cmd.ErrOrStderr(), status.Text(rep, view))
 				return silentExit{2}
@@ -320,6 +339,29 @@ func (s *singleString) Type() string   { return "string" }
 // Ensure the flag type satisfies pflag at compile time.
 var _ pflag.Value = (*singleString)(nil)
 
+type statusList struct {
+	name   string
+	values []string
+}
+
+func (s *statusList) Set(v string) error {
+	if v == "" {
+		return fmt.Errorf("option --%s requires a status token", s.name)
+	}
+	for _, existing := range s.values {
+		if existing == v {
+			return fmt.Errorf("option --%s %s is repeated", s.name, v)
+		}
+	}
+	s.values = append(s.values, v)
+	return nil
+}
+
+func (s *statusList) String() string { return strings.Join(s.values, ",") }
+func (s *statusList) Type() string   { return "string" }
+
+var _ pflag.Value = (*statusList)(nil)
+
 func precheck(args []string) string {
 	if flag := repeated(args); flag != "" {
 		return "Option " + flag + " is repeated."
@@ -353,7 +395,7 @@ func repeated(args []string) string {
 			name = name[:i]
 		}
 		switch name {
-		case "--json", "--help", "-h", "--version", "-V", "--root", "--roadmap", "--fail-on", "--color":
+		case "--json", "--help", "-h", "--version", "-V", "--root", "--roadmap", "--fail-on", "--color", "--blocked", "--human-review", "--active", "--historical", "--explain":
 			seen[name]++
 			if seen[name] > 1 {
 				return name

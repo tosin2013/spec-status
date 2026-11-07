@@ -18,6 +18,12 @@ The development CLI uses Cobra for commands, help, and flags. The owner approved
 | `--roadmap PATH` | Override input; relative to selected root, or absolute only if confined within that root |
 | `--help` | Candidate usage/scope/version guidance; no filesystem/project input required |
 | `--color auto\|always\|never` | Owner-approved human-text color control. Default `auto` emits no ANSI unless stdout is a terminal, `NO_COLOR` is unset, and `TERM` is not `dumb`. Does not change JSON or exit codes |
+| `--status TOKEN` | Human-text view. Exact, case-sensitive match on the item's raw status, including an unknown token. Repeat with different tokens to match any of them. Repeating the same token is an invocation error |
+| `--blocked` | Human-text view. An item with any unsatisfied dependency, including a historical item. This is not the active-blockers summary count |
+| `--human-review` | Human-text view. An item with any dependency in state `human_review`, including a historical item |
+| `--active` | Human-text view. Active items only |
+| `--historical` | Human-text view. Items outside the active set, including deferred, abandoned, and valid supersession |
+| `--explain` | Human text only. Under each shown item, print mechanical reasons and file:line evidence. Does not filter items by itself |
 
 Working identity commands `spec version` and `spec --version` report CLI version, commit, Go version, and target; development builds are clearly labelled. Version and help are metadata operations, not a roadmap report. Mixing help or version with status or JSON is an invocation error. The development build is not a release.
 
@@ -27,7 +33,19 @@ PROFILE-R1 no config file/environment override: explicit flags then documented d
 
 ## Output
 
-Text report should be glanceable. It opens with a compact static summary panel grouping recorded verified, checked tasks, active blockers, and human review, then selected relative source, inventory/raw statuses, task-file coverage, superseded rows, and findings with stable code/severity/path/line. Those counts stay separate. Show null as N/A. Distinguish invalid supplied replacement, historical verified status and successful active completion. Every skipped required/optional evidence source is visible without secret contents.
+Text report should be glanceable. It opens with a compact static summary panel grouping recorded verified, checked tasks, active blockers, and human review, then selected relative source, inventory/raw statuses, task-file coverage, superseded rows, and findings with stable code/severity/path/line. Those counts stay separate and always describe the full roadmap. A view never shrinks those denominators or hides a diagnostic. Show null as N/A. Distinguish invalid supplied replacement, historical verified status and successful active completion. Every skipped required/optional evidence source is visible without secret contents.
+
+### Human-text views
+
+The owner approved these views on 7 November 2026. They are not a new schema and they do not approve DC-01–DC-08.
+
+Families are `--status` (exact raw token, case-sensitive, unknown tokens allowed), `--blocked`, `--human-review`, `--active`, and `--historical`. Different families combine with AND. Repeated different `--status` values combine with OR. `--active` together with `--historical` matches nothing. Repeating `--blocked`, `--human-review`, `--active`, `--historical`, `--explain`, or the same `--status` token is an invocation error (exit 2), including when `--json` is set.
+
+When any filter family is set, human text prints `shown N of M items` before the item list. `M` is the full item count. If `N` is 0, the next line is `no item matches this view; totals above are the full roadmap`. That message is not a diagnostic and is not fatal. Exit 0, 1, or 2 still comes from the full result: hidden items do not suppress findings, and a no-match with no finding at the threshold stays exit 0.
+
+`--explain` adds lines under each shown item, or under every item when no filter is set. Each line starts with `explain:`. It may state that a valid supersession excluded the row from active and recorded-verified counts, that a dependency is unsatisfied or `human_review`, and how checked tasks were counted. A file and line are printed only when that location was retained from the parse of the roadmap or a linked task file. If the location was not retained, the line says so. The text does not judge code correctness, does not crawl, and does not invent a line number. Repo-supplied terminal controls in those lines are sanitized the same way as other human text. JSON keeps raw strings and does not gain explain lines.
+
+The summary panel, the diagnostic list, and JSON stay on the unfiltered result. `--blocked` can list a historical item that the active-blockers count does not include.
 
 Items remain document order; diagnostics sort normalized relative path then line then code, plus stable tie-breaks specified in JSON contract. No volatile timestamp/clock context by default. Color/TTY heuristics are not a committed feature; candidate profile uses plain text on all terminals for stability. No special AI mode. Empty supported input does not become a fatal error simply because there are no items.
 

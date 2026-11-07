@@ -129,6 +129,7 @@ type Supersession struct {
 	Parsed       string
 	Valid        *bool
 	TerminalID   string
+	Line         int
 }
 
 type Dependency struct {
@@ -147,6 +148,13 @@ type ItemTasks struct {
 	HasNums bool
 	Source  string
 	State   string
+	Checks  []TaskCheck
+}
+
+// TaskCheck is text-only evidence. It is not part of the JSON schema.
+type TaskCheck struct {
+	Line    int
+	Checked bool
 }
 
 type Diagnostic struct {

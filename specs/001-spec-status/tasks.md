@@ -13,6 +13,8 @@ Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01
 | Read-only `spec status` CLI, parser, history, JSON/text, exits 0/1/2 | Implemented | Source under `cmd/spec` and `internal/`. Not independently verified. |
 | Cobra command, help, and flag handling | Owner-approved dependency exception | Pinned in go.mod. Parsing and safeio stay standard library. The process unsets `BASH_COMP_DEBUG_FILE` for each call so Cobra cannot append that log. Not a security review of Cobra. |
 | Lip Gloss human text | Owner-approved styling exception | Headings, columns, progress, and restrained color. JSON, fatal text, version, and completion stay plain. Not a security review, and not approval of other PROFILE-R1 choices. |
+| Compact summary panel | Owner-approved presentation on the same human-text surface | Static one-shot panel. Counts stay separate. Not a dashboard. |
+| Human-text filters and `--explain` | Owner-approved view on the existing feature | Exact status match, blocked, human review, active, and historical filters. Mechanical file:line reasons. JSON schema 1.0 payload unchanged. Not approval of DC-01–DC-08. |
 | In-repo unit, integration, and adversarial filesystem tests | Executed by the implementer | `CGO_ENABLED=0 go test ./...` on Linux amd64, Go 1.22.2. Not an independent review. |
 | Cold-start sample | Measured by the implementer on one host | Nine runs of 100 items and 10,000 tasks, median about 3.9 ms. Not a support claim. |
 | TASK-17–21 release, tags, signing, support matrix | Not started | No workflow, tag, or published binary. |

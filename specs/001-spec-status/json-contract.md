@@ -6,6 +6,8 @@
 
 Propose top-level `schema_version: "1.0"`; not CLI SemVer or input v0.1.1. Within a stable schema major, additive optional fields may be non-breaking only if documented consumer rules permit ignoring them. Reinterpreting status, denominators, exit meanings or existing field types is breaking. Adding a diagnostic code requires documented unknown-code tolerance and does not silently change threshold meaning. Input compatibility matrix stays independently documented.
 
+Human-text filters and `--explain` do not change this document. Passing `--status`, `--blocked`, `--human-review`, `--active`, `--historical`, or `--explain` with `--json` still emits the full schema 1.0 payload for the unfiltered result. Those flags add no field, remove no item, and do not reinterpret a denominator. A later schema that exposed a view would need an explicit additive field or a new schema version; this contract does not add one.
+
 Retain `superseded_by` separate from raw lifecycle status and `--json` invocation. No camelCase replacement or --format alias. No quarter/inference fields, even null placeholders. Explicit timing is preserved only as supported source text; no new normalized date fields are adopted by this draft. No private absolute paths, secret contents, volatile timestamps or process-dependent IDs.
 
 ## Root document (candidate required fields)

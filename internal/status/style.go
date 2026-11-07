@@ -13,8 +13,14 @@ import (
 // View controls human text only. JSON does not use it.
 // Color is an explicit choice made by the caller. Width is a character budget.
 type View struct {
-	Color bool
-	Width int
+	Color       bool
+	Width       int
+	Statuses    []string
+	Blocked     bool
+	HumanReview bool
+	Active      bool
+	Historical  bool
+	Explain     bool
 }
 
 func normalizeWidth(n int) int {
@@ -187,11 +193,18 @@ func renderHuman(rep Report, view View) string {
 		return b.String()
 	}
 	b.WriteString(summaryPanel(p, rep, width))
+	shown := filterItems(rep.Items, view)
+	if view.filtering() {
+		b.WriteString("shown " + itoa(len(shown)) + " of " + itoa(len(rep.Items)) + " items\n")
+		if len(shown) == 0 {
+			b.WriteString("no item matches this view; totals above are the full roadmap\n")
+		}
+	}
 	b.WriteString("\n")
 	if width >= 60 {
-		writeTable(&b, p, rep, width)
+		writeTable(&b, p, shown, view, width)
 	} else {
-		writeStacked(&b, p, rep, width)
+		writeStacked(&b, p, shown, view, width)
 	}
 	b.WriteString("\n")
 	if len(rep.Diagnostics) == 0 {
@@ -404,21 +417,24 @@ func stripANSI(s string) string {
 	return b.String()
 }
 
-func writeTable(b *strings.Builder, p *painter, rep Report, width int) {
+func writeTable(b *strings.Builder, p *painter, items []Item, view View, width int) {
 	idW, statusW, scopeW := 4, 12, 11
 	titleW := width - (idW + statusW + scopeW + 3)
 	if titleW < 8 {
-		writeStacked(b, p, rep, width)
+		writeStacked(b, p, items, view, width)
 		return
 	}
 	b.WriteString(p.paint(pad("ID", idW)+" "+pad("Status", statusW)+" "+pad("Scope", scopeW)+" Title", "heading") + "\n")
-	for _, it := range rep.Items {
+	for _, it := range items {
 		writeItemRow(b, p, it, idW, statusW, scopeW, titleW)
+		if view.Explain {
+			writeExplain(b, it, width)
+		}
 	}
 }
 
-func writeStacked(b *strings.Builder, p *painter, rep Report, width int) {
-	for _, it := range rep.Items {
+func writeStacked(b *strings.Builder, p *painter, items []Item, view View, width int) {
+	for _, it := range items {
 		scope := "active"
 		scopeKind := ""
 		if !it.Active {
@@ -434,7 +450,133 @@ func writeStacked(b *strings.Builder, p *painter, rep Report, width int) {
 		b.WriteString("  " + p.paint(truncate(scope, width-2), scopeKind) + "\n")
 		b.WriteString("  " + truncate(it.Title, width-2) + "\n")
 		writeRelations(b, p, it, width)
+		if view.Explain {
+			writeExplain(b, it, width)
+		}
 	}
+}
+
+func (v View) filtering() bool {
+	return len(v.Statuses) > 0 || v.Blocked || v.HumanReview || v.Active || v.Historical
+}
+
+func filterItems(items []Item, view View) []Item {
+	if !view.filtering() {
+		return items
+	}
+	out := make([]Item, 0, len(items))
+	for _, it := range items {
+		if itemMatches(it, view) {
+			out = append(out, it)
+		}
+	}
+	return out
+}
+
+func itemMatches(it Item, view View) bool {
+	if len(view.Statuses) > 0 {
+		ok := false
+		for _, status := range view.Statuses {
+			if it.Status == status {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			return false
+		}
+	}
+	if view.Blocked && !itemBlocked(it) {
+		return false
+	}
+	if view.HumanReview && !itemReview(it) {
+		return false
+	}
+	if view.Active && !it.Active {
+		return false
+	}
+	if view.Historical && it.Active {
+		return false
+	}
+	return true
+}
+
+func itemBlocked(it Item) bool {
+	for _, d := range it.Dependencies {
+		if !d.Satisfied {
+			return true
+		}
+	}
+	return false
+}
+
+func itemReview(it Item) bool {
+	for _, d := range it.Dependencies {
+		if d.State == "human_review" {
+			return true
+		}
+	}
+	return false
+}
+
+func writeExplain(b *strings.Builder, it Item, width int) {
+	for _, line := range explainLines(it) {
+		for _, wrapped := range wrapText(line, width-2) {
+			b.WriteString("  " + wrapped + "\n")
+		}
+	}
+}
+
+func explainLines(it Item) []string {
+	var lines []string
+	excluded := it.Supersession.Supplied && it.Supersession.Valid != nil && *it.Supersession.Valid
+	if excluded {
+		if it.Supersession.Line > 0 && it.Path != "" {
+			lines = append(lines, "explain: excluded from active and recorded-verified counts; superseded-by "+sanitizeTerminal(it.SupersededBy)+" at "+it.Path+":"+itoa(it.Supersession.Line))
+		} else {
+			lines = append(lines, "explain: excluded from active and recorded-verified counts; superseded-by field line unavailable")
+		}
+	}
+	for _, d := range it.Dependencies {
+		if d.Satisfied && d.State != "human_review" {
+			continue
+		}
+		loc := "source line unavailable"
+		if d.Line > 0 && d.Path != "" {
+			loc = d.Path + ":" + itoa(d.Line)
+		}
+		line := "explain: dependency " + sanitizeTerminal(d.ID) + " is " + sanitizeTerminal(d.State) + " at " + loc
+		if d.State == "human_review" {
+			line += "; the successor is not used and this is not independent verification"
+		}
+		lines = append(lines, line)
+	}
+	switch {
+	case it.Tasks.HasNums && it.Tasks.Source != "":
+		lines = append(lines, "explain: checked tasks "+itoa(it.Tasks.Checked)+"/"+itoa(it.Tasks.Total)+" in "+it.Tasks.Source)
+		if len(it.Tasks.Checks) == 0 {
+			lines = append(lines, "explain: checkbox line locations were not retained")
+		}
+		for _, c := range it.Tasks.Checks {
+			mark := "unchecked"
+			if c.Checked {
+				mark = "checked"
+			}
+			if c.Line > 0 {
+				lines = append(lines, "explain: "+mark+" checkbox at "+it.Tasks.Source+":"+itoa(c.Line))
+			} else {
+				lines = append(lines, "explain: "+mark+" checkbox line unavailable in "+it.Tasks.Source)
+			}
+		}
+	case it.Tasks.State == "not_linked" || it.Tasks.State == "":
+		lines = append(lines, "explain: no task file linked; checkbox line evidence unavailable")
+	default:
+		lines = append(lines, "explain: task file was "+it.Tasks.State+"; checkbox line evidence unavailable")
+	}
+	if len(lines) == 0 {
+		lines = append(lines, "explain: no dependency, supersession-exclusion, or task-file evidence for this item")
+	}
+	return lines
 }
 
 func writeItemRow(b *strings.Builder, p *painter, it Item, idW, statusW, scopeW, titleW int) {
