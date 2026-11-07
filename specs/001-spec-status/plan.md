@@ -1,6 +1,6 @@
 # Technical plan — proposed architecture, no implementation
 
-**Draft PROFILE-R1.** Requires DC-01–06 clarification and separate implementation authorization. This file contains design, not executable code, configuration or evidence that the product exists.
+**Draft PROFILE-R1.** This file remains the design record. A development implementation now exists beside it and uses these proposals as reversible defaults, not as owner approval. This file contains no executable code.
 
 ## Architecture and processing boundaries
 

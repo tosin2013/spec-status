@@ -1,6 +1,6 @@
 # Build, release and distribution requirements
 
-**Documentation-only draft.** No workflow, code, tag, release, binary, artifact manifest or test result exists by virtue of this package. Candidate support/identity details are PROFILE-R1 proposals under DC-05–08, not owner-ratified release settings.
+**Release requirements remain a draft.** A development CLI and implementer-run tests now exist in the repository. No workflow, tag, release, published binary, artifact manifest, or supported-platform claim exists. Candidate support and identity details are PROFILE-R1 proposals under DC-05–08, not owner-ratified release settings.
 
 ## Identity and compatibility
 

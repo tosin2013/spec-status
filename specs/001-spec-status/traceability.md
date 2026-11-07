@@ -120,7 +120,13 @@ DC-01–08 and D-01A–D-06A in decisions.md cover exact grammar/path precedence
 - Strict supersession is retained, not optionally cut; invalid-reference metrics are explicitly proposed, not smuggled into source authority. No silent dependency redirect, even verified successor.
 - Inferred quarters omitted from interface, schema, algorithms, denominators and future implementation backlog. Explicit timing is not transformed into a new forecast/evidence source.
 - Core stdlib/offline/read-only, safety-constrained and extension-independent. Future writer approval/reread isolated and no deferred dashboard/notification feature promoted.
-- Compile versus runtime verification and unsigned integrity versus identity remain distinct. No current binaries, tests, release, platform support or chosen license claimed.
+- Compile versus runtime verification and unsigned integrity versus identity remain distinct. A development CLI and implementer-run tests now exist. They are not independent verification, a release, a supported platform list, a signature, or a chosen license.
 - README/docs stage does not remain under an obsolete drafting hold; implementation and release gates remain. Public-facing text includes no private coordination/source handles/paths.
+
+## Implementation slice
+
+The development CLI covers the read-only reporting path: narrow roadmap parsing, raw statuses, separate checkbox and recorded-verified counts, history-safe supersession, human-review dependencies, shared text/JSON results, exits 0/1/2, and root-confined reads. In-repo tests exercise malformed input, deterministic output, and adversarial filesystem cases. Those tests were run by the implementer.
+
+Still open as product work, not silently dropped: owner approval of DC-01–08, real dogfood roadmaps, release identity and multi-platform execution, signing, license, and phase-two mutation. Acceptance rows AC-21–AC-25 are not met. AC-20 has one host measurement and is not a passed certification.
 
 Documentation review still must assess details, not only identifier counts. Cases where ambiguity remains (grammar/source provenance, metadata races, unsafe skips versus fatal, duplicate counts and stage matrix) are labelled as implementation blockers or candidate policies rather than falsely resolved requirements.

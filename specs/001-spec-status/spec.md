@@ -1,6 +1,6 @@
 # Feature specification — deterministic roadmap status
 
-**Draft feature SS-001, proposed specification version 0.1.** This is a documentation-stage specification, not an implementation or release. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 is pending [DC-01–08](decisions.md); drafting does not ratify it.
+**Draft feature SS-001, proposed specification version 0.1.** This file is the specification, not a release. A development CLI now implements a read-only slice; that code does not ratify the open choices below. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 is pending [DC-01–08](decisions.md); drafting does not ratify it.
 
 ## 1. Product outcome and users
 
