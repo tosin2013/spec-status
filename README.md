@@ -75,7 +75,7 @@ warning SS_DEPENDENCY_HUMAN_REVIEW
 
 ## Build and run from source
 
-These commands were run in this workspace on Linux amd64 with Go 1.22.2:
+These commands were run in this workspace on Linux amd64 with Go 1.22.2. The tests, build, and the plain and colored status reports were also run on Darwin arm64 with Go 1.24.3:
 
 ```
 CGO_ENABLED=0 go test ./...
@@ -115,7 +115,7 @@ Choices that were still open in PROFILE-R1 are used here as reversible implement
 
 ## Limits
 
-Inferred quarters are not calculated. The sensitive-name filter and symlink checks are candidate safeguards, not a certification that every secret or mount escape is caught. Linux amd64 is the only platform this build was executed on. A Darwin arm64 binary was cross-compiled here and was not run. No operating system is a supported release target, and nothing is signed.
+Inferred quarters are not calculated. The sensitive-name filter and symlink checks are candidate safeguards, not a certification that every secret or mount escape is caught. This build was executed on Linux amd64 and Darwin arm64, by the implementer, on one machine each. On Darwin the post-open path check that Linux performs through `/proc/self/fd` is skipped; reads there rely on `O_NOFOLLOW`, the symlink-component check, and the device check. No operating system is a supported release target, and nothing is signed.
 
 On this Linux amd64 host, nine runs of a 100-item, 10,000-task fixture had a median of about 3.9 ms. That is one development machine, not a performance promise and not an independent measurement.
 

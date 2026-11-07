@@ -18,7 +18,7 @@ func writerIsTerminal(w io.Writer) bool {
 	if !ok || f == nil {
 		return false
 	}
-	_, err := unix.IoctlGetTermios(int(f.Fd()), unix.TCGETS)
+	_, err := unix.IoctlGetTermios(int(f.Fd()), ioctlGetTermios)
 	return err == nil
 }
 

@@ -15,7 +15,8 @@ Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01
 | Lip Gloss human text | Owner-approved styling exception | Headings, columns, progress, and restrained color. JSON, fatal text, version, and completion stay plain. Not a security review, and not approval of other PROFILE-R1 choices. |
 | Compact summary panel | Owner-approved presentation on the same human-text surface | Static one-shot panel. Counts stay separate. Not a dashboard. |
 | Human-text filters and `--explain` | Owner-approved view on the existing feature | Exact status match, blocked, human review, active, and historical filters. Mechanical file:line reasons. JSON schema 1.0 payload unchanged. Not approval of DC-01–DC-08. |
-| In-repo unit, integration, and adversarial filesystem tests | Executed by the implementer | `CGO_ENABLED=0 go test ./...` on Linux amd64, Go 1.22.2. Not an independent review. |
+| In-repo unit, integration, and adversarial filesystem tests | Executed by the implementer | `CGO_ENABLED=0 go test ./...` on Linux amd64, Go 1.22.2, and on Darwin arm64, Go 1.24.3. Darwin needed a per-OS termios ioctl (`TIOCGETA`) and now runs the FIFO test. Not an independent review and not a support claim. |
+| Spec Kit scaffolding and roadmap extension | Development tooling only | `.specify/templates`, `scripts`, `workflows`, and `extensions/roadmap` (speckit-roadmap v0.1.0, manifest script names renamed to pass specify-cli 1.2.0 validation). The `spec` CLI does not read or require them. `.claude/` is ignored. |
 | Cold-start sample | Measured by the implementer on one host | Nine runs of 100 items and 10,000 tasks, median about 3.9 ms. Not a support claim. |
 | TASK-17–21 release, tags, signing, support matrix | Not started | No workflow, tag, or published binary. |
 | TASK-22–23 phase-two writes and deferred products | Not started | No write command. |
