@@ -21,7 +21,7 @@ Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01
 | Cold-start sample | Measured by the implementer on one host | Nine runs of 100 items and 10,000 tasks, median about 3.9 ms. Not a support claim. |
 | TASK-17–21 release, tags, signing, support matrix | Not started | No workflow, tag, or published binary. |
 | TASK-22–23 phase-two writes and deferred products | Not started | No write command. |
-| Real approved roadmaps (AC-24) | Not started | Only the synthetic fixture in `testdata/example-roadmap` has been exercised. |
+| Real approved roadmaps (AC-24) | Hand-count parity observed by the implementer | Inputs approved under D-2026-11-07-08. This repository's roadmap: 6 items, 4 active, 0/4 recorded verified, 2 active blockers, 1 task file with 0 checkboxes. speckit-roadmap v0.1.0: 7 items, 6 active, 4/6 recorded verified, 2 active blockers, 43/43 checked tasks in 4 files. Both match `spec status` text and JSON. Counted by the implementer on 7 November 2026; not an independent review. |
 
 ## Gate 0 — approve the contract before coding
 

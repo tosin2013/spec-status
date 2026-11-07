@@ -65,17 +65,17 @@ Every original dependency edge pointing at a superseded item requires human revi
 
 Reason/evidence/decision-date/decision-maker fields may be useful later but are not silently required by this one-field extension. No external evidence fetching. Extension authoring is future approved write-back, never read-only parser output.
 
-## 5. Candidate lifecycle artifact expectations (not approved)
+## 5. Lifecycle artifact expectations (approved 7 November 2026, D-2026-11-07-03)
 
 | Recorded status | Spec reference / spec.md | plan.md / tasks.md |
 |---|---|---|
 | undecided, needs-info | Not required | Not required |
 | planned | Missing link info; if explicit link exists inspect safely | Not required; missing optional files not error |
-| specced | Candidate required, missing link/file error | Not required |
-| in-progress, implemented, verified | Candidate required, missing link/file error | PROFILE-R1 proposes required files, missing error |
+| specced | Required, missing link/file error | Not required |
+| in-progress, implemented, verified | Required, missing link/file error | Required, missing error |
 | deferred, abandoned, unknown | No invented stage requirement; explicit links still checked | No inferred requirement |
 
-This matrix is a new proposed mapping for DC-03 approval; source requirements required stage-appropriate checks but did not settle this matrix. Alternative: minimal spec-only matrix until real conventions establish plan/tasks expectations. Choosing that alternative changes fixtures/diagnostics explicitly, not silently. Supersession retains recorded lifecycle; PROFILE-R1 stage findings remain visible on historical rows, without affecting active completion eligibility. A missing link or file proves only a mechanical absence, not that implementation is wrong.
+The owner approved this matrix on 7 November 2026 and rejected the minimal spec-only alternative (D-2026-11-07-03). Changing it later changes fixtures and diagnostics explicitly, not silently. Supersession retains recorded lifecycle; PROFILE-R1 stage findings remain visible on historical rows, without affecting active completion eligibility. A missing link or file proves only a mechanical absence, not that implementation is wrong.
 
 ## 6. Safety and compatibility limits
 

@@ -1,10 +1,21 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: (none) → 1.0.0
-Bump rationale: initial ratification — first roadmap for this repository.
+Version change: 1.0.0 → 1.1.0
+Bump rationale: MINOR — new decision C-07 (DC-03 approved) and DC-08 dogfood
+inputs recorded; Q1 and Q2 resolved. No status transitions.
 
 Changes this revision:
+  - Decision recorded: C-07 (D-2026-11-07-03, DC-03 as built)
+  - 002 notes: DC-03 approved; DC-08 dogfood inputs approved (D-2026-11-07-08)
+  - 003 notes: hand-count parity observed on both approved inputs
+  - Open questions resolved: Q1 (dogfood inputs), Q2 (stage matrix/blocked policy)
+
+Specs affected: 002, 003
+Open questions added/resolved: Q1, Q2 resolved
+
+Previous revision (1.0.0, 2026-11-07): initial ratification.
+Changes in 1.0.0:
   - Added spec 001 — Read-only spec status core (implemented)
   - Added spec 002 — Contract approval DC-01–DC-08 (needs-info)
   - Added spec 003 — Real-roadmap dogfood (planned)
@@ -71,6 +82,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **C-06 — Evidence-gated distribution and mutation (Art. VII–VIII):** no support,
   signing, or provenance claims without verified evidence; any future write-back
   needs explicit per-mutation approval and is never part of the v1 core.
+- **C-07 — Dependency and stage policy (DC-03, approved 2026-11-07):** a
+  dependency is satisfied only by a recorded `verified` target; specced needs a
+  spec link and spec.md, in-progress and later also need plan.md and tasks.md;
+  human review of a superseded dependency is a warning; blocked and review
+  counts cover active rows once each. Decision D-2026-11-07-03 in
+  `specs/001-spec-status/decisions.md`.
 
 ## Planned Specs
 
@@ -104,8 +121,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** implementing changes the decisions require (tracked per spec).
 - **Depends on:** none
 - **Governed by:** C-01, C-03, C-05
-- **Notes:** One DC-01 refinement (speckit-roadmap field spelling) was approved
-  on 2026-11-07; the rest of DC-01 and DC-02–DC-08 remain open.
+- **Notes:** Approved on 2026-11-07: one DC-01 refinement (speckit-roadmap field
+  spelling), all of DC-03 (C-07), and the DC-08 dogfood inputs. Still open: the
+  rest of DC-01, DC-02, DC-04–DC-07, and DC-08's license, security route and
+  support window.
 
 ### Evidence and distribution
 
@@ -120,8 +139,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** certifying upstream compatibility.
 - **Depends on:** 001
 - **Governed by:** C-01
-- **Notes:** The upstream speckit-roadmap v0.1.0 roadmap is already exercised as a
-  test fixture; that is a fixture, not an approved dogfood input.
+- **Notes:** Inputs approved under D-2026-11-07-08: this repository's roadmap and
+  the speckit-roadmap v0.1.0 roadmap in `testdata/speckit-roadmap-upstream`. On
+  2026-11-07 the implementer observed hand-count parity on both (recorded in
+  `specs/001-spec-status/tasks.md`). Not an independent review. The outcome looks
+  met; a status change awaits owner confirmation and a spec link, which C-07
+  requires from specced onward.
 
 ### 004 — Release engineering [status: needs-info]
 
@@ -164,10 +187,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ## Open Questions
 
-- **Q1 —** Which roadmaps besides this one are approved dogfood inputs (DC-08)?
-- **Q2 —** Which lifecycle-file matrix and blocked-count policy should be ratified
-  (DC-03)? 001's current defaults require plan and tasks files for
-  in-progress and later.
+- ~~**Q1 —** Which roadmaps besides this one are approved dogfood inputs
+  (DC-08)?~~ Resolved 2026-11-07: this repository and speckit-roadmap v0.1.0.
+- ~~**Q2 —** Which lifecycle-file matrix and blocked-count policy should be
+  ratified (DC-03)?~~ Resolved 2026-11-07: see C-07.
 - **Q3 —** Initial targets: linux/amd64 + darwin/arm64 only, and on which runners
   (DC-07)?
 - **Q4 —** License, security disclosure route, and support window (DC-08 / 004).
@@ -184,4 +207,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-07
+**Version**: 1.1.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-07
