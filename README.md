@@ -11,15 +11,16 @@ This report was produced by the development build against `testdata/example-road
 This is the plain report from `spec status --color=never --root testdata/example-roadmap` on the development build. A terminal, or `--color=always`, uses the same words with restrained color. Color is not the only distinction: `historical`, `active`, `recorded verified`, and `human review` are written out. `verified` here means the roadmap recorded that word. It is not an independent review.
 
 ```
-Spec Status  development build
-source  .specify/memory/roadmap.md
-items 3   active 2   historical 1
-statuses  implemented 1, planned 1, verified 1
-recorded verified  1/2 (50%)  [#########################------------------------]
-tasks  1/2 (50%)  [###############################------------------------------]
-  task scope unique_linked_task_files  read 2  missing 0  skipped 0
-superseded 1   invalid supersession 0
-blocked active 1   human review 1
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ Spec Status  development build                                               │
+│ recorded verified   1/2 (50%)  [######------]                                │
+│ checked tasks       1/2 (50%)  [######------]                                │
+│ active blockers     1                                                        │
+│ human review        1  warning                                               │
+│ items 3 active 2 historical 1 superseded 1                                   │
+│ task files read 2 missing 0 skipped 0                                        │
+│ source .specify/memory/roadmap.md                                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
 
 ID   Status       Scope       Title
 001  implemented  historical  Preserve original feature

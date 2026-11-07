@@ -27,7 +27,7 @@ PROFILE-R1 no config file/environment override: explicit flags then documented d
 
 ## Output
 
-Text report should be glanceable: selected relative source, inventory/raw statuses, active/recorded-verified numerator+denominator+percentage, task counts with unique-file scope, superseded row count and successors, active blocked/review counts, then findings with stable code/severity/path/line. Show null as N/A. Distinguish invalid supplied replacement, historical verified status and successful active completion. Every skipped required/optional evidence source is visible without secret contents.
+Text report should be glanceable. It opens with a compact static summary panel grouping recorded verified, checked tasks, active blockers, and human review, then selected relative source, inventory/raw statuses, task-file coverage, superseded rows, and findings with stable code/severity/path/line. Those counts stay separate. Show null as N/A. Distinguish invalid supplied replacement, historical verified status and successful active completion. Every skipped required/optional evidence source is visible without secret contents.
 
 Items remain document order; diagnostics sort normalized relative path then line then code, plus stable tie-breaks specified in JSON contract. No volatile timestamp/clock context by default. Color/TTY heuristics are not a committed feature; candidate profile uses plain text on all terminals for stability. No special AI mode. Empty supported input does not become a fatal error simply because there are no items.
 
