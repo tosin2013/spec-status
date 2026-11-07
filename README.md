@@ -11,15 +11,16 @@ This report was produced by the development build against `testdata/example-road
 This is the plain report from `spec status --color=never --root testdata/example-roadmap` on the development build. A terminal, or `--color=always`, uses the same words with restrained color. Color is not the only distinction: `historical`, `active`, `recorded verified`, and `human review` are written out. `verified` here means the roadmap recorded that word. It is not an independent review.
 
 ```
-Spec Status  development build
-source  .specify/memory/roadmap.md
-items 3   active 2   historical 1
-statuses  implemented 1, planned 1, verified 1
-recorded verified  1/2 (50%)  [#########################------------------------]
-tasks  1/2 (50%)  [###############################------------------------------]
-  task scope unique_linked_task_files  read 2  missing 0  skipped 0
-superseded 1   invalid supersession 0
-blocked active 1   human review 1
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ Spec Status  development build                                               │
+│ recorded verified   1/2 (50%)  [######------]                                │
+│ checked tasks       1/2 (50%)  [######------]                                │
+│ active blockers     1                                                        │
+│ human review        1  warning                                               │
+│ items 3 active 2 historical 1 superseded 1                                   │
+│ task files read 2 missing 0 skipped 0                                        │
+│ source .specify/memory/roadmap.md                                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
 
 ID   Status       Scope       Title
 001  implemented  historical  Preserve original feature
@@ -36,6 +37,42 @@ warning SS_DEPENDENCY_HUMAN_REVIEW
   human review.
 ```
 
+## Filters
+
+Filters are a human-text view. The summary panel above stays the full roadmap, diagnostics stay visible, and `--json` still prints the unfiltered schema 1.0 document. A view that matches nothing says so and is not fatal by itself.
+
+This is `spec status --color=never --root testdata/example-roadmap --human-review --explain` on the same fixture:
+
+```
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ Spec Status  development build                                               │
+│ recorded verified   1/2 (50%)  [######------]                                │
+│ checked tasks       1/2 (50%)  [######------]                                │
+│ active blockers     1                                                        │
+│ human review        1  warning                                               │
+│ items 3 active 2 historical 1 superseded 1                                   │
+│ task files read 2 missing 0 skipped 0                                        │
+│ source .specify/memory/roadmap.md                                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+shown 1 of 3 items
+
+ID   Status       Scope       Title
+003  planned      active      Follow-on work
+  human review: depends 001 human_review
+  explain: dependency 001 is human_review at .specify/memory/roadmap.md:18; the
+  successor is not used and this is not independent verification
+  explain: no task file linked; checkbox line evidence unavailable
+
+diagnostics
+info    SS_SPEC_REFERENCE_MISSING
+  .specify/memory/roadmap.md:14 003 Planned item has no spec link.
+warning SS_DEPENDENCY_HUMAN_REVIEW
+  .specify/memory/roadmap.md:18 003 Dependency on a superseded item requires
+  human review.
+```
+
+`--status` matches the raw status exactly, including an unknown token. Repeat it with a different token to match any of those tokens. `--blocked`, `--human-review`, `--active`, and `--historical` combine with AND. `--blocked` includes a historical item with an unsatisfied dependency; that is separate from the active-blockers count. `--explain` adds a mechanical reason and a file:line only when the parse retained that location.
+
 ## Build and run from source
 
 These commands were run in this workspace on Linux amd64 with Go 1.22.2:
@@ -46,6 +83,8 @@ CGO_ENABLED=0 go build -o spec ./cmd/spec
 ./spec status --color=never --root testdata/example-roadmap
 ./spec status --color=always --root testdata/example-roadmap
 ./spec status --root testdata/example-roadmap --json
+./spec status --color=never --root testdata/example-roadmap --human-review --explain
+./spec status --color=never --root testdata/example-roadmap --status planned --blocked
 ./spec --help
 ./spec --version
 ```
@@ -66,7 +105,7 @@ The Go module is `github.com/tosin2013/spec-status`. The command is `spec status
 
 The development build reads a narrow heading-and-bullet roadmap shape. Unknown status words stay as written. Checkbox progress, recorded `implemented`, and recorded `verified` stay separate. Superseded items remain in the history. A dependency on a superseded item stays on that item and is marked for human review.
 
-Text and JSON are two views of one result. Commands, help, and flags use Cobra. Human text uses Lip Gloss for headings, columns, and restrained status color. The owner approved those two dependencies and no others. Roadmap parsing and file reads stay in the Go standard library. The program is built with `CGO_ENABLED=0`. While it runs it does not use the network, Git, a subprocess, or write files.
+Text and JSON are two views of one result. Human-text filters and `--explain` select or annotate item rows only; they do not change the summary, the findings, or the JSON bytes. Commands, help, and flags use Cobra. Human text uses Lip Gloss for headings, columns, the summary panel, and restrained status color. The owner approved those two dependencies and no others. Roadmap parsing and file reads stay in the Go standard library. The program is built with `CGO_ENABLED=0`. While it runs it does not use the network, Git, a subprocess, or write files.
 
 `--color=auto` is the default: color only when stdout is a terminal, `NO_COLOR` is unset, and `TERM` is not `dumb`. `--color=always` and `--color=never` are explicit. JSON, fatal text, version, and completion stay plain. Width comes from `COLUMNS` when that value is usable, otherwise 80. The program does not query the terminal and does not open `/dev/tty`.
 

@@ -56,8 +56,33 @@ func TestHumanTextColorIsLabelsNotJSON(t *testing.T) {
 		t.Fatal("JSON gained styling")
 	}
 	narrow := stripANSI(Text(rep, View{Width: 24}))
-	if !strings.Contains(narrow, "Preserve") {
+	if !strings.Contains(narrow, "Preserve") || !strings.Contains(narrow, "1/2") || !strings.Contains(narrow, "╭") {
 		t.Fatal(narrow)
+	}
+	if stripANSI(color) != plain {
+		t.Fatalf("styled facts differ from plain\nplain:\n%s\nstripped:\n%s", plain, stripANSI(color))
+	}
+}
+
+func TestSummaryKeepsZeroDenominatorsUnadorned(t *testing.T) {
+	rep := sampleReport()
+	rep.Summary.ActiveItems = 0
+	rep.Summary.VerifiedActiveItems = 0
+	rep.Summary.VerifiedPercent = percentOf(0, 0)
+	rep.Summary.Tasks = TaskSummary{Checked: 0, Total: 0, Percent: percentOf(0, 0), Scope: taskScope}
+	rep.Summary.BlockedCount = 0
+	rep.Summary.HumanReviewCount = 0
+	rep.Items = nil
+	rep.Diagnostics = nil
+	text := Text(rep, View{Width: 40})
+	if strings.Contains(text, "[") || strings.Contains(text, "#") {
+		t.Fatalf("empty progress decoration:\n%s", text)
+	}
+	if !strings.Contains(text, "0/0 (N/A)") || !strings.Contains(text, "human review") || !strings.Contains(text, "active blockers") {
+		t.Fatalf("counts clipped:\n%s", text)
+	}
+	if !strings.Contains(text, "╭") {
+		t.Fatal("missing summary border")
 	}
 }
 
@@ -95,19 +120,6 @@ func sampleReport() Report {
 		},
 		Diagnostics: []Diagnostic{{Severity: "warning", Code: "SS_DEPENDENCY_HUMAN_REVIEW", Message: "Dependency on a superseded item requires human review.", ItemID: "003", Path: ".specify/memory/roadmap.md", Line: 18}},
 	}
-}
-
-func stripANSI(s string) string {
-	var b strings.Builder
-	for i := 0; i < len(s); {
-		if s[i] == 0x1b {
-			i = skipEscape(s, i+1)
-			continue
-		}
-		b.WriteByte(s[i])
-		i++
-	}
-	return b.String()
 }
 
 func utf8Valid(s string) bool {

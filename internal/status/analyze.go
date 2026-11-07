@@ -125,6 +125,9 @@ func build(rel string, items []rawItem, fs *safeio.FS) Report {
 		if it.HasSuper && !it.SuperBad {
 			item.SupersededBy = it.SuperID
 		}
+		if it.HasSuper {
+			item.Supersession.Line = it.SuperLine
+		}
 		item.Tasks.State = "not_linked"
 		if it.HasSpec {
 			itemDiags, tasks, specDir := inspectSpec(fs, rel, it, &rep, taskReads, taskMissing, taskSkipped)
@@ -507,6 +510,7 @@ func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads m
 		tasks.Checked = tf.Checked
 		tasks.Total = tf.Total
 		tasks.Percent = percentOf(tf.Checked, tf.Total)
+		tasks.Checks = append([]TaskCheck(nil), tf.Checks...)
 	}
 	return diags, tasks, specDir
 }

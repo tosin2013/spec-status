@@ -266,6 +266,7 @@ type taskFile struct {
 	Checked int
 	Total   int
 	Links   []taskLink
+	Checks  []TaskCheck
 }
 
 type taskLink struct {
@@ -312,6 +313,7 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 			return taskFile{}, &d
 		}
 		tf.Total++
+		tf.Checks = append(tf.Checks, TaskCheck{Line: i + 1, Checked: checked})
 		if tf.Total > maxTasks {
 			d := Diagnostic{Code: "SS_INPUT_LIMIT", Severity: "error", Message: "Task checkbox limit exceeded.", Path: rel, Line: i + 1}
 			return taskFile{}, &d
