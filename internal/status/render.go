@@ -69,74 +69,23 @@ func JSON(rep Report) []byte {
 }
 
 // Text renders the human report. Null quantities are N/A.
-func Text(rep Report) string {
+// view.Color adds restrained ANSI labels. It does not change the facts.
+// Fatal text stays plain so error output is stable.
+func Text(rep Report, view View) string {
 	if rep.Outcome == "fatal" {
-		d := Diagnostic{Code: "SS_ROADMAP_UNAVAILABLE", Message: "Required input is unavailable."}
-		if rep.Fatal != nil {
-			d = *rep.Fatal
-		} else if len(rep.Diagnostics) > 0 {
-			d = rep.Diagnostics[0]
-		}
-		return "spec: " + d.Code + ": " + d.Message + "\n"
+		return fatalText(rep)
 	}
-	var b strings.Builder
-	b.WriteString("source: " + rep.Roadmap + "\n")
-	if rep.Summary == nil {
-		b.WriteString("summary: N/A\n")
-		return b.String()
+	return renderHuman(rep, view)
+}
+
+func fatalText(rep Report) string {
+	d := Diagnostic{Code: "SS_ROADMAP_UNAVAILABLE", Message: "Required input is unavailable."}
+	if rep.Fatal != nil {
+		d = *rep.Fatal
+	} else if len(rep.Diagnostics) > 0 {
+		d = rep.Diagnostics[0]
 	}
-	s := rep.Summary
-	b.WriteString("items: " + strconv.Itoa(s.TotalItems) + "\n")
-	b.WriteString("statuses: " + formatCounts(s.StatusCounts) + "\n")
-	b.WriteString("active: " + strconv.Itoa(s.ActiveItems) + "\n")
-	b.WriteString("recorded_verified: " + strconv.Itoa(s.VerifiedActiveItems) + "/" + strconv.Itoa(s.ActiveItems) + " (" + s.VerifiedPercent.Text() + "%)\n")
-	b.WriteString("tasks: " + strconv.Itoa(s.Tasks.Checked) + "/" + strconv.Itoa(s.Tasks.Total) + " (" + s.Tasks.Percent.Text() + "%) scope=" + s.Tasks.Scope)
-	b.WriteString(" files_read=" + strconv.Itoa(s.Tasks.FilesRead) + " files_missing=" + strconv.Itoa(s.Tasks.FilesMissing) + " files_skipped=" + strconv.Itoa(s.Tasks.FilesSkipped) + "\n")
-	b.WriteString("superseded: " + strconv.Itoa(s.SupersededItems) + "\n")
-	b.WriteString("invalid_supersession: " + strconv.Itoa(s.InvalidSupersessionItems) + "\n")
-	b.WriteString("blocked_active: " + strconv.Itoa(s.BlockedCount) + "\n")
-	b.WriteString("human_review_active: " + strconv.Itoa(s.HumanReviewCount) + "\n")
-	for _, it := range rep.Items {
-		flag := "active"
-		if !it.Active {
-			flag = "historical"
-		}
-		b.WriteString(it.ID + " " + it.Status + " [" + flag + "] " + it.Title)
-		if it.SupersededBy != "" {
-			b.WriteString(" superseded-by " + it.SupersededBy)
-			if it.Supersession.Valid != nil && *it.Supersession.Valid && it.Supersession.TerminalID != "" {
-				b.WriteString(" terminal " + it.Supersession.TerminalID)
-			}
-		}
-		b.WriteString("\n")
-		if len(it.Dependencies) > 0 {
-			b.WriteString("  depends:")
-			for _, d := range it.Dependencies {
-				b.WriteString(" " + d.ID + "=" + d.State)
-			}
-			b.WriteString("\n")
-		}
-	}
-	if len(rep.Diagnostics) == 0 {
-		b.WriteString("diagnostics: none\n")
-		return b.String()
-	}
-	b.WriteString("diagnostics:\n")
-	for _, d := range rep.Diagnostics {
-		loc := d.Path
-		if d.Line > 0 {
-			loc += ":" + strconv.Itoa(d.Line)
-		}
-		if loc == "" {
-			loc = "-"
-		}
-		item := d.ItemID
-		if item == "" {
-			item = "-"
-		}
-		b.WriteString(d.Severity + " " + d.Code + " " + loc + " " + item + " " + d.Message + "\n")
-	}
-	return b.String()
+	return "spec: " + d.Code + ": " + d.Message + "\n"
 }
 
 func formatCounts(m map[string]int) string {

@@ -96,9 +96,11 @@ func newRoot(cwd string) *cobra.Command {
 	opts := &runOpts{
 		cwd:         cwd,
 		failOn:      "error",
+		color:       "auto",
 		failOnFlag:  singleString{name: "fail-on"},
 		rootFlag:    singleString{name: "root"},
 		roadmapFlag: singleString{name: "roadmap"},
+		colorFlag:   singleString{name: "color"},
 	}
 	root := &cobra.Command{
 		Use:           "spec",
@@ -123,6 +125,7 @@ func newRoot(cwd string) *cobra.Command {
 	root.PersistentFlags().Var(&opts.failOnFlag, "fail-on", "Exit 1 at this severity: info, warning, error, or none")
 	root.PersistentFlags().Var(&opts.rootFlag, "root", "Project directory that contains .specify")
 	root.PersistentFlags().Var(&opts.roadmapFlag, "roadmap", "Roadmap file inside the selected root")
+	root.PersistentFlags().Var(&opts.colorFlag, "color", "Human text color: auto, always, or never")
 
 	root.AddCommand(newStatus(opts), newVersion(), newCompletion())
 	return root
@@ -133,9 +136,11 @@ type runOpts struct {
 	json        bool
 	version     bool
 	failOn      string
+	color       string
 	failOnFlag  singleString
 	rootFlag    singleString
 	roadmapFlag singleString
+	colorFlag   singleString
 }
 
 func (o *runOpts) prepare() {
@@ -144,6 +149,12 @@ func (o *runOpts) prepare() {
 	}
 	if o.failOn == "" {
 		o.failOn = "error"
+	}
+	if o.colorFlag.set {
+		o.color = o.colorFlag.value
+	}
+	if o.color == "" {
+		o.color = "auto"
 	}
 }
 
@@ -156,7 +167,8 @@ Report recorded statuses, task checkboxes, dependency blockers, and broken refer
 This command does not run tests or Git, and it does not change files.`,
 		Example: `  spec status
   spec status --root testdata/example-roadmap
-  spec status --json --fail-on warning`,
+  spec status --json --fail-on warning
+  spec status --color=never`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if opts.version {
@@ -173,11 +185,13 @@ This command does not run tests or Git, and it does not change files.`,
 				fmt.Fprint(cmd.OutOrStdout(), string(status.JSON(rep)))
 				return silentExit{status.ExitCode(rep)}
 			}
+			view := status.View{Width: textColumns(), Color: false}
 			if rep.Outcome == "fatal" {
-				fmt.Fprint(cmd.ErrOrStderr(), status.Text(rep))
+				fmt.Fprint(cmd.ErrOrStderr(), status.Text(rep, view))
 				return silentExit{2}
 			}
-			fmt.Fprint(cmd.OutOrStdout(), status.Text(rep))
+			view.Color = wantColor(cmd.OutOrStdout(), opts.color)
+			fmt.Fprint(cmd.OutOrStdout(), status.Text(rep, view))
 			code := status.ExitCode(rep)
 			if code == 0 {
 				return nil
@@ -245,6 +259,23 @@ The script is shell text from Cobra. spec does not run it. If you later source t
 	return cmd
 }
 
+func wantColor(w io.Writer, mode string) bool {
+	switch mode {
+	case "always":
+		return true
+	case "never":
+		return false
+	default:
+		if _, ok := os.LookupEnv("NO_COLOR"); ok {
+			return false
+		}
+		if os.Getenv("TERM") == "dumb" {
+			return false
+		}
+		return writerIsTerminal(w)
+	}
+}
+
 func versionText() string {
 	return fmt.Sprintf("spec %s\ncommit: %s\ngo: %s\ntarget: %s/%s\nlabel: development build, not a release\n",
 		Version, Commit, runtime.Version(), runtime.GOOS, runtime.GOARCH)
@@ -264,11 +295,18 @@ func (s *singleString) Set(v string) error {
 	if s.set {
 		return fmt.Errorf("option --%s is repeated", s.name)
 	}
-	if s.name == "fail-on" {
+	switch s.name {
+	case "fail-on":
 		switch v {
 		case "info", "warning", "error", "none":
 		default:
 			return fmt.Errorf("threshold %q is not info, warning, error, or none", v)
+		}
+	case "color":
+		switch v {
+		case "auto", "always", "never":
+		default:
+			return fmt.Errorf("color %q is not auto, always, or never", v)
 		}
 	}
 	s.set = true
@@ -315,7 +353,7 @@ func repeated(args []string) string {
 			name = name[:i]
 		}
 		switch name {
-		case "--json", "--help", "-h", "--version", "-V", "--root", "--roadmap", "--fail-on":
+		case "--json", "--help", "-h", "--version", "-V", "--root", "--roadmap", "--fail-on", "--color":
 			seen[name]++
 			if seen[name] > 1 {
 				return name
