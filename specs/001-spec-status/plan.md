@@ -13,7 +13,7 @@ Propose a small Go standard-library application with logically separate responsi
 5. **Progress/result model:** compute active eligibility, raw counts, recorded-verified fraction and unique-file checkbox aggregation. Build blockers/human-review states, file-stage/reference findings and coverage. Use integer counts and deterministic rounding; do not derive dates/effort from order.
 6. **Renderers and exit policy:** one immutable in-memory result to text and candidate JSON 1.0, diagnostics sorted path/line/code plus documented tie-break. Threshold only controls exit 0/1, never finding visibility; fatal exit 2 precedes threshold. No output file, cache or hidden runtime process.
 
-This division makes no API/module-path promises and does not choose a repository layout or license.
+This division makes no API/module-path promises and does not choose a repository layout or license. Documentation for this draft is placed at `.specify/memory/constitution.md` and under `specs/001-spec-status/`. Those directories record the draft and leave the repository root clear for future program code. Go package layout, module path, and license remain unchosen.
 
 ## Core data model — design only
 
@@ -49,4 +49,4 @@ The conservative profile trades tolerance for trustworthy reporting: malformed i
 
 ## Delivery boundary
 
-[Tasks](TASKS.md) describe future dependency order, all unstarted. [Acceptance](ACCEPTANCE.md) defines observable gates. [Build/release](BUILD-RELEASE.md) describes later controlled automation; this draft creates no workflow. First implementation needs explicit authorization after contract decisions; first stable release needs an owner-approved tested RC and owner-created tag. Package-manager channels and optional phase-two write-back cannot become accidental prerequisites for the standalone core.
+[Tasks](tasks.md) describe future dependency order, all unstarted. [Acceptance](acceptance.md) defines observable gates. [Build/release](build-release.md) describes later controlled automation; this draft creates no workflow. First implementation needs explicit authorization after contract decisions; first stable release needs an owner-approved tested RC and owner-created tag. Package-manager channels and optional phase-two write-back cannot become accidental prerequisites for the standalone core.

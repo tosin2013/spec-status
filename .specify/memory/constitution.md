@@ -44,7 +44,7 @@ V1 status/JSON/CI never mutate or launch an agent. Future extension write-back i
 
 ## Governance and amendment
 
-1. Settled requirements are catalogued in [Traceability](TRACEABILITY.md); proposal IDs and alternatives are in [Decisions](DECISIONS.md).
+1. Settled requirements are catalogued in [Traceability](../../specs/001-spec-status/traceability.md); proposal IDs and alternatives are in [Decisions](../../specs/001-spec-status/decisions.md).
 2. No implementation starts until relevant grammar, metric, safety and interface decisions are recorded and implementation itself is separately authorized.
 3. Draft tasks and plan do not constitute that authorization. Release/publication requires its own approval and evidence.
 4. Amendments identify affected requirements, compatibility, fixture changes and risks; no silent scope cuts.

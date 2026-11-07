@@ -1,6 +1,6 @@
 # Feature specification — deterministic roadmap status
 
-**Draft feature SS-001, proposed specification version 0.1.** This is a documentation-stage specification, not an implementation or release. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 is pending [DC-01–08](DECISIONS.md); drafting does not ratify it.
+**Draft feature SS-001, proposed specification version 0.1.** This is a documentation-stage specification, not an implementation or release. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 is pending [DC-01–08](decisions.md); drafting does not ratify it.
 
 ## 1. Product outcome and users
 
@@ -16,7 +16,7 @@ The value is deterministic roadmap reporting, reference integrity and declared-s
 
 In v1 the runtime reads supported files only. No AI/network/accounts/credentials/subprocess/Git/tests/builds/extensions/writes, no cache or second state store. Development tools may test/build the product separately. The runtime is Go standard library only; static build target `CGO_ENABLED=0`, with disclosed exceptions rather than blanket portability claims.
 
-Inferred quarters are omitted entirely. No quarter calculations, percentages, denominators, flags or JSON inference fields. Explicit supported timing is recorded source text, not date interpretation. No v1 dashboard, trend store, notifications, digest, multi-repo aggregation or package-manager channel. Optional future extension write-back is specified separately in [PHASE2.md](PHASE2.md).
+Inferred quarters are omitted entirely. No quarter calculations, percentages, denominators, flags or JSON inference fields. Explicit supported timing is recorded source text, not date interpretation. No v1 dashboard, trend store, notifications, digest, multi-repo aggregation or package-manager channel. Optional future extension write-back is specified separately in [phase2.md](phase2.md).
 
 ## 3. Functional requirements
 
@@ -74,7 +74,7 @@ Do not open excluded file contents or emit them through diagnostics. Root-requir
 
 CLI SemVer `vX.Y.Z` differs from input v0.1.1 and JSON version. Planned version output identifies CLI version, tagged commit, Go version and target, with dev builds labelled. Owner-created tag on approved commit eventually triggers exact-source, pinned-reviewed-tooling tests/build/package checks. Required failures block publication. Release assets are tagged-commit-matching archives plus SHA-256, not temporary workflow outputs only. No-Go user installs/upgrades rootlessly. No tag, workflow or binary is created by this package.
 
-Owner-approved RC precedes first stable tag. Platform matrix remains undecided; cross-compilation is not runtime proof. Only publisher job gets narrowly scoped write permission; immutable asset policy, fixes through new versions. No identity/provenance/reproducibility claims unless implemented and verified; unsigned checksums authenticate neither publisher nor its manifest. See [BUILD-RELEASE.md](BUILD-RELEASE.md).
+Owner-approved RC precedes first stable tag. Platform matrix remains undecided; cross-compilation is not runtime proof. Only publisher job gets narrowly scoped write permission; immutable asset policy, fixes through new versions. No identity/provenance/reproducibility claims unless implemented and verified; unsigned checksums authenticate neither publisher nor its manifest. See [build-release.md](build-release.md).
 
 ## 4. Scenario acceptance outline
 
@@ -95,6 +95,6 @@ Owner-approved RC precedes first stable tag. Platform matrix remains undecided; 
 
 ## 5. Completion, dependencies and open issues
 
-Functional acceptance requires the detailed cases in [ACCEPTANCE.md](ACCEPTANCE.md); coverage mapping is [TRACEABILITY.md](TRACEABILITY.md). No test has been executed or implementation accepted. The <100 ms median cold-start target applies to a documented 100-item/10,000-task fixture on disclosed hardware/OS and is not a measured fact.
+Functional acceptance requires the detailed cases in [acceptance.md](acceptance.md); coverage mapping is [traceability.md](traceability.md). No test has been executed or implementation accepted. The <100 ms median cold-start target applies to a documented 100-item/10,000-task fixture on disclosed hardware/OS and is not a measured fact.
 
 Before implementation: resolve DC-01–06 and affected PROFILE-R1 details, select approved real fixture inputs and separately authorize implementation. Release-specific decisions DC-07–08 must be resolved before release/support claims; license selection remains open; the repository is established separately and no repository operation is performed here. All pending choices and alternative effects must be recorded rather than turning this draft into implicit approval.

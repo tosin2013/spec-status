@@ -32,19 +32,21 @@ Unsigned SHA-256 manifests can detect inconsistency with a manifest, but do not 
 
 ## Review the documentation
 
+`README.md` stays at the repository root. The constitution is `.specify/memory/constitution.md`. Feature `001-spec-status` documents are under `specs/001-spec-status/`. This placement leaves the root clear for future program code. Go package layout, module path, license, and implementation remain unchosen.
+
 | Document | Purpose |
 |---|---|
-| [Constitution](CONSTITUTION.md) | Non-negotiable principles and scope governance |
-| [Feature specification](SPECIFICATION.md) | User outcomes, functional requirements and edge cases |
-| [Decisions](DECISIONS.md) | Settled boundaries, unapproved recommended profile and implementation blockers |
-| [Roadmap format](ROADMAP-FORMAT.md) | Candidate narrow grammar and optional supersession extension |
-| [CLI](CLI-CONTRACT.md), [JSON](JSON-CONTRACT.md), [diagnostics](DIAGNOSTICS.md) | Candidate versioned machine/human contracts |
-| [Technical plan](TECHNICAL-PLAN.md) | Proposed architecture and safety design, not implementation |
-| [Acceptance strategy](ACCEPTANCE.md) | Required fixtures and evidence; no completed test claims |
-| [Ordered tasks](TASKS.md) | Dependency-ordered future work, all unstarted |
-| [Build/release/distribution](BUILD-RELEASE.md) | Future release gates and truthful integrity/support requirements |
-| [Phase two](PHASE2.md) | Approval-isolated future write-back boundary |
-| [Requirements/traceability](TRACEABILITY.md) | PRD requirement coverage into specification, tests and tasks |
+| [Constitution](.specify/memory/constitution.md) | Non-negotiable principles and scope governance |
+| [Feature specification](specs/001-spec-status/spec.md) | User outcomes, functional requirements and edge cases |
+| [Decisions](specs/001-spec-status/decisions.md) | Settled boundaries, unapproved recommended profile and implementation blockers |
+| [Roadmap format](specs/001-spec-status/roadmap-format.md) | Candidate narrow grammar and optional supersession extension |
+| [CLI](specs/001-spec-status/cli-contract.md), [JSON](specs/001-spec-status/json-contract.md), [diagnostics](specs/001-spec-status/diagnostics.md) | Candidate versioned machine/human contracts |
+| [Technical plan](specs/001-spec-status/plan.md) | Proposed architecture and safety design, not implementation |
+| [Acceptance strategy](specs/001-spec-status/acceptance.md) | Required fixtures and evidence; no completed test claims |
+| [Ordered tasks](specs/001-spec-status/tasks.md) | Dependency-ordered future work, all unstarted |
+| [Build/release/distribution](specs/001-spec-status/build-release.md) | Future release gates and truthful integrity/support requirements |
+| [Phase two](specs/001-spec-status/phase2.md) | Approval-isolated future write-back boundary |
+| [Requirements/traceability](specs/001-spec-status/traceability.md) | PRD requirement coverage into specification, tests and tasks |
 
 All design details marked **PROFILE-R1** are coherent recommendations awaiting approval, not ratified requirements. Drafting permission does not authorize implementation, tags, releases or deployment. The original input-format prose is not completely recovered verbatim; this package is a reviewed requirements interpretation and proposed specification, not an upstream compatibility certification.
 

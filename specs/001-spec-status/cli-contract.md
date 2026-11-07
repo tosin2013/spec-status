@@ -26,7 +26,7 @@ Text report should be glanceable: selected relative source, inventory/raw status
 
 Items remain document order; diagnostics sort normalized relative path then line then code, plus stable tie-breaks specified in JSON contract. No volatile timestamp/clock context by default. Color/TTY heuristics are not a committed feature; candidate profile uses plain text on all terminals for stability. No special AI mode. Empty supported input does not become a fatal error simply because there are no items.
 
-JSON stdout: exactly one UTF-8 document plus candidate terminal newline, no leading/trailing logs, progress spinner or human explanation. Text/log errors must not be mixed into JSON stdout. PROFILE-R1 recommends stderr empty in JSON mode unless a separate unavoidable process failure prevents serialization; such failures cannot be called valid JSON acceptance. Error documents and completeness are defined in [JSON-CONTRACT.md](JSON-CONTRACT.md).
+JSON stdout: exactly one UTF-8 document plus candidate terminal newline, no leading/trailing logs, progress spinner or human explanation. Text/log errors must not be mixed into JSON stdout. PROFILE-R1 recommends stderr empty in JSON mode unless a separate unavoidable process failure prevents serialization; such failures cannot be called valid JSON acceptance. Error documents and completeness are defined in [json-contract.md](json-contract.md).
 
 ## Exit contract — retained, not proposal
 
