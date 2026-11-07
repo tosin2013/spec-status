@@ -57,7 +57,7 @@ The Go module is `github.com/tosin2013/spec-status`. The command is `spec status
 
 The development build reads a narrow heading-and-bullet roadmap shape. Unknown status words stay as written. Checkbox progress, recorded `implemented`, and recorded `verified` stay separate. Superseded items remain in the history. A dependency on a superseded item stays on that item and is marked for human review.
 
-Text and JSON are two views of one result. The program is standard-library Go, built with `CGO_ENABLED=0`. While it runs it does not use the network, Git, a subprocess, or write files.
+Text and JSON are two views of one result. Commands, help, and flags use Cobra, which the owner approved as the only dependency exception. Roadmap parsing and file reads stay in the Go standard library. The program is built with `CGO_ENABLED=0`. While it runs it does not use the network, Git, a subprocess, or write files. `spec completion bash` prints a script to stdout and does not install it.
 
 Choices that were still open in PROFILE-R1 are used here as reversible implementation defaults, not as owner approvals. The list is in [decisions](specs/001-spec-status/decisions.md).
 

@@ -6,7 +6,7 @@
 
 - Omit inferred quarters entirely from v1. Preserve recorded timing, without inventing dates or treating question IDs as calendar data.
 - Retain strict v1 history-preserving supersession and human review of its dependents; no automatic dependency redirection.
-- Offline read-only Go standard-library core, `CGO_ENABLED=0`; no runtime AI/network/subprocess/Git/credentials/writes/extensions.
+- Offline read-only core, `CGO_ENABLED=0`; no runtime AI/network/subprocess/Git/credentials/writes/extensions. Parsing and confined reads stay in the standard library. On 7 November 2026 the owner approved Cobra for command, help, and flag handling only. That exception does not approve other dependencies, styling, telemetry, or a security review of Cobra.
 - Preserve raw statuses and unknowns, recorded-verified versus checkbox progress, JSON/text parity, default threshold error and exits 0/1/2.
 - Future extension write-back is optional, separate and per-mutation approved; optional integrations remain deferred.
 - Public project documentation targets [tosin2013/spec-status](https://github.com/tosin2013/spec-status). Repository establishment is separate from this package; no license, code implementation or release is created here.
@@ -51,7 +51,7 @@ These make contracts draftable; they are new technical recommendations, not hidd
 
 ## Implementation proposals in the development build
 
-These are reversible defaults chosen so a useful read-only v1 could be built. They are not owner approvals, and repeating them here does not close DC-01–08.
+These are reversible defaults chosen so a useful read-only v1 could be built. They are not owner approvals, and repeating them here does not close DC-01–08. Cobra is separate: the owner approved it for command handling, and it is not one of these unresolved proposals.
 
 - Narrow grammar from DC-01 and D-01A: `### NNN — Title [status: token]`, the six field labels in roadmap-format.md, UTF-8 with optional BOM and CRLF, and no table items. `..` in a reference is rejected. Spec directories are root-relative. Task links are relative to the tasks file. Task bullets may use `-`, `*`, or `+`.
 - History metrics from DC-02 and D-02A: only a fully valid acyclic chain is removed from the active counts. An invalid `superseded-by` value is kept and diagnosed, and the row stays active. A displayed terminal ID does not rewrite dependencies.

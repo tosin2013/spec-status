@@ -1,13 +1,22 @@
-// Package cli is the spec command surface.
-// There is no config file, network client, or write command.
+// Package cli is the command surface.
+//
+// Command, help, and flag handling use Cobra. The owner approved that
+// dependency on 7 November 2026. Roadmap parsing and root-confined reads
+// stay in the standard library, in internal/status and internal/safeio.
+// Cobra is not a styling, network, or telemetry library, and this package
+// does not add those.
 package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"runtime"
 	"strings"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/tosin2013/spec-status/internal/status"
 )
@@ -19,146 +28,297 @@ var (
 	Commit  = "unknown"
 )
 
+func init() {
+	// An empty message disables Cobra's Windows explorer pause.
+	cobra.MousetrapHelpText = ""
+}
+
 // Run executes one invocation and returns the process exit code.
 func Run(args []string, cwd string, stdout, stderr io.Writer) int {
-	jsonMode := false
-	for _, a := range args {
-		if a == "--json" {
-			jsonMode = true
-			break
-		}
+	jsonMode := countFlag(args, "--json") > 0
+	if msg := precheck(args); msg != "" {
+		return fail(jsonMode, "SS_INVOCATION_INVALID", msg, stdout, stderr)
 	}
-	cmd, opt, err := parse(args)
-	if err != nil {
-		return fail(jsonMode, "SS_INVOCATION_INVALID", err.Error(), stdout, stderr)
+	root := newRoot(cwd)
+	root.SetOut(stdout)
+	root.SetErr(stderr)
+	root.SetArgs(args)
+	err := root.Execute()
+	var coded silentExit
+	if errors.As(err, &coded) {
+		return coded.code
 	}
-	switch cmd {
-	case "help":
-		fmt.Fprint(stdout, helpText)
-		return 0
-	case "version":
-		fmt.Fprintf(stdout, "spec %s\ncommit: %s\ngo: %s\ntarget: %s/%s\nlabel: development build, not a release\n",
-			Version, Commit, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	if err == nil {
 		return 0
 	}
-	rep := status.Evaluate(status.Option{Root: opt.root, Roadmap: opt.roadmap, FailOn: opt.failOn, CWD: cwd})
-	if jsonMode {
-		fmt.Fprint(stdout, string(status.JSON(rep)))
-		return status.ExitCode(rep)
-	}
-	if rep.Outcome == "fatal" {
-		fmt.Fprint(stderr, status.Text(rep))
-		return 2
-	}
-	fmt.Fprint(stdout, status.Text(rep))
-	return status.ExitCode(rep)
+	return fail(jsonMode, "SS_INVOCATION_INVALID", oneLine(err.Error()), stdout, stderr)
 }
 
-type options struct {
-	root, roadmap, failOn string
+func newRoot(cwd string) *cobra.Command {
+	opts := &runOpts{
+		cwd:         cwd,
+		failOn:      "error",
+		failOnFlag:  singleString{name: "fail-on"},
+		rootFlag:    singleString{name: "root"},
+		roadmapFlag: singleString{name: "roadmap"},
+	}
+	root := &cobra.Command{
+		Use:           "spec",
+		Short:         "Read-only status for a Spec Kit roadmap",
+		Long:          rootLong,
+		Example:       rootExamples,
+		SilenceErrors: true,
+		SilenceUsage:  true,
+		Args:          cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			if opts.version {
+				fmt.Fprint(cmd.OutOrStdout(), versionText())
+				return nil
+			}
+			return cmd.Help()
+		},
+	}
+	root.CompletionOptions.DisableDefaultCmd = true
+	root.SetHelpTemplate(helpTemplate)
+	root.Flags().BoolVarP(&opts.version, "version", "V", false, "Print build identity and exit")
+	root.PersistentFlags().BoolVar(&opts.json, "json", false, "Print one JSON document on stdout")
+	root.PersistentFlags().Var(&opts.failOnFlag, "fail-on", "Exit 1 at this severity: info, warning, error, or none")
+	root.PersistentFlags().Var(&opts.rootFlag, "root", "Project directory that contains .specify")
+	root.PersistentFlags().Var(&opts.roadmapFlag, "roadmap", "Roadmap file inside the selected root")
+
+	root.AddCommand(newStatus(opts), newVersion(), newCompletion())
+	return root
 }
 
-func parse(args []string) (string, options, error) {
-	if len(args) == 0 {
-		return "help", options{}, nil
+type runOpts struct {
+	cwd         string
+	json        bool
+	version     bool
+	failOn      string
+	failOnFlag  singleString
+	rootFlag    singleString
+	roadmapFlag singleString
+}
+
+func (o *runOpts) prepare() {
+	if o.failOnFlag.set {
+		o.failOn = o.failOnFlag.value
 	}
-	var opt options
-	opt.failOn = "error"
-	mode := ""
-	seen := map[string]string{}
-	take := func(name, val string) error {
-		if prev, ok := seen[name]; ok {
-			if prev != val {
-				return fmt.Errorf("Option %s is repeated.", name)
-			}
-			return fmt.Errorf("Option %s is repeated.", name)
-		}
-		seen[name] = val
-		return nil
+	if o.failOn == "" {
+		o.failOn = "error"
 	}
-	i := 0
-	if args[0] != "" && !strings.HasPrefix(args[0], "-") {
-		mode = args[0]
-		i = 1
+}
+
+func newStatus(opts *runOpts) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "status",
+		Short: "Show recorded roadmap status",
+		Long: `Read .specify/memory/roadmap.md and explicitly linked spec files.
+Report recorded statuses, task checkboxes, dependency blockers, and broken references.
+This command does not run tests or Git, and it does not change files.`,
+		Example: `  spec status
+  spec status --root testdata/example-roadmap
+  spec status --json --fail-on warning`,
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			if opts.version {
+				return errors.New("version cannot be combined with status")
+			}
+			opts.prepare()
+			rep := status.Evaluate(status.Option{
+				Root:    opts.rootFlag.value,
+				Roadmap: opts.roadmapFlag.value,
+				FailOn:  opts.failOn,
+				CWD:     opts.cwd,
+			})
+			if opts.json {
+				fmt.Fprint(cmd.OutOrStdout(), string(status.JSON(rep)))
+				return silentExit{status.ExitCode(rep)}
+			}
+			if rep.Outcome == "fatal" {
+				fmt.Fprint(cmd.ErrOrStderr(), status.Text(rep))
+				return silentExit{2}
+			}
+			fmt.Fprint(cmd.OutOrStdout(), status.Text(rep))
+			code := status.ExitCode(rep)
+			if code == 0 {
+				return nil
+			}
+			return silentExit{code}
+		},
 	}
-	help, version := false, false
-	for i < len(args) {
-		a := args[i]
-		switch {
-		case a == "--help" || a == "-h":
-			help = true
-			i++
-		case a == "--version" || a == "-V":
-			version = true
-			i++
-		case a == "--json":
-			i++
-		case a == "--fail-on" || a == "--root" || a == "--roadmap":
-			if i+1 >= len(args) || strings.HasPrefix(args[i+1], "-") {
-				return "", options{}, fmt.Errorf("Option %s needs a value.", a)
-			}
-			val := args[i+1]
-			if err := take(a, val); err != nil {
-				return "", options{}, err
-			}
-			switch a {
-			case "--fail-on":
-				switch val {
-				case "info", "warning", "error", "none":
-					opt.failOn = val
-				default:
-					return "", options{}, fmt.Errorf("Threshold %q is not info, warning, error, or none.", val)
-				}
-			case "--root":
-				opt.root = val
-			case "--roadmap":
-				opt.roadmap = val
-			}
-			i += 2
+	cmd.ValidArgsFunction = cobra.NoFileCompletions
+	return cmd
+}
+
+func newVersion() *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print build identity and exit",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			fmt.Fprint(cmd.OutOrStdout(), versionText())
+			return nil
+		},
+	}
+}
+
+func newCompletion() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "completion",
+		Short: "Print a shell completion script to stdout",
+		Long: `Print a shell completion script to stdout. This command does not install the script or modify files.
+
+  spec completion bash
+  spec completion zsh
+  spec completion fish
+  spec completion powershell`,
+		Args:              cobra.NoArgs,
+		ValidArgsFunction: cobra.NoFileCompletions,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return fmt.Errorf("choose a shell: bash, zsh, fish, or powershell")
+		},
+	}
+	addShell := func(name, short string, gen func(*cobra.Command) error) {
+		cmd.AddCommand(&cobra.Command{
+			Use:               name,
+			Short:             short,
+			Args:              cobra.NoArgs,
+			ValidArgsFunction: cobra.NoFileCompletions,
+			RunE: func(c *cobra.Command, _ []string) error {
+				return gen(c)
+			},
+		})
+	}
+	addShell("bash", "Print a bash completion script to stdout", func(c *cobra.Command) error {
+		return c.Root().GenBashCompletionV2(c.OutOrStdout(), true)
+	})
+	addShell("zsh", "Print a zsh completion script to stdout", func(c *cobra.Command) error {
+		return c.Root().GenZshCompletion(c.OutOrStdout())
+	})
+	addShell("fish", "Print a fish completion script to stdout", func(c *cobra.Command) error {
+		return c.Root().GenFishCompletion(c.OutOrStdout(), true)
+	})
+	addShell("powershell", "Print a PowerShell completion script to stdout", func(c *cobra.Command) error {
+		return c.Root().GenPowerShellCompletionWithDesc(c.OutOrStdout())
+	})
+	return cmd
+}
+
+func versionText() string {
+	return fmt.Sprintf("spec %s\ncommit: %s\ngo: %s\ntarget: %s/%s\nlabel: development build, not a release\n",
+		Version, Commit, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+}
+
+type silentExit struct{ code int }
+
+func (e silentExit) Error() string { return "" }
+
+type singleString struct {
+	name  string
+	value string
+	set   bool
+}
+
+func (s *singleString) Set(v string) error {
+	if s.set {
+		return fmt.Errorf("option --%s is repeated", s.name)
+	}
+	if s.name == "fail-on" {
+		switch v {
+		case "info", "warning", "error", "none":
 		default:
-			if strings.HasPrefix(a, "-") {
-				return "", options{}, fmt.Errorf("Unknown option %s.", a)
-			}
-			return "", options{}, fmt.Errorf("Unknown argument %s.", a)
+			return fmt.Errorf("threshold %q is not info, warning, error, or none", v)
 		}
 	}
-	if help && version {
-		return "", options{}, fmt.Errorf("Help and version cannot be combined.")
-	}
-	if (help || version) && hasJSON(args) {
-		return "", options{}, fmt.Errorf("Help and version cannot be combined with --json.")
-	}
-	if mode == "" {
-		if help {
-			return "help", opt, nil
-		}
-		if version {
-			return "version", opt, nil
-		}
-		return "", options{}, fmt.Errorf("Usage is spec status. Run spec --help.")
-	}
-	if mode != "status" {
-		return "", options{}, fmt.Errorf("Unknown command %s.", mode)
-	}
-	if help && (opt.root != "" || opt.roadmap != "" || seen["--fail-on"] != "" || hasJSON(args)) {
-		return "", options{}, fmt.Errorf("Help cannot be combined with status options.")
-	}
-	if help {
-		return "help", opt, nil
-	}
-	if version {
-		return "", options{}, fmt.Errorf("Version cannot be combined with status.")
-	}
-	return "status", opt, nil
+	s.set = true
+	s.value = v
+	return nil
 }
 
-func hasJSON(args []string) bool {
+func (s *singleString) String() string { return s.value }
+func (s *singleString) Type() string   { return "string" }
+
+// Ensure the flag type satisfies pflag at compile time.
+var _ pflag.Value = (*singleString)(nil)
+
+func precheck(args []string) string {
+	if flag := repeated(args); flag != "" {
+		return "Option " + flag + " is repeated."
+	}
+	jsonMode := countFlag(args, "--json") > 0
+	help := countFlag(args, "--help")+countFlag(args, "-h") > 0
+	version := countFlag(args, "--version")+countFlag(args, "-V") > 0
+	statusCmd := hasCommand(args, "status")
+	completion := hasCommand(args, "completion")
+	versionCmd := hasCommand(args, "version")
+	if help && (version || versionCmd) {
+		return "Help and version cannot be combined."
+	}
+	if version && statusCmd {
+		return "Version cannot be combined with status."
+	}
+	if jsonMode && (help || version || versionCmd || completion) {
+		return "JSON output cannot be combined with help, version, or completion."
+	}
+	if jsonMode && !statusCmd {
+		return "JSON output requires the status command."
+	}
+	return ""
+}
+
+func repeated(args []string) string {
+	seen := map[string]int{}
 	for _, a := range args {
-		if a == "--json" {
+		name := a
+		if i := strings.IndexByte(name, '='); i >= 0 {
+			name = name[:i]
+		}
+		switch name {
+		case "--json", "--help", "-h", "--version", "-V", "--root", "--roadmap", "--fail-on":
+			seen[name]++
+			if seen[name] > 1 {
+				return name
+			}
+		}
+	}
+	return ""
+}
+
+func countFlag(args []string, name string) int {
+	n := 0
+	for _, a := range args {
+		got := a
+		if i := strings.IndexByte(got, '='); i >= 0 {
+			got = got[:i]
+		}
+		if got == name {
+			n++
+		}
+	}
+	return n
+}
+
+func hasCommand(args []string, name string) bool {
+	for _, a := range args {
+		if a == "--" {
+			return false
+		}
+		if !strings.HasPrefix(a, "-") && a == name {
 			return true
 		}
 	}
 	return false
+}
+
+func oneLine(msg string) string {
+	msg = strings.TrimSpace(msg)
+	msg = strings.TrimPrefix(msg, "Error:")
+	msg = strings.TrimSpace(msg)
+	if msg == "" {
+		return "Invalid invocation."
+	}
+	return strings.Join(strings.Fields(msg), " ")
 }
 
 func fail(jsonMode bool, code, message string, stdout, stderr io.Writer) int {
@@ -171,7 +331,6 @@ func fail(jsonMode bool, code, message string, stdout, stderr io.Writer) int {
 }
 
 func invocationJSON(code, message string) string {
-	// Manual document so invocation failures do not depend on a project root.
 	msg := jsonEscape(message)
 	return `{"schema_version":"1.0","outcome":"fatal","complete":false,"source":{"roadmap":null,"input_format":null},"configuration":{"fail_on":"error","dependency_policy":"verified","task_scope":"unique_linked_task_files"},"summary":null,"items":[],"diagnostics":[{"code":"` + code + `","severity":"error","message":"` + msg + `","source":null,"item_id":null,"related":[]}],"error":{"code":"` + code + `","message":"` + msg + `","source":null}}` + "\n"
 }
@@ -184,25 +343,41 @@ func jsonEscape(s string) string {
 	return string(b[1 : len(b)-1])
 }
 
-const helpText = `spec — read-only status for a Spec Kit roadmap (development build)
+const rootLong = `Spec Status reads a Spec Kit roadmap and reports what the files record.
 
-Usage:
-  spec status [--json] [--fail-on info|warning|error|none] [--root PATH] [--roadmap PATH]
-  spec --help
-  spec --version
+This is a development build. It does not change files, use the network, or infer quarters.
+Exit 0 means no finding reached the threshold. It does not mean the work is done.`
 
-spec status reads .specify/memory/roadmap.md under the selected project root.
-It reports recorded statuses, task checkboxes, dependency blockers, and broken references.
-It does not run tests, Git, or the network, and it does not change files.
+const rootExamples = `  spec status
+  spec status --root testdata/example-roadmap
+  spec status --json
+  spec completion bash
+  spec version`
 
-The default root is the nearest ancestor directory that contains .specify.
---root is relative to the current directory. --roadmap is relative to that root.
+const helpTemplate = `{{with .Long}}{{. | trimTrailingWhitespaces}}
 
-Exit codes:
-  0  no finding at or above the threshold (not proof the work is done)
-  1  findings at or above the threshold
-  2  invocation, configuration, required input, or fatal parse failure
+{{end}}Usage:
+{{- if .Runnable}}
+  {{.UseLine}}{{end}}
+{{- if .HasAvailableSubCommands}}
+  {{.CommandPath}} [command]{{end}}
+{{- if .HasExample}}
 
-The default threshold is error. Findings are still printed at every threshold.
-Inferred quarters are not calculated. There is no release binary in this build.
+Examples:
+{{.Example}}{{end}}
+{{- if .HasAvailableSubCommands}}
+
+Commands:{{range .Commands}}{{if or .IsAvailableCommand (eq .Name "help")}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}
+{{- if .HasAvailableLocalFlags}}
+
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}
+{{- if .HasAvailableInheritedFlags}}
+
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}
+{{- if .HasAvailableSubCommands}}
+
+Use "{{.CommandPath}} [command] --help" for more about a command.{{end}}
 `
