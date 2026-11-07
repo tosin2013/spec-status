@@ -4,7 +4,7 @@
 
 ## Command dependency
 
-The development CLI uses Cobra for commands, help, and flags. The owner approved that dependency on 7 November 2026. Cobra does not provide visual styling; this contract does not add color, ANSI in JSON or noninteractive output, or another UI framework. Parsing, metrics, and root-confined reads remain standard-library code. Shell completion is an explicit `spec completion` command that prints a script to stdout and does not install it. For that process, `BASH_COMP_DEBUG_FILE` is unset and then restored so Cobra's hidden `__complete` error path cannot create or append the log. Concurrent `Run` calls in one process wait on that restoration. The product binary calls it once. The generated script is shell text and is not executed by spec; if a person sources it, the shell may append to that variable. Other interface choices below remain PROFILE-R1 proposals unless this section says the owner approved them.
+The development CLI uses Cobra for commands, help, and flags. The owner approved that dependency on 7 November 2026. Human status text may use Lip Gloss, which the owner approved separately, for headings, aligned columns, progress marks, and restrained color. Lip Gloss is not Bubble Tea and this contract adds no dashboard or watch mode. JSON, fatal text, version, and completion stay plain. `--color` is `auto`, `always`, or `never`. Auto emits no ANSI unless stdout is a terminal, `NO_COLOR` is unset, and `TERM` is not `dumb`. Color is never the only distinction. Parsing, metrics, and root-confined reads remain standard-library code. Shell completion is an explicit `spec completion` command that prints a script to stdout and does not install it. For that process, `BASH_COMP_DEBUG_FILE` is unset and then restored so Cobra's hidden `__complete` error path cannot create or append the log. Concurrent `Run` calls in one process wait on that restoration. The product binary calls it once. The generated script is shell text and is not executed by spec; if a person sources it, the shell may append to that variable. Other interface choices below remain PROFILE-R1 proposals unless this section says the owner approved them.
 
 ## Working command surface
 
@@ -17,6 +17,7 @@ The development CLI uses Cobra for commands, help, and flags. The owner approved
 | `--root PATH` | Explicit selected project root, relative to invocation directory; otherwise nearest ancestor with .specify |
 | `--roadmap PATH` | Override input; relative to selected root, or absolute only if confined within that root |
 | `--help` | Candidate usage/scope/version guidance; no filesystem/project input required |
+| `--color auto\|always\|never` | Owner-approved human-text color control. Default `auto` emits no ANSI unless stdout is a terminal, `NO_COLOR` is unset, and `TERM` is not `dumb`. Does not change JSON or exit codes |
 
 Working identity commands `spec version` and `spec --version` report CLI version, commit, Go version, and target; development builds are clearly labelled. Version and help are metadata operations, not a roadmap report. Mixing help or version with status or JSON is an invocation error. The development build is not a release.
 

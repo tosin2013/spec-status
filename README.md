@@ -8,24 +8,32 @@ It helps a developer see where the work stands, a reviewer spot structural block
 
 This report was produced by the development build against `testdata/example-roadmap`. It is illustrative fixture output, not a released product. Exit 0 means there was no error-level finding. The warning is still there: item 003 depends on superseded item 001, and the tool does not retarget that dependency.
 
+This is the plain report from `spec status --color=never --root testdata/example-roadmap` on the development build. A terminal, or `--color=always`, uses the same words with restrained color. Color is not the only distinction: `historical`, `active`, `recorded verified`, and `human review` are written out. `verified` here means the roadmap recorded that word. It is not an independent review.
+
 ```
-source: .specify/memory/roadmap.md
-items: 3
-statuses: implemented 1, planned 1, verified 1
-active: 2
-recorded_verified: 1/2 (50%)
-tasks: 1/2 (50%) scope=unique_linked_task_files files_read=2 files_missing=0 files_skipped=0
-superseded: 1
-invalid_supersession: 0
-blocked_active: 1
-human_review_active: 1
-001 implemented [historical] Preserve original feature superseded-by 002 terminal 002
-002 verified [active] Replacement feature
-003 planned [active] Follow-on work
-  depends: 001=human_review
-diagnostics:
-info SS_SPEC_REFERENCE_MISSING .specify/memory/roadmap.md:14 003 Planned item has no spec link.
-warning SS_DEPENDENCY_HUMAN_REVIEW .specify/memory/roadmap.md:18 003 Dependency on a superseded item requires human review.
+Spec Status  development build
+source  .specify/memory/roadmap.md
+items 3   active 2   historical 1
+statuses  implemented 1, planned 1, verified 1
+recorded verified  1/2 (50%)  [#########################------------------------]
+tasks  1/2 (50%)  [###############################------------------------------]
+  task scope unique_linked_task_files  read 2  missing 0  skipped 0
+superseded 1   invalid supersession 0
+blocked active 1   human review 1
+
+ID   Status       Scope       Title
+001  implemented  historical  Preserve original feature
+  superseded-by 002
+002  verified     active      Replacement feature
+003  planned      active      Follow-on work
+  human review: depends 001 human_review
+
+diagnostics
+info    SS_SPEC_REFERENCE_MISSING
+  .specify/memory/roadmap.md:14 003 Planned item has no spec link.
+warning SS_DEPENDENCY_HUMAN_REVIEW
+  .specify/memory/roadmap.md:18 003 Dependency on a superseded item requires
+  human review.
 ```
 
 ## Build and run from source
@@ -35,7 +43,8 @@ These commands were run in this workspace on Linux amd64 with Go 1.22.2:
 ```
 CGO_ENABLED=0 go test ./...
 CGO_ENABLED=0 go build -o spec ./cmd/spec
-./spec status --root testdata/example-roadmap
+./spec status --color=never --root testdata/example-roadmap
+./spec status --color=always --root testdata/example-roadmap
 ./spec status --root testdata/example-roadmap --json
 ./spec --help
 ./spec --version
@@ -57,7 +66,11 @@ The Go module is `github.com/tosin2013/spec-status`. The command is `spec status
 
 The development build reads a narrow heading-and-bullet roadmap shape. Unknown status words stay as written. Checkbox progress, recorded `implemented`, and recorded `verified` stay separate. Superseded items remain in the history. A dependency on a superseded item stays on that item and is marked for human review.
 
-Text and JSON are two views of one result. Commands, help, and flags use Cobra, which the owner approved as the only dependency exception. Roadmap parsing and file reads stay in the Go standard library. The program is built with `CGO_ENABLED=0`. While it runs it does not use the network, Git, a subprocess, or write files. `spec completion bash` prints a script to stdout and does not install it. The process does not create or append `BASH_COMP_DEBUG_FILE`. The script is shell text; if you source it later, the shell may append to that variable. Spec itself does not.
+Text and JSON are two views of one result. Commands, help, and flags use Cobra. Human text uses Lip Gloss for headings, columns, and restrained status color. The owner approved those two dependencies and no others. Roadmap parsing and file reads stay in the Go standard library. The program is built with `CGO_ENABLED=0`. While it runs it does not use the network, Git, a subprocess, or write files.
+
+`--color=auto` is the default: color only when stdout is a terminal, `NO_COLOR` is unset, and `TERM` is not `dumb`. `--color=always` and `--color=never` are explicit. JSON, fatal text, version, and completion stay plain. Width comes from `COLUMNS` when that value is usable, otherwise 80. The program does not query the terminal and does not open `/dev/tty`.
+
+`spec completion bash` prints a script to stdout and does not install it. The process does not create or append `BASH_COMP_DEBUG_FILE`. The script is shell text; if you source it later, the shell may append to that variable. Spec itself does not.
 
 Choices that were still open in PROFILE-R1 are used here as reversible implementation defaults, not as owner approvals. The list is in [decisions](specs/001-spec-status/decisions.md).
 

@@ -45,7 +45,7 @@ func TestInvocationAndNoWrite(t *testing.T) {
 	out.Reset()
 	errb.Reset()
 	code = Run([]string{"status", "--root", dir}, dir, &out, &errb)
-	if code != 0 || !strings.Contains(out.String(), "recorded_verified:") {
+	if code != 0 || !strings.Contains(out.String(), "recorded verified") {
 		t.Fatalf("text exit %d\n%s\n%s", code, out.String(), errb.String())
 	}
 }
