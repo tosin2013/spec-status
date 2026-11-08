@@ -104,3 +104,7 @@ Before implementation: resolve DC-01–06 and affected PROFILE-R1 details, selec
 ## 6. Draft proposals, not approvals
 
 [Timing and evidence](timing-evidence.md) and [companion prompts](companion.md) are draft proposals authorized for documentation on 7 November 2026. They do not change the settled omission of inferred quarters, the working `spec status` command, or phase-two write-back. Sample texts under [examples/prompts/](examples/prompts/) are proposed documentation, not embedded prompts. Open pull request work on other branches is not adopted or reverted by these drafts.
+
+## 7. Two modes, direction only
+
+[Two-mode direction](two-mode-direction.md) records the 8 November 2026 decision. Supported input is a finite set of versioned templates. A missing roadmap, an empty supported roadmap, an unrecognized file, and a malformed supported read stay distinct. Inventory does not replace a rejected roadmap. Command syntax, version identification, folder grammar, inventory schema, exits, and v1 placement are open. Inferred quarters stay omitted.

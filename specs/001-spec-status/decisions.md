@@ -88,3 +88,11 @@ Retained baseline: inferred quarters stay omitted from v1. Four ordinal buckets 
 Assistant drafting choices, not owner decisions: where to file the drafts, the tentative command spelling `spec companion --prompt-file`, the 64 KiB sketch, and the citable field list. Syntax, date severity, input-extension version, invalid-supersession denominator policy, envelope version, loader placement, and consent rules remain open.
 
 A clarification in the same documentation authorization says a harness means an external tool, with Claude Code, Grok Bot, Muse, and OpenCode as illustrative consumers only. That is not verified compatibility and not permission to embed a model in the core.
+
+## Recorded decision — two modes, 8 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-08-01 | Owner, 8 November 2026 | Product direction in [two-mode-direction.md](two-mode-direction.md): versioned templates only; separate roadmap and inventory modes; missing, empty, unrecognized, and malformed stay distinct; no silent inventory fallback; checklists excluded; extension recommended but not required | Command syntax, default mode, version identification, folder and checkbox grammar, inventory schema and exits, v1 placement. Those remain open |
+
+Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.

@@ -8,7 +8,9 @@ Report recorded state and mechanically established inconsistencies, never claim 
 
 ## Article II — Deterministic, standalone reporting
 
-The roadmap and explicitly linked supported files are the truth source. Human output and versioned JSON must derive from one result. Identical supported inputs and effective configuration must give identical results. Preserve document order for items, stable diagnostic ordering and no volatile default timestamps. Do not require the roadmap extension, AI, credentials or an agent to report status.
+The roadmap and explicitly linked supported files are the truth source for roadmap reporting. Human output and versioned JSON must derive from one result. Identical supported inputs and effective configuration must give identical results. Preserve document order for items, stable diagnostic ordering and no volatile default timestamps. Do not require the roadmap extension, AI, credentials or an agent to report status.
+
+On 8 November 2026 the owner amended the earlier roadmap-required rule at product-direction level only. A supported roadmap report and a roadmap-free feature inventory are distinct. Rollout is not decided, and the current CLI still fails when the roadmap file is missing. The record is [two-mode-direction.md](../../specs/001-spec-status/two-mode-direction.md). It does not approve command syntax or an implementation.
 
 Roadmap parsing and root-confined reads stay in the Go standard library. The owner approved two dependency exceptions: Cobra on 7 November 2026 for command, help, and flag handling, and Lip Gloss for human text layout and restrained color. Those exceptions do not authorize Bubble Tea, dashboards, watch modes, network clients, telemetry, or other frameworks. The approved modules and their required transitive modules are pinned in go.mod and go.sum. Adopting them is not an independent security review.
 

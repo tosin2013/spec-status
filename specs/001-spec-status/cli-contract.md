@@ -76,3 +76,5 @@ Approve executable/grammar/help/error behavior before coding. Preserve existing 
 ## Not part of the working command
 
 [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md) are draft proposals. `spec companion` is not a command in this build. No quarter option is added. Human styled status text remains for supported terminal surfaces. JSON remains the machine evidence. An external harness is not a native integration.
+
+[two-mode-direction.md](two-mode-direction.md) is an owner decision for a later change. This build still reads `.specify/memory/roadmap.md` and still exits 2 when that file is missing. No inventory command is defined. Flag names, default selection, and how a template version is recognized are open. Filters, when a roadmap report exists, still do not hide findings.

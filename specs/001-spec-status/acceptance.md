@@ -53,6 +53,19 @@ Performance is an acceptance target, not an implementation estimate. Source form
 
 Block final implementation acceptance if grammar/stage matrix, invalid replacement metrics, HUMAN_REVIEW count policy, schema/code meanings, safe-read limits/matcher or toolchain policies remain ambiguous. Block release acceptance if support targets, runner evidence, pins, archive manifest or RC approval missing. A spec draft may be complete as documentation while these implementation/release gates remain unresolved. No [x] completion state or passing-test badge is appropriate today.
 
+## Two-mode sketches — not acceptance of the current build
+
+These rows record D-2026-11-08-01. They are not executed tests and not a claim that pull request 15 implements them. Details and the open choices are in [two-mode-direction.md](two-mode-direction.md).
+
+| Sketch | Later outcome, once syntax and schema are chosen |
+|---|---|
+| Supported template | Raw statuses, dependencies, supersession, and linked checkbox counts. A wrong result on a pinned shape is a supported-format bug. |
+| Empty supported roadmap | Zero items, null denominators, not a missing-file fatal. |
+| Unrecognized file | Located diagnostic and compatibility guidance. Not called invalid Spec Kit. Not reported as an empty supported roadmap. |
+| Malformed supported read | Located fatal or diagnostic. No invented rows. No fall-through to inventory. |
+| Missing roadmap | Roadmap mode stays a required-input failure. A separate explicit inventory may then list bounded feature folders and file presence, plus checked and total tasks, excluding requirements checklists. |
+| Inventory limits | Missing, unreadable, and unsupported files stay distinct. Checkbox completion does not verify implementation or invent a lifecycle. |
+
 ## Draft proposal sketches — not product acceptance
 
 These rows record the 7 November 2026 drafting request. They are not AC cases, not executed tests, and not implementation approval. Details are in [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md). Illustrative IDs and date shapes in those drafts are not facts about this repository.

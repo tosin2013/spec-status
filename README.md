@@ -120,7 +120,7 @@ The roadmap and tasks shapes this build is checked against come from pinned upst
 - [github/spec-kit](https://github.com/github/spec-kit) v1.2.0 (commit `4ca46a07`), for `tasks.md` (`spec.md` and `plan.md` are only checked for existence)
 - [srobroek/speckit-roadmap](https://github.com/srobroek/speckit-roadmap) v0.1.0, for `.specify/memory/roadmap.md`
 
-The [shape inventory](specs/002-upstream-format-conformance/contracts/shape-inventory.md) lists every construct those templates produce and how it is read. Hand-counted fixtures in `testdata/conformance/` cover each one, including real files produced by the upstream commands. Other versions are not claimed. A newer upstream release is adopted only after the drift check in `internal/conformance` reports no unresolved shape change (see `testdata/upstream/README.md`). Markdown outside these shapes either fails visibly or is listed under Limits.
+The [shape inventory](specs/002-upstream-format-conformance/contracts/shape-inventory.md) lists every construct those templates produce and how it is read. Hand-counted fixtures in `testdata/conformance/` cover each one, including real files produced by the upstream commands. Other versions are not claimed. A newer upstream release is adopted only after the drift check in `internal/conformance` reports no unresolved shape change (see `testdata/upstream/README.md`). Markdown outside these shapes either fails visibly or is listed under Limits. A file name does not prove a version match. The [two-mode direction](specs/001-spec-status/two-mode-direction.md) records a later distinction between an empty supported roadmap and an unrecognized file. This build does not implement that distinction, and a missing roadmap is still a fatal read.
 
 ## Limits
 
@@ -169,6 +169,7 @@ A harness, in that companion draft, means an external tool. Claude Code, Grok Bo
 | [Build/release/distribution](specs/001-spec-status/build-release.md) | Future release gates |
 | [Phase two](specs/001-spec-status/phase2.md) | Future write-back, not in this build |
 | [Timing draft](specs/001-spec-status/timing-evidence.md), [companion draft](specs/001-spec-status/companion.md) | Draft proposals only, not implemented |
+| [Two-mode direction](specs/001-spec-status/two-mode-direction.md) | Owner direction for a later roadmap mode and a separate inventory mode. Not implemented |
 | [Requirements/traceability](specs/001-spec-status/traceability.md) | Where each baseline requirement is recorded |
 
 The original input-format prose is not completely recovered verbatim. This repository is a working development build of that interpretation, not an upstream compatibility certification.
