@@ -11,10 +11,16 @@ import (
 const oneSpec = "### 001 — A [status: planned]\n- Spec dir: specs/a\n"
 
 func TestCheckboxSpellingsLikeGFM(t *testing.T) { // D3
-	tasks := "-  [x] two spaces\n-\t[x] tab\n> - [x] quoted\n> > * [ ] nested quote\n- [ ] parent\n    ```\n    - [x] example\n    ```\n"
+	tasks := "-  [x] two spaces\n-\t[x] tab\n- [ ] parent\n    ```\n    - [x] example\n    ```\n"
 	rep := Evaluate(Option{Root: project(t, oneSpec, map[string]string{"specs/a/tasks.md": tasks})})
-	if rep.Outcome != "report" || rep.Summary.Tasks.Total != 5 || rep.Summary.Tasks.Checked != 3 {
-		t.Fatalf("tasks %+v, want 3/5", rep.Summary.Tasks)
+	if rep.Outcome != "report" || rep.Summary.Tasks.Total != 3 || rep.Summary.Tasks.Checked != 2 {
+		t.Fatalf("tasks %+v (outcome %s), want 2/3", rep.Summary, rep.Outcome)
+	}
+	// Narrow tasks dialect: block-quoted checkboxes are fatal, not counted.
+	for _, q := range []string{"> - [x] quoted\n", "> > * [ ] nested quote\n"} {
+		if code := fatalCode(t, oneSpec, map[string]string{"specs/a/tasks.md": q}); code != "SS_LAYOUT_UNSUPPORTED" {
+			t.Fatalf("%q: code %s", q, code)
+		}
 	}
 }
 
