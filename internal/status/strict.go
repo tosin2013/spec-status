@@ -25,8 +25,15 @@ func leadingIndent(line string) (width, bytes int) {
 // indentation, then three or more backticks or tildes. A backtick fence's info
 // string cannot contain a backtick, so "```x```" is inline code, not a fence.
 func openFence(line string) (n int, ch byte, ok bool) {
+	return openFenceIndent(line, 3)
+}
+
+// openFenceIndent is openFence with a caller-chosen indentation limit. Task
+// files allow any indentation, because a fence inside a nested list item is
+// indented past three columns.
+func openFenceIndent(line string, maxIndent int) (n int, ch byte, ok bool) {
 	width, b := leadingIndent(line)
-	if width > 3 {
+	if width > maxIndent {
 		return 0, 0, false
 	}
 	rest := line[b:]
@@ -48,10 +55,7 @@ func openFence(line string) (n int, ch byte, ok bool) {
 
 // closesFence reports whether line closes a fence opened with n of ch.
 func closesFence(line string, ch byte, n int) bool {
-	width, b := leadingIndent(line)
-	if width > 3 {
-		return false
-	}
+	_, b := leadingIndent(line)
 	rest := strings.TrimRight(line[b:], " \t")
 	return len(rest) >= n && strings.Trim(rest, string(ch)) == ""
 }
@@ -74,6 +78,21 @@ func heading(line string) (level int, indent int, text string, ok bool) {
 	}
 	return level, width, strings.TrimSpace(rest[level:]), true
 }
+
+// lookalikes maps Unicode spaces, dashes, and invisible characters to their
+// ASCII forms, so "superseded‑by" (U+2011) or "Depends\u00a0on" cannot slip
+// past the item and field checks. It is used for recognition only; stored
+// text is never rewritten.
+var lookalikes = strings.NewReplacer(
+	"\u00a0", " ", "\u1680", " ", "\u2000", " ", "\u2001", " ", "\u2002", " ", "\u2003", " ",
+	"\u2004", " ", "\u2005", " ", "\u2006", " ", "\u2007", " ", "\u2008", " ", "\u2009", " ",
+	"\u200a", " ", "\u202f", " ", "\u205f", " ", "\u3000", " ",
+	"\u2010", "-", "\u2011", "-", "\u2012", "-", "\u2212", "-", "\ufe63", "-", "\uff0d", "-",
+	"\u200b", "", "\u200c", "", "\u200d", "", "\u2060", "", "\ufeff", "", "\u00ad", "",
+	"\uff1a", ":",
+)
+
+func normalizeLookalikes(s string) string { return lookalikes.Replace(s) }
 
 // idDash reports text that starts like an item: three digits, a dash, a space.
 // Headings accept an em dash, en dash, or hyphen; other lines accept only an
@@ -127,6 +146,7 @@ func stripMarkers(line string) (rest string, marked bool) {
 // supported "### NNN — Title [status: token]" heading at column zero.
 // matchItem must be tried first.
 func itemLikeLine(line string) bool {
+	line = normalizeLookalikes(line)
 	if _, _, text, ok := heading(line); ok {
 		return strings.Contains(text, "[status:") || idDash(text, true)
 	}
@@ -230,7 +250,7 @@ var metricFields = map[string]bool{"Depends on": true, "Spec dir": true, "supers
 // 002" is caught. The one-word descriptive labels match only when a
 // separator follows, so "- Scope creep is a risk" stays prose.
 func fieldPrefix(line string) (field string, ok bool) {
-	rest, marked := stripMarkers(line)
+	rest, marked := stripMarkers(normalizeLookalikes(line))
 	if !marked {
 		return "", false
 	}
@@ -284,4 +304,39 @@ func fieldPrefix(line string) (field string, ok bool) {
 		}
 	}
 	return "", false
+}
+
+// descriptiveLabels are speckit-roadmap fields that carry text only. With
+// the recognized fields they form the closed set of labels allowed at the
+// top level of an item body.
+var descriptiveLabels = []string{"Scope (out)", "Governed by", "Addresses", "Notes"}
+
+// descriptiveField reports "- Label: text" for a descriptive label, in the
+// same plain and bold spellings matchField accepts.
+func descriptiveField(line string) bool {
+	if !strings.HasPrefix(line, "- ") {
+		return false
+	}
+	body := line[2:]
+	for _, l := range descriptiveLabels {
+		for _, p := range []string{l + ":", "**" + l + ":**", "**" + l + "**:"} {
+			if strings.HasPrefix(body, p) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// thematicBreak recognizes "---", "***", or "___" (spaces allowed).
+func thematicBreak(line string) bool {
+	width, b := leadingIndent(line)
+	if width > 3 {
+		return false
+	}
+	rest := strings.ReplaceAll(strings.ReplaceAll(line[b:], " ", ""), "\t", "")
+	if len(rest) < 3 {
+		return false
+	}
+	return strings.Trim(rest, "-") == "" || strings.Trim(rest, "*") == "" || strings.Trim(rest, "_") == ""
 }

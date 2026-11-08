@@ -46,9 +46,8 @@ func TestItemLikeHeadingsAndRowsAreFatal(t *testing.T) { // review D1
 }
 
 func TestOrdinaryHeadingsAndProseStayProse(t *testing.T) {
-	body := "# Roadmap\n## Vision & End States\n- Ship it.\n## 2026 goals\n### Core\n" + base +
-		"- Description: Uses the `### NNN — Title [status: token]` shape.\n" +
-		"| Column | Value |\n|---|---|\n| a | b |\n"
+	body := "# Roadmap\n## Vision & End States\n- Ship it.\n| Column | Value |\n|---|---|\n| a | b |\n## 2026 goals\n### Core\n" + base +
+		"- Description: Uses the `### NNN — Title [status: token]` shape.\n"
 	rep := Evaluate(Option{Root: project(t, body, nil), FailOn: "none"})
 	if rep.Outcome != "report" || len(rep.Items) != 1 {
 		t.Fatalf("prose became fatal or an item: %s %+v", rep.Outcome, rep.Fatal)
@@ -85,7 +84,7 @@ func TestNearMissFieldLabelsAreFatal(t *testing.T) { // review D3
 		}
 	}
 	// Other extension fields and free bullets remain descriptive text.
-	ok := base + "- **Scope (out):** x\n- **Governed by:** C-01\n- **Notes:** depends on: nothing\n- Risk: low\n"
+	ok := base + "- **Scope (out):** x\n- **Governed by:** C-01\n- **Notes:** depends on: nothing\n"
 	if rep := Evaluate(Option{Root: project(t, ok, nil), FailOn: "none"}); rep.Outcome != "report" {
 		t.Fatalf("descriptive bullets became fatal: %+v", rep.Fatal)
 	}
@@ -98,7 +97,7 @@ func TestSupersededTypoCannotEarnCredit(t *testing.T) { // review D3 repro
 }
 
 func TestFencesFollowCommonMarkOpeners(t *testing.T) { // review D2
-	inline := base + "```x```\n### 002 — Two [status: planned]\n"
+	inline := "```x```\n" + base + "### 002 — Two [status: planned]\n"
 	rep := Evaluate(Option{Root: project(t, inline, nil), FailOn: "none"})
 	if rep.Outcome != "report" || len(rep.Items) != 2 {
 		t.Fatalf("inline code hid an item: %s items=%d", rep.Outcome, len(rep.Items))
@@ -120,9 +119,9 @@ func TestFencesFollowCommonMarkOpeners(t *testing.T) { // review D2
 
 func TestTaskFencesAndOrderedCheckboxes(t *testing.T) { // review D2
 	body := "### 001 — A [status: planned]\n- Spec dir: specs/a\n"
-	tasks := "- [x] one\n```js```\n- [ ] two\n1. [ ] three\n2) [x] four\n    ```\n- [ ] five\n"
+	tasks := "- [x] one\n```js```\n- [ ] two\n1. [ ] three\n2) [x] four\n    ```\n    - [x] example in a fence\n    ```\n- [ ] five\n"
 	rep := Evaluate(Option{Root: project(t, body, map[string]string{"specs/a/tasks.md": tasks})})
-	if rep.Summary.Tasks.Total != 5 || rep.Summary.Tasks.Checked != 2 {
+	if rep.Outcome != "report" || rep.Summary.Tasks.Total != 5 || rep.Summary.Tasks.Checked != 2 {
 		t.Fatalf("tasks %+v, want 2/5", rep.Summary.Tasks)
 	}
 	if code := fatalCode(t, body, map[string]string{"specs/a/tasks.md": "- [x] one\n```\n- [ ] hidden\n"}); code != "SS_LAYOUT_UNSUPPORTED" {

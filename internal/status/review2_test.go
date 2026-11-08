@@ -45,11 +45,11 @@ func TestPrefixRuleCatchesColonlessAndWrappedLabels(t *testing.T) { // D1, D3
 func TestPrefixRuleLeavesProseAlone(t *testing.T) {
 	body := "# Overview\n- Scope: the whole product.\n- Description: a roadmap.\n" +
 		"### 001 — A [status: planned]\n" +
-		"- Scope creep is a risk.\n- Outcomes vary.\n- Descriptions follow.\n" +
 		"- **Notes:** depends on nothing.\n  - Scope: nested note.\n  - Outcome: nested note.\n" +
-		"- **Scope (out):** later.\n- Risk: low\n" +
-		"  003–005 carry the obligation.\n- 100 - 200 ms budget\n" +
-		"                                                                    deep prose line\n"
+		"- **Scope (out):** later.\n" +
+		"  003–005 carry the obligation.\n" +
+		"                                                                    deep prose line\n" +
+		"## Risks\n- Scope creep is a risk.\n- Outcomes vary.\n- Descriptions follow.\n- Risk: low\n- 100 - 200 ms budget\n"
 	rep := Evaluate(Option{Root: project(t, body, nil), FailOn: "none"})
 	if rep.Outcome != "report" || len(rep.Items) != 1 {
 		t.Fatalf("prose rejected: %s %+v", rep.Outcome, rep.Fatal)
@@ -79,7 +79,7 @@ func TestTablesWithoutOuterPipes(t *testing.T) { // D2
 			t.Fatalf("%q: code %s", body, code)
 		}
 	}
-	ok := base + "Name | Value\n--- | ---\nowner | team\n\n- Description: after the table\n"
+	ok := "## Owners\nName | Value\n--- | ---\nowner | team\n\n" + base + "- Description: after the table\n"
 	if rep := Evaluate(Option{Root: project(t, ok, nil), FailOn: "none"}); rep.Outcome != "report" || itemByID(t, rep, "001").Description != "after the table" {
 		t.Fatalf("ordinary table broke parsing: %+v", rep.Fatal)
 	}
@@ -236,5 +236,57 @@ func TestBOMAndLineEndings(t *testing.T) {
 		if got := JSON(Evaluate(Option{Root: project(t, body, nil)})); string(got) != string(want) {
 			t.Fatalf("%s: JSON differs from LF input", name)
 		}
+	}
+}
+
+// Closed item body (owner decision, 7 November 2026): under an item heading,
+// only fields, known descriptive fields, indented continuation, blank lines,
+// fences, comments, and a thematic break are allowed.
+func TestClosedItemBody(t *testing.T) {
+	for _, line := range []string{
+		"Depends on: 002",
+		"-Depends on: 002",
+		"- Risk: low",
+		"- free text bullet",
+		"Plain paragraph text.",
+		"Name | Value",
+		"<div>html</div>",
+		"- superseded\u2011by: 002",
+		"- Depends\u00a0on: 002",
+		"- Spec\u200bdir: specs/a",
+	} {
+		body := base + line + "\n### 002 — Next [status: verified]\n"
+		if code := fatalCode(t, body, nil); code != "SS_ITEM_MALFORMED" {
+			t.Fatalf("%q: code %s", line, code)
+		}
+	}
+	ok := base + "- **Notes:** text\n  continued text\n\n  another paragraph\n- **Governed by:** C-01\n- **Addresses:** PRD 2\n" +
+		"- **Scope (out):** x\n  ```sh\n  make test\n  ```\n<!-- note -->\n\n---\n\nProse after a break.\n"
+	rep := Evaluate(Option{Root: project(t, ok, nil), FailOn: "none"})
+	if rep.Outcome != "report" || len(rep.Items) != 1 {
+		t.Fatalf("allowed item body rejected: %+v", rep.Fatal)
+	}
+	if code := fatalCode(t, base+"---\n- Depends on: 002\n", nil); code != "SS_ITEM_MALFORMED" {
+		t.Fatalf("thematic break must end the item: %s", code)
+	}
+}
+
+func TestUnicodeLookalikesInHeadings(t *testing.T) {
+	for _, line := range []string{"###\u00a0002 — Two [status: planned]", "## 002\u2009— Two"} {
+		if code := fatalCode(t, base+line+"\n", nil); code != "SS_ITEM_MALFORMED" {
+			t.Fatalf("%q: code %s", line, code)
+		}
+	}
+}
+
+func TestFenceInsideListItemMustClose(t *testing.T) { // third review D1
+	body := "### 001 — A [status: undecided]\n- Description: run this:\n  ```sh\n  make test\n\n" +
+		"### 002 — B [status: needs-info]\n- Depends on: 001\n\n```text\nexample\n```\n"
+	if code := fatalCode(t, body, nil); code != "SS_LAYOUT_UNSUPPORTED" {
+		t.Fatalf("code %s", code)
+	}
+	tasks := "- [x] one\n  ```sh\n  make\n- [ ] two\n- [ ] three\n```\nx\n```\n"
+	if code := fatalCode(t, "### 001 — A [status: planned]\n- Spec dir: specs/a\n", map[string]string{"specs/a/tasks.md": tasks}); code != "SS_LAYOUT_UNSUPPORTED" {
+		t.Fatalf("tasks code %s", code)
 	}
 }

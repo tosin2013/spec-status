@@ -5,6 +5,7 @@ package safeio
 import (
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 )
@@ -15,6 +16,15 @@ func deviceOf(fi os.FileInfo) (uint64, bool) {
 		return 0, false
 	}
 	return uint64(st.Dev), true
+}
+
+// fileID identifies a file by device and inode.
+func fileID(fi os.FileInfo) string {
+	st, ok := fi.Sys().(*syscall.Stat_t)
+	if !ok || st == nil {
+		return ""
+	}
+	return strconv.FormatUint(uint64(st.Dev), 10) + ":" + strconv.FormatUint(uint64(st.Ino), 10)
 }
 
 // openNoFollow opens without following a final symlink. O_NONBLOCK keeps the
