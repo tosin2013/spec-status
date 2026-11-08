@@ -56,12 +56,22 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		d := Diagnostic{Code: code, Severity: "error", Message: msg, Path: rel, Line: line}
 		return &d
 	}
-	fenceLine := 0
+	fenceLine, commentLine := 0, 0
+	inComment, inTable := false, false
+	prev := ""
 	for i, line := range lines {
 		lineNo := i + 1
+		last := prev
+		prev = line
 		if inFence {
 			if closesFence(line, fence, fenceN) {
 				inFence = false
+			}
+			continue
+		}
+		if inComment {
+			if strings.Contains(line, "-->") {
+				inComment = false
 			}
 			continue
 		}
@@ -69,7 +79,33 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			inFence, fence, fenceN, fenceLine = true, ch, n, lineNo
 			continue
 		}
-		if tableItemRow(line) {
+		// HTML comments are not rendered, so like fences they are not live
+		// roadmap data. An unclosed comment is fatal below.
+		if trim := strings.TrimSpace(line); strings.HasPrefix(trim, "<!--") {
+			if !strings.Contains(trim[4:], "-->") {
+				inComment, commentLine = true, lineNo
+			}
+			continue
+		}
+		if inTable {
+			if strings.TrimSpace(line) != "" && strings.Contains(line, "|") {
+				if tableItemRow(line) {
+					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
+				}
+				continue
+			}
+			inTable = false
+		}
+		if delimiterRow(line) {
+			// A GFM table, with or without outer pipes. Its header is the
+			// previous line; its rows follow until a blank or pipe-less line.
+			if tableItemRow(last) {
+				return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo-1)
+			}
+			inTable = true
+			continue
+		}
+		if strings.HasPrefix(strings.TrimSpace(line), "|") && tableItemRow(line) {
 			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
 		}
 		if id, title, status, ok := matchItem(line); ok {
@@ -80,24 +116,34 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		if itemLikeLine(line) {
 			return nil, nil, fail("SS_ITEM_MALFORMED", "Item heading does not match the supported shape.", lineNo)
 		}
-		if _, _, _, ok := heading(line); ok {
-			// Any other heading ends the current item, so the fields under it
-			// cannot attach to the item above.
+		if _, _, _, ok := heading(line); ok || (setextUnderline(line) && paragraphLine(last)) {
+			// Any other heading, ATX or setext, ends the current item, so the
+			// fields under it cannot attach to the item above.
 			flush()
 			continue
 		}
-		if depth := indentDepth(line); depth > maxNesting {
+		if _, marked := stripMarkers(line); marked && indentDepth(line) > maxNesting {
 			return nil, nil, fail("SS_INPUT_LIMIT", "Parser nesting limit exceeded.", lineNo)
 		}
 		field, value, ok := matchField(line)
 		if !ok {
-			if fieldLike(line) {
+			near, isNear := fieldPrefix(line)
+			if !isNear {
+				continue
+			}
+			width, _ := leadingIndent(line)
+			// Metric fields are strict everywhere. A descriptive label is
+			// strict only at the top level of an item; elsewhere it is prose.
+			if metricFields[near] || (cur != nil && width == 0) {
 				return nil, nil, fail("SS_ITEM_MALFORMED", "Field label does not match the supported spelling.", lineNo)
 			}
 			continue
 		}
 		if cur == nil {
-			return nil, nil, fail("SS_ITEM_MALFORMED", "Item field appears outside an item.", lineNo)
+			if metricFields[field] {
+				return nil, nil, fail("SS_ITEM_MALFORMED", "Item field appears outside an item.", lineNo)
+			}
+			continue
 		}
 		if cur.seen[field] {
 			return nil, nil, fail("SS_ITEM_MALFORMED", "Item repeats a recognized field.", lineNo)
@@ -128,6 +174,9 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 	}
 	if inFence {
 		return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence is not closed.", fenceLine)
+	}
+	if inComment {
+		return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment is not closed.", commentLine)
 	}
 	flush()
 	if len(items) > maxItems {
@@ -306,6 +355,7 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 	inFence := false
 	var fence byte
 	var fenceN, fenceLine int
+	inComment, commentLine := false, 0
 	for i, line := range strings.Split(text, "\n") {
 		if inFence {
 			if closesFence(line, fence, fenceN) {
@@ -313,8 +363,20 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 			}
 			continue
 		}
+		if inComment {
+			if strings.Contains(line, "-->") {
+				inComment = false
+			}
+			continue
+		}
 		if n, ch, ok := openFence(line); ok {
 			inFence, fence, fenceN, fenceLine = true, ch, n, i+1
+			continue
+		}
+		if trim := strings.TrimSpace(line); strings.HasPrefix(trim, "<!--") {
+			if !strings.Contains(trim[4:], "-->") {
+				inComment, commentLine = true, i+1
+			}
 			continue
 		}
 		checked, body, ok := matchTask(line)
@@ -342,6 +404,10 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 	}
 	if inFence {
 		d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: "Code fence in tasks file is not closed.", Path: rel, Line: fenceLine}
+		return taskFile{}, &d
+	}
+	if inComment {
+		d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: "HTML comment in tasks file is not closed.", Path: rel, Line: commentLine}
 		return taskFile{}, &d
 	}
 	return tf, nil
@@ -467,6 +533,14 @@ func unsupportedTarget(target string) bool {
 		return true
 	}
 	if strings.ContainsAny(t, "?#") {
+		return true
+	}
+	// An absolute path or a scheme such as file: or javascript: is not a
+	// root-relative local reference.
+	if strings.HasPrefix(t, "/") || strings.HasPrefix(t, "\\") {
+		return true
+	}
+	if colon := strings.IndexByte(t, ':'); colon >= 0 && !strings.Contains(t[:colon], "/") {
 		return true
 	}
 	return false
