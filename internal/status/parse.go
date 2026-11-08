@@ -104,7 +104,12 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment inside a list item is not closed before the item ends.", commentLine)
 				}
 			}
-			if strings.Contains(line, "-->") {
+			if end := strings.Index(line, "-->"); end >= 0 {
+				if cur != nil && strings.TrimSpace(line[end+3:]) != "" {
+					// Text after the closing --> renders as visible text; it
+					// is not a field (review 9 D3). Fail visibly.
+					return nil, nil, fail("SS_ITEM_MALFORMED", "Text follows the end of an HTML comment on the same line under an item.", lineNo)
+				}
 				inComment, blockEnd = false, true
 			}
 			continue
@@ -113,13 +118,18 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		// continued on an indented line after a blank line renders as part
 		// of the same bullet, but is not joined to the value: fail visibly.
 		if cur != nil && metricOpen {
-			switch w, _ := leadingIndent(line); {
+			switch w, b := leadingIndent(line); {
 			case strings.TrimSpace(line) == "":
 				metricBlank = true
 			case w == 0:
 				metricOpen, metricBlank = false, false
+			case startsBlock(line, b):
+				// A comment, quote, fence, or HTML block between the value and
+				// later indented text separates them like a blank line (review
+				// 9 D4).
+				metricBlank = true
 			case metricBlank && !listMarker(line):
-				return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by value continued after a blank line is not supported.", lineNo)
+				return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by value continued after a blank line or another block is not supported.", lineNo)
 			}
 		}
 		if cur != nil && bareMetricLabel(line) {
@@ -201,7 +211,8 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			continue
 		}
 		if inTable {
-			if strings.TrimSpace(line) != "" && strings.Contains(line, "|") {
+			_, _, _, isHeading := heading(line)
+			if strings.TrimSpace(line) != "" && strings.Contains(line, "|") && !listMarker(line) && !isHeading {
 				if tableItemRow(line) {
 					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
 				}
@@ -228,6 +239,15 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		}
 		if itemLikeLine(line) {
 			return nil, nil, fail("SS_ITEM_MALFORMED", "Item heading does not match the supported shape.", lineNo)
+		}
+		if _, _, text, ok := heading(line); ok && bareMetricLabel(text) {
+			return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label written as a heading is not supported.", lineNo)
+		}
+		if _, indent, _, ok := heading(line); ok && cur != nil && indent > 0 {
+			// A heading indented under an item sits inside the item's list
+			// content for renderers; reading it as the item's end could drop
+			// what follows (review 9 D4).
+			return nil, nil, fail("SS_ITEM_MALFORMED", "An indented heading under an item is not supported.", lineNo)
 		}
 		if _, _, _, ok := heading(line); ok || (setextUnderline(line) && paragraphLine(last)) {
 			// Any other heading, ATX or setext, ends the current item, so the
@@ -736,7 +756,10 @@ func matchTask(line string) (checked bool, body string, ok bool) {
 	if mark != ' ' && mark != 'x' && mark != 'X' {
 		return false, "", false
 	}
-	if len(rest) < 4 || (rest[3] != ' ' && rest[3] != '\t') {
+	if len(rest) == 3 {
+		return mark == 'x' || mark == 'X', "", true // "- [ ]" with no text is still a checkbox on GitHub
+	}
+	if rest[3] != ' ' && rest[3] != '\t' {
 		return false, "", false
 	}
 	return mark == 'x' || mark == 'X', strings.TrimSpace(rest[4:]), true
@@ -1094,5 +1117,5 @@ func startsBlock(line string, b int) bool {
 		return true
 	}
 	return strings.HasPrefix(rest, "<!--") || strings.HasPrefix(rest, ">") ||
-		rawHTMLBlock(rest) || otherHTMLBlock(rest) || htmlBlockStart(rest, true)
+		rawHTMLBlock(rest) || otherHTMLBlock(rest) || htmlBlockStart(rest, false)
 }
