@@ -67,10 +67,10 @@ description: "Task list for upstream-format conformance (feature 002)"
 - [X] T009 [US1] Hand-count testdata/conformance/template-filled/ and write testdata/conformance/template-filled/expected.json with counted_by set to the counter and date (depends on T008)
 - [X] T010 [P] [US1] Build testdata/conformance/hand-edits/ covering FR-006: a Depends on list wrapped onto an indented line, notes in descriptive fields, nested subtasks, a details paragraph under a task followed by nested subtasks, an indented fenced command example under a task, and a details element with blank lines around its tasks; write its hand-counted expected.json
 - [X] T011 [P] [US1] Write testdata/speckit-roadmap-upstream/expected.json by hand count: 7 items, 6 active, 4 recorded verified, 2 active blockers, 43 of 43 tasks in 4 files, and the diagnostics 001 SS_SPEC_REFERENCE_MISSING, 002 SS_DEPENDENCY_BLOCKED, 002 SS_VERIFIED_DEPENDENCY_CONTRADICTION, 004 SS_DEPENDENCY_MALFORMED, 007 SS_SPEC_REFERENCE_MISSING, 007 SS_DEPENDENCY_BLOCKED (recount before writing)
-- [ ] T012 [P] [US1] Snapshot this repository's .specify/memory/roadmap.md and the spec.md, plan.md, and tasks.md of specs/001-spec-status/ into testdata/conformance/this-repo/ and write its hand-counted expected.json, so the fixture stays stable as the live roadmap changes
-- [ ] T013 [US1] Copy specs/002-upstream-format-conformance/tasks.md, unedited, into testdata/conformance/upstream-generated-002-tasks/specs/002-sample/tasks.md with a minimal roadmap that links it and empty spec.md and plan.md, and write its hand-counted expected.json (research.md R7)
-- [ ] T014 [US1] Add focused regression tests in internal/status/upstream_shapes_test.go for the spec edge cases: tasks-template front matter creates no tasks, and the markers [P], [US1], and [Entity1] in task text produce no link diagnostics without a matching reference definition
-- [ ] T015 [US1] Run CGO_ENABLED=0 go test ./internal/conformance; for any mismatch on a supported shape, fix internal/status/parse.go or internal/status/analyze.go and add a failing-then-passing test in internal/status/upstream_shapes_test.go; record "no product change needed" in specs/002-upstream-format-conformance/plan.md if every fixture passes as is
+- [X] T012 [P] [US1] Snapshot this repository's .specify/memory/roadmap.md and the spec.md, plan.md, and tasks.md of specs/001-spec-status/ into testdata/conformance/this-repo/ and write its hand-counted expected.json, so the fixture stays stable as the live roadmap changes
+- [X] T013 [US1] Copy specs/002-upstream-format-conformance/tasks.md, unedited, into testdata/conformance/upstream-generated-002-tasks/specs/002-sample/tasks.md with a minimal roadmap that links it and empty spec.md and plan.md, and write its hand-counted expected.json (research.md R7)
+- [X] T014 [US1] Add focused regression tests in internal/status/upstream_shapes_test.go for the spec edge cases: tasks-template front matter creates no tasks, and the markers [P], [US1], and [Entity1] in task text produce no link diagnostics without a matching reference definition
+- [X] T015 [US1] Run CGO_ENABLED=0 go test ./internal/conformance; for any mismatch on a supported shape, fix internal/status/parse.go or internal/status/analyze.go and add a failing-then-passing test in internal/status/upstream_shapes_test.go; record "no product change needed" in specs/002-upstream-format-conformance/plan.md if every fixture passes as is
 
 **Checkpoint**: User Story 1 is independently testable; counts on upstream-shaped files are proven by hand-counted fixtures
 
@@ -84,10 +84,10 @@ description: "Task list for upstream-format conformance (feature 002)"
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Implement TestPinnedInventory in internal/conformance/drift_test.go: extract shape keys from every file under testdata/upstream/*/*/templates/ with the T007 classifier, assert each key is listed in specs/002-upstream-format-conformance/contracts/shape-inventory.md, and assert each supported key appears in at least one fixture under testdata/conformance/ (SC-002)
-- [ ] T017 [US2] Finalize specs/002-upstream-format-conformance/contracts/shape-inventory.md: remove the draft note, align every key with the T007 classifier output, and fill the fixture coverage column (depends on T016 output)
-- [ ] T018 [P] [US2] Add a "Supported input" section to README.md naming github/spec-kit v1.2.0 (commit 4ca46a07) and srobroek/speckit-roadmap v0.1.0, linking the shape inventory, and stating that other versions are not claimed (constitution Article VII)
-- [ ] T019 [P] [US2] Restructure specs/001-spec-status/roadmap-format.md so "Upstream shape inventory (supported)" links the inventory and is separate from the existing strictness rules (visible failure for out-of-dialect input), without changing any rule (FR-014, FR-017)
+- [X] T016 [US2] Implement TestPinnedInventory in internal/conformance/drift_test.go: extract shape keys from every file under testdata/upstream/*/*/templates/ with the T007 classifier, assert each key is listed in specs/002-upstream-format-conformance/contracts/shape-inventory.md, and assert each supported key appears in at least one fixture under testdata/conformance/ (SC-002)
+- [X] T017 [US2] Finalize specs/002-upstream-format-conformance/contracts/shape-inventory.md: remove the draft note, align every key with the T007 classifier output, and fill the fixture coverage column (depends on T016 output)
+- [X] T018 [P] [US2] Add a "Supported input" section to README.md naming github/spec-kit v1.2.0 (commit 4ca46a07) and srobroek/speckit-roadmap v0.1.0, linking the shape inventory, and stating that other versions are not claimed (constitution Article VII)
+- [X] T019 [P] [US2] Restructure specs/001-spec-status/roadmap-format.md so "Upstream shape inventory (supported)" links the inventory and is separate from the existing strictness rules (visible failure for out-of-dialect input), without changing any rule (FR-014, FR-017)
 
 **Checkpoint**: Users and maintainers can see exactly what is supported and why
 
@@ -101,9 +101,9 @@ description: "Task list for upstream-format conformance (feature 002)"
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Implement the comparison and TestDrift in internal/conformance/drift_test.go per contracts/drift-report.md: flags -project and -candidate, skip when -candidate is empty, report added and removed shape keys and changed field labels or task markers with line examples, and pass only when every change is listed in testdata/upstream/PROJECT/resolutions.md with a fixture and a decision ID; read local files only
-- [ ] T021 [P] [US3] Create testdata/conformance-drift/tasks-template-changed.md and testdata/conformance-drift/roadmap-template-changed.md (pinned copies with a new task marker [P1] and the field label "Spec dir" renamed to "Spec directory"), and add TestDriftDetectsSimulatedChange in internal/conformance/drift_test.go asserting both changes are reported and unresolved (SC-004)
-- [ ] T022 [P] [US3] Write testdata/upstream/README.md with the pin-move procedure from contracts/drift-report.md, including that the drift check and downloads are development-only and spec status never fetches upstream content (FR-011)
+- [X] T020 [US3] Implement the comparison and TestDrift in internal/conformance/drift_test.go per contracts/drift-report.md: flags -project and -candidate, skip when -candidate is empty, report added and removed shape keys and changed field labels or task markers with line examples, and pass only when every change is listed in testdata/upstream/PROJECT/resolutions.md with a fixture and a decision ID; read local files only
+- [X] T021 [P] [US3] Create testdata/conformance-drift/tasks-template-changed.md and testdata/conformance-drift/roadmap-template-changed.md (pinned copies with a new task marker [P1] and the field label "Spec dir" renamed to "Spec directory"), and add TestDriftDetectsSimulatedChange in internal/conformance/drift_test.go asserting both changes are reported and unresolved (SC-004)
+- [X] T022 [P] [US3] Write testdata/upstream/README.md with the pin-move procedure from contracts/drift-report.md, including that the drift check and downloads are development-only and spec status never fetches upstream content (FR-011)
 
 **Checkpoint**: Upstream releases can be adopted deliberately without silent shape changes
 

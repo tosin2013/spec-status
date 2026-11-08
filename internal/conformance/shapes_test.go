@@ -22,7 +22,9 @@ var (
 	reItem       = regexp.MustCompile(`^### [0-9]{3} — .*\[status: [^\]]+\]\s*$`)
 	reTask       = regexp.MustCompile(`^(\s*)[-*+] \[([ xX])\] (.*)$`)
 	reTaskID     = regexp.MustCompile(`^T[0-9]+\b`)
-	reMarker     = regexp.MustCompile(`\[(P|US[0-9]+|Story)\]`)
+	reMarkers    = regexp.MustCompile(`^T[0-9]+((?: \[[^\]]+\])*)`)
+	reMarker     = regexp.MustCompile(`\[([^\]]+)\]`)
+	reUSn        = regexp.MustCompile(`^US[0-9]+$`)
 	reBracket    = regexp.MustCompile(`\[[^\]]+\]`)
 	reBoldField  = regexp.MustCompile(`^- \*\*([^*:]+):\*\*`)
 	rePlainField = regexp.MustCompile(`^- ([A-Za-z][A-Za-z ()-]*):(?:\s|$)`)
@@ -104,17 +106,22 @@ func classify(text string) []shape {
 				emit("task-nested", i)
 			}
 			body := m[3]
+			rest := body
 			if reTaskID.MatchString(body) {
 				emit("task-id:T###", i)
-			}
-			for _, mk := range reMarker.FindAllStringSubmatch(body, -1) {
-				name := mk[1]
-				if strings.HasPrefix(name, "US") && name != "Story" {
-					name = "USn"
+				// Markers are the bracket groups right after the task ID, so a
+				// new upstream marker shows up as a new shape key.
+				lead := reMarkers.FindStringSubmatch(body)
+				for _, mk := range reMarker.FindAllStringSubmatch(lead[1], -1) {
+					name := mk[1]
+					if reUSn.MatchString(name) {
+						name = "USn"
+					}
+					emit("task-marker:["+name+"]", i)
 				}
-				emit("task-marker:["+name+"]", i)
+				rest = body[len(lead[0]):]
 			}
-			if rest := reMarker.ReplaceAllString(body, ""); reBracket.MatchString(rest) {
+			if reBracket.MatchString(rest) {
 				emit("task-text-brackets", i)
 			}
 		case strings.HasPrefix(trim, ">"):

@@ -113,6 +113,15 @@ Text and JSON are two views of one result. Human-text filters and `--explain` se
 
 Choices that were still open in PROFILE-R1 are used here as reversible implementation defaults, not as owner approvals. The list is in [decisions](specs/001-spec-status/decisions.md).
 
+## Supported input
+
+The roadmap and tasks shapes this build is checked against come from pinned upstream versions:
+
+- [github/spec-kit](https://github.com/github/spec-kit) v1.2.0 (commit `4ca46a07`), for `tasks.md` (`spec.md` and `plan.md` are only checked for existence)
+- [srobroek/speckit-roadmap](https://github.com/srobroek/speckit-roadmap) v0.1.0, for `.specify/memory/roadmap.md`
+
+The [shape inventory](specs/002-upstream-format-conformance/contracts/shape-inventory.md) lists every construct those templates produce and how it is read. Hand-counted fixtures in `testdata/conformance/` cover each one, including real files produced by the upstream commands. Other versions are not claimed. A newer upstream release is adopted only after the drift check in `internal/conformance` reports no unresolved shape change (see `testdata/upstream/README.md`). Markdown outside these shapes either fails visibly or is listed under Limits.
+
 ## Limits
 
 Inferred quarters are not calculated. The sensitive-name filter and symlink checks are candidate safeguards, not a certification that every secret or mount escape is caught. This build was executed on Linux amd64 and Darwin arm64, by the implementer, on one machine each. On Darwin the post-open path check that Linux performs through `/proc/self/fd` is skipped; reads there rely on `O_NOFOLLOW`, the symlink-component check, and the device check. No operating system is a supported release target, and nothing is signed.

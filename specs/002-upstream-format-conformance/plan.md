@@ -95,3 +95,9 @@ README.md                                 # supported upstream versions; Limits 
 ## Complexity Tracking
 
 No constitution violations to justify.
+
+## Implementation notes
+
+- **T015 (2026-11-07): no product change was needed for feature 002.** Every conformance fixture (template-filled, hand-edits, this-repo, upstream-generated-002-tasks, speckit-roadmap-upstream) matched its hand count on the first run. The parser changes made in the same period came from the sixth and seventh acceptance reviews of feature 001 (PR #12), not from these fixtures.
+- **Drift check markers:** the classifier treats bracket groups directly after a task ID as markers, so an unknown upstream marker such as `[P1]` is reported as a new shape (`TestDriftDetectsSimulatedChange`).
+
