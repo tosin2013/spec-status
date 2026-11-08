@@ -134,6 +134,7 @@ Known limits. Under the acceptance bar (decision D-2026-11-07-09), a wrong resul
 
 - Only the documented dialect is read. Under an item heading, every line must be a recognized or descriptive field, indented continuation, a blank line, a fence, a comment, or a thematic break; anything else is fatal. Outside items, prose is not checked, except that `Depends on`, `Spec dir`, and `superseded-by` labels are fatal there.
 - Tasks files are free text in a narrow dialect. Only recognized checkboxes in ordinary lists count. Layouts whose count would depend on block-quote, list-nesting, or raw HTML rules are fatal; the cases are listed in roadmap-format.md §3. Only inline links with a simple local path are checked; other link forms are reported as unsupported, not checked.
+- A readable roadmap with no item headings, whether empty or written as narrative prose, reports zero items with exit 0 and no diagnostic. This build cannot tell an empty supported roadmap from an unrecognized file; making that distinction is future work and is not implemented.
 - Reads are not an atomic snapshot. A change that keeps the same size and modification time may go undetected.
 - On Darwin there is no `/proc/self/fd` check after open, so a parent directory swapped between the checks and the open is not detected.
 - The sensitive-name matcher is incomplete by design (for example, `id_rsa` is not matched).
