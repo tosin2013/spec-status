@@ -143,7 +143,7 @@ The project owner can decide whether roadmap item 001 is verified using a bar th
 - **SC-003**: On at least two real Spec Kit projects generated with the pinned versions (this repository plus one more), spec status matches a hand count with zero discrepancies.
 - **SC-004**: A simulated upstream template change that adds a construct is reported by the drift check in a single run, and the pin cannot move without a fixture and a decision for it.
 - **SC-005**: An independent reviewer can classify every finding from the six earlier acceptance reviews as blocking or non-blocking under the new bar with no unresolved cases.
-- **SC-006**: An independent review under the new bar finds zero blocking defects, so roadmap item 001 can be recorded verified with that review as evidence.
+- **SC-006**: An independent review under the new bar finds zero blocking defects, so roadmap item 001 can be recorded verified with that review as evidence. *Amended by D-2026-11-08-05: 001 was recorded verified on three review rounds and their fixes, with the residual risk in README Limits.*
 
 ## Assumptions
 

@@ -113,4 +113,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-08-04 | Owner, 8 November 2026, after the final T026 review | Under a `Depends on`, `Spec dir`, or `superseded-by` field, an indented line either joins the value as paragraph text or is fatal, so no block nested under a metric field can be silently ignored. A code block nested under a metric field is fatal | Listing nested block types one review at a time; recording 001 verified without a further review |
 
+## Recorded decision — recording 001 verified, 8 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-08-05 | Owner, 8 November 2026, after the third T026 review round | Amends SC-006 of feature 002. Roadmap items 001 and 007 are recorded `verified` on the evidence of three independent T026 review rounds (at ac62214, dadd8fd, and 4574c13) and the fixes for every blocking finding they reported, although no single round returned zero blocking defects. Rule (a) was clean in all three rounds. The residual risk, that further contrived rule (b) layouts exist, is stated in README Limits. The reviews were separate AI agent sessions, not human reviewers, and none checked GitHub's own renderer | Running a fourth review before recording verified; leaving 001 at implemented |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.
