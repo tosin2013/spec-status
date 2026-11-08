@@ -1,0 +1,23 @@
+{
+  "pins": ["spec-kit@v1.2.0", "speckit-roadmap@v0.1.0"],
+  "origin": "hand-edit",
+  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07",
+  "outcome": "report",
+  "exit": 0,
+  "items": [
+    {"id": "001", "status": "verified", "active": true, "dependencies": [],
+     "tasks": {"checked": 2, "total": 2}},
+    {"id": "002", "status": "planned", "active": true,
+     "dependencies": [{"id": "001", "state": "satisfied"}, {"id": "003", "state": "unfinished"}],
+     "tasks": {"checked": 5, "total": 8}},
+    {"id": "003", "status": "undecided", "active": true, "dependencies": []}
+  ],
+  "summary": {
+    "total_items": 3, "active_items": 3, "verified_active_items": 1,
+    "blocked_count": 1, "human_review_count": 0,
+    "tasks": {"checked": 7, "total": 10, "files_read": 2}
+  },
+  "diagnostics": [
+    {"code": "SS_DEPENDENCY_BLOCKED", "item": "002"}
+  ]
+}

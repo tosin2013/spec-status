@@ -1,0 +1,26 @@
+{
+  "pins": ["spec-kit@v1.2.0", "speckit-roadmap@v0.1.0"],
+  "origin": "template-filled",
+  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07",
+  "outcome": "report",
+  "exit": 0,
+  "items": [
+    {"id": "001", "status": "implemented", "active": true,
+     "dependencies": [{"id": "004", "state": "satisfied"}],
+     "tasks": {"checked": 6, "total": 10}},
+    {"id": "002", "status": "planned", "active": true,
+     "dependencies": [{"id": "001", "state": "unfinished"}]},
+    {"id": "003", "status": "deferred", "active": false, "dependencies": []},
+    {"id": "004", "status": "verified", "active": true, "dependencies": [],
+     "tasks": {"checked": 3, "total": 3}}
+  ],
+  "summary": {
+    "total_items": 4, "active_items": 3, "verified_active_items": 1,
+    "blocked_count": 1, "human_review_count": 0,
+    "tasks": {"checked": 9, "total": 13, "files_read": 2}
+  },
+  "diagnostics": [
+    {"code": "SS_SPEC_REFERENCE_MISSING", "item": "002"},
+    {"code": "SS_DEPENDENCY_BLOCKED", "item": "002"}
+  ]
+}

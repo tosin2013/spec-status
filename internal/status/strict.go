@@ -90,6 +90,17 @@ var lookalikes = strings.NewReplacer(
 	"\u2010", "-", "\u2011", "-", "\u2012", "-", "\u2212", "-", "\ufe63", "-", "\uff0d", "-",
 	"\u200b", "", "\u200c", "", "\u200d", "", "\u2060", "", "\ufeff", "", "\u00ad", "",
 	"\uff1a", ":",
+	// Cyrillic and Greek letters that look like Latin ones, so a label such
+	// as "Dеpends on" (Cyrillic е) is still recognized as a field label.
+	"\u0430", "a", "\u0435", "e", "\u043e", "o", "\u0440", "p", "\u0441", "c",
+	"\u0443", "y", "\u0445", "x", "\u0456", "i", "\u0458", "j", "\u0455", "s",
+	"\u0410", "A", "\u0412", "B", "\u0415", "E", "\u041a", "K", "\u041c", "M",
+	"\u041d", "H", "\u041e", "O", "\u0420", "P", "\u0421", "C", "\u0422", "T",
+	"\u0425", "X", "\u0406", "I", "\u0405", "S",
+	"\u03bf", "o", "\u03b1", "a", "\u03b5", "e", "\u03b9", "i", "\u03ba", "k",
+	"\u039f", "O", "\u0391", "A", "\u0392", "B", "\u0395", "E", "\u0397", "H",
+	"\u0399", "I", "\u039a", "K", "\u039c", "M", "\u039d", "N", "\u03a1", "P",
+	"\u03a4", "T", "\u03a7", "X", "\u03a5", "Y", "\u0396", "Z",
 )
 
 func normalizeLookalikes(s string) string { return lookalikes.Replace(s) }

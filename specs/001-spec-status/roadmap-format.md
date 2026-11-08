@@ -10,6 +10,8 @@ Default selected root: nearest ancestor from invocation directory containing `.s
 
 ## 2. Candidate recognition rules
 
+**Upstream shape inventory (supported).** Feature 002 pins the supported input to github/spec-kit v1.2.0 and srobroek/speckit-roadmap v0.1.0. The constructs their templates produce are listed in the [shape inventory](../002-upstream-format-conformance/contracts/shape-inventory.md) and covered by hand-counted fixtures. A wrong result on one of them is blocking under D-2026-11-07-09. The rules below are the **strictness rules**: they say how the supported shapes are read and make everything else fail visibly. Feature 002 does not change them (FR-014).
+
 - UTF-8 input only; optional leading UTF-8 BOM removed for recognition, CRLF and LF treated equivalently. Lines are 1-based physical lines after newline normalization, no leading header deletion. Invalid encoding is fatal.
 - A roadmap row starts at a level-three heading `### NNN — Title [status: token]`. `NNN` is exactly three ASCII digits. At least one nonblank title character; exact one-line heading shape and spaces must be confirmed against fixtures.
 - Candidate field bullets directly under a row: `- Description: ...`, `- Outcome: ...`, `- Scope: ...`, optional `- Depends on: 001, 002`, optional `- Spec dir: specs/003-example`, optional `- superseded-by: 004`. Continuation text may be retained as raw text, never executable syntax. PROFILE-R1 accepts one backtick pair around an explicitly declared local path or bare path text; no whitespace guessing/URL decoding.

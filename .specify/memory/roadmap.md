@@ -1,6 +1,18 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.1.0 → 1.2.0
+Bump rationale: MINOR — new planned spec 007 (upstream-format conformance)
+and new decision C-08 (acceptance bar D-2026-11-07-09).
+
+Changes this revision:
+  - Added spec 007 — Upstream-format conformance (in-progress)
+  - Decision recorded: C-08 (D-2026-11-07-09 replaces D-2026-11-07-06)
+
+Specs affected: 007
+Open questions added/resolved: none
+
+Previous revision (1.1.0, 2026-11-07):
 Version change: 1.0.0 → 1.1.0
 Bump rationale: MINOR — new decision C-07 (DC-03 approved) and DC-08 dogfood
 inputs recorded; Q1 and Q2 resolved. No status transitions.
@@ -88,6 +100,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   human review of a superseded dependency is a warning; blocked and review
   counts cover active rows once each. Decision D-2026-11-07-03 in
   `specs/001-spec-status/decisions.md`.
+- **C-08 — Upstream-pinned acceptance bar (D-2026-11-07-09, 2026-11-07):**
+  supported input is what pinned github/spec-kit v1.2.0 and
+  srobroek/speckit-roadmap v0.1.0 templates produce; a blocking defect is a
+  wrong result on those shapes or a silently misread `Depends on`, `Spec dir`,
+  or `superseded-by`; other exotic Markdown fails visibly or is a README
+  limit. Replaces D-2026-11-07-06.
 
 ## Planned Specs
 
@@ -162,6 +180,23 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** Blocked on DC-07 (targets, runners, identity policy) and on a license
   choice; no license is selected today.
 
+### 007 — Upstream-format conformance [status: in-progress]
+
+- **Description:** Define supported input as the shapes produced by pinned
+  upstream templates, with hand-counted conformance fixtures, a drift check
+  for upstream changes, and the acceptance bar D-2026-11-07-09.
+- **Outcome:** Counts on upstream-shaped roadmaps and tasks files are proven
+  by fixtures, supported versions are published, upstream changes are adopted
+  deliberately, and 001 can be judged against a finite bar.
+- **Scope (in):** Pins, shape inventory, conformance fixtures, drift check,
+  reclassification of review findings, README support statement.
+- **Scope (out):** Runtime network access or upstream lookups; release work.
+- **Depends on:** 001
+- **Governed by:** C-01, C-02, C-03, C-08
+- **Spec dir:** specs/002-upstream-format-conformance
+- **Notes:** Created with /speckit-specify, /speckit-plan, and /speckit-tasks;
+  implementation approved by the owner on 2026-11-07.
+
 ### Future
 
 ### 005 — Phase-two write-back [status: deferred]
@@ -207,4 +242,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.1.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-07
+**Version**: 1.2.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-07
