@@ -145,9 +145,21 @@ No rule (a) defect: a realistic `/speckit-tasks` file, 2/3/4-space, tab, and 8-s
 
 Each review from 7 to 9 found another layout that hid or split a metric field. Instead of a tenth case list, a check after parsing makes any visible line with a `Depends on`, `Spec dir`, or `superseded-by` label and a colon fatal unless it was accepted as a field line under an item (`labelrule_test.go`). Of its twelve fatal cases, eight were accepted silently on `main` at 5135231, mostly outside items (tables, text after a comment, inline HTML, prose, lookalike spacing) plus a label inside a `Notes` value. Real roadmaps and every conformance fixture give byte-identical output. Over-strictness: prose that contains such a label with a colon is fatal; it is listed in README Limits.
 
+## T026 review (main at ac62214, narrowed to D-2026-11-07-09)
+
+No rule (a) defect: a realistic speckit-roadmap file (sync-impact comment, grouping headings, struck superseded item, nested Scope (out) and Notes bullets) and a 21-checkbox tasks file with mixed markers, nesting, ordered lists, a table, a comment, a fence, BOM, and CRLF matched hand counts. Rule (b) findings:
+
+| ID | Finding | Upstream shape | Metric | Class | Where |
+|---|---|---|---|---|---|
+| B1 | A list or quote nested under a metric field was ignored after a blank line, comment, or quote | no | yes | visible | `TestNestedBlockUnderMetricFieldIsFatal` |
+| B2 | A metric label encoded with markup (entities, escapes, link, inline HTML, invisible characters, split lines) in a nested bullet or descriptive value was not recognized | no | yes | limit (D-2026-11-08-03) | README Limits |
+| N1 | An item heading written with entities is not counted | no | no | limit | README Limits |
+| N2 | roadmap-format.md §3 said block-quoted checkboxes are read; the build makes them fatal | — | — | doc fixed | §3 wording |
+| N3 | Five visible over-strict layouts (tab after `###`, bold closing after the value, lazy continuation, indented `---` under a field, continuation starting `002 — `) | no | no | over-strict | README Limits |
+
 ## Result
 
 - Upstream-shape findings: 2 (review 5 B4, review 6 D1). Both fixed and covered by fixtures.
 - Metric findings: all fixed or visible. Review 5 N2 (letter homoglyphs) was the last; while writing this table it was found to fall under D-2026-11-07-09 (b), so feature 002 extended lookalike normalization to common Cyrillic and Greek letters, with `TestLetterLookalikesInMetricLabels`.
 - Every finding classed as a limit or over-strict is listed in README Limits.
-- Open blocking after review 9 fixes and the line-level label rule: **none known**. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.
+- Open blocking after the T026 review's B1 fix and D-2026-11-08-03: **none known**. T026 did not pass at ac62214; a final narrowed review is needed before item 001 is recorded verified. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.
