@@ -68,6 +68,13 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 	// CommonMark only a paragraph prevents it.
 	blockEnd := false
 	metricOpen, metricBlank := false, false
+	// hidden marks lines inside fences and comments; tails holds the visible
+	// text after a comment closes on a line; metricLine marks lines accepted
+	// as a Depends on, Spec dir, or superseded-by field. They feed the
+	// line-level label check after the loop.
+	hidden := make([]bool, len(lines)+1)
+	tails := map[int]string{}
+	metricLine := map[int]bool{}
 	apply := func() {
 		if pending != nil && cur != nil {
 			applyField(cur, pending.field, pending.value, pending.line)
@@ -81,6 +88,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		prevBlockEnd := blockEnd
 		blockEnd = false
 		if inFence {
+			hidden[lineNo] = true
 			if fenceIndent > 0 && strings.TrimSpace(line) != "" {
 				if w, _ := leadingIndent(line); w < fenceIndent {
 					// The list item holding the fence ended before the fence
@@ -99,6 +107,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			continue
 		}
 		if inComment {
+			hidden[lineNo] = true
 			if commentIndent > 0 && strings.TrimSpace(line) != "" {
 				if w, _ := leadingIndent(line); w < commentIndent {
 					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment inside a list item is not closed before the item ends.", commentLine)
@@ -110,6 +119,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 					// is not a field (review 9 D3). Fail visibly.
 					return nil, nil, fail("SS_ITEM_MALFORMED", "Text follows the end of an HTML comment on the same line under an item.", lineNo)
 				}
+				tails[lineNo] = line[end+3:]
 				inComment, blockEnd = false, true
 			}
 			continue
@@ -175,6 +185,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		if n, ch, ok := openFence(line); ok {
 			inFence, fence, fenceN, fenceLine = true, ch, n, lineNo
 			fenceIndent, _ = leadingIndent(line)
+			hidden[lineNo] = true
 			continue
 		}
 		// HTML comments are not rendered, so like fences they are not live
@@ -200,8 +211,10 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		}
 		if w, b := leadingIndent(line); w <= 3 && strings.HasPrefix(line[b:], "<!--") {
 			trim := strings.TrimSpace(line)
+			hidden[lineNo] = true
 			if end := strings.Index(trim[4:], "-->"); end >= 0 {
 				blockEnd = true
+				tails[lineNo] = trim[4+end+3:]
 				if cur != nil && strings.TrimSpace(trim[4+end+3:]) != "" {
 					return nil, nil, fail("SS_ITEM_MALFORMED", "Text follows an HTML comment on the same line under an item.", lineNo)
 				}
@@ -298,6 +311,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		cur.seen[field] = true
 		pending = &pendingField{field: field, value: value, line: lineNo}
 		metricOpen, metricBlank = metricFields[field], false
+		metricLine[lineNo] = metricFields[field]
 	}
 	apply()
 	if inFence {
@@ -305,6 +319,23 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 	}
 	if inComment {
 		return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment is not closed.", commentLine)
+	}
+	// Line-level label rule (owner direction, 8 November 2026): a visible
+	// line that contains a Depends on, Spec dir, or superseded-by label with
+	// a colon must be an accepted field line under an item. This holds by
+	// construction, whatever Markdown layout hides or splits the field.
+	for i, line := range lines {
+		lineNo := i + 1
+		if metricLine[lineNo] {
+			continue
+		}
+		visible := line
+		if hidden[lineNo] {
+			visible = tails[lineNo]
+		}
+		if metricLabelIn(visible) {
+			return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label appears outside a supported field line.", lineNo)
+		}
 	}
 	flush()
 	if len(items) > maxItems {
@@ -1098,6 +1129,47 @@ func bareMetricLabel(line string) bool {
 	for _, label := range []string{"depends on", "spec dir", "superseded by", "dependson", "specdir", "supersededby"} {
 		if strings.HasPrefix(rest, label) {
 			if after := strings.TrimLeft(rest[len(label):], " "); strings.HasPrefix(after, ":") {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// metricLabelIn reports visible text containing a Depends on, Spec dir, or
+// superseded-by label followed by a colon, after normalizing lookalikes,
+// case, emphasis, hyphens, and spacing. Code spans and inline comments are
+// not visible labels and are removed first.
+func metricLabelIn(text string) bool {
+	text = normalizeLookalikes(text)
+	for {
+		start := strings.Index(text, "<!--")
+		if start < 0 {
+			break
+		}
+		end := strings.Index(text[start+4:], "-->")
+		if end < 0 {
+			break
+		}
+		text = text[:start] + " " + text[start+4+end+3:]
+	}
+	text = strings.ToLower(withoutCodeSpans(text))
+	text = strings.NewReplacer("*", "", "_", " ", "-", " ").Replace(text)
+	text = strings.Join(strings.Fields(text), " ")
+	for _, label := range []string{"depends on", "spec dir", "superseded by", "dependson", "specdir", "supersededby"} {
+		for off := 0; ; {
+			k := strings.Index(text[off:], label)
+			if k < 0 {
+				break
+			}
+			k += off
+			off = k + 1
+			if k > 0 {
+				if c := text[k-1]; c >= 'a' && c <= 'z' || c >= '0' && c <= '9' {
+					continue
+				}
+			}
+			if strings.HasPrefix(strings.TrimLeft(text[k+len(label):], " "), ":") {
 				return true
 			}
 		}
