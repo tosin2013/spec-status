@@ -28,3 +28,12 @@
 - **Description:** Still being decided.
 - **Outcome:** _to be defined_
 - **Scope (in):** _to be defined_
+- **Depends on:** 004
+
+### ~~004 — Original idea~~  [status: abandoned]
+
+- **Description:** Replaced by 002; struck through the way speckit.roadmap.write
+  marks superseded entries.
+- **Outcome:** _superseded_
+- **Scope (in):** _superseded_
+- **superseded-by:** 002

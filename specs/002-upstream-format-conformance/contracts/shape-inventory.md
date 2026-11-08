@@ -11,7 +11,7 @@ Each row is one shape key produced by the classifier in `internal/conformance/sh
 - `hand-edit`: not in a template, but a common edit to generated files. Also supported, and covered by fixtures.
 - `extension`: a Spec Status field that upstream doesn't use (FS-04).
 
-Anything not listed is out of dialect. It fails visibly or is a README limit (`specs/001-spec-status/roadmap-format.md` §2–3).
+Paragraph text and wrapped lines get no key: they are prose (outside items) or field continuations (under items). Any other construct not listed is out of dialect. It fails visibly or is a README limit (`specs/001-spec-status/roadmap-format.md` §2–3).
 
 Pins: github/spec-kit v1.2.0 (commit `4ca46a07`) and srobroek/speckit-roadmap v0.1.0. The template copies are in `testdata/upstream/`.
 
@@ -38,7 +38,8 @@ Pins: github/spec-kit v1.2.0 (commit `4ca46a07`) and srobroek/speckit-roadmap v0
 | `bullet` | `- **C-01 — …:** …` under `## Constraints & Decisions` | Prose outside items | supported | template-filled, this-repo |
 | `thematic-break` | `---` before the sections and before the footer | Ends any open item | supported | template-filled |
 | `field-style:plain` | `- Spec dir: specs/002-sample` | Plain labels (feature 001 dialect) | hand-edit | upstream-generated-002-tasks |
-| `field:superseded-by` | `- superseded-by: 002` | Successor reference (FS-04) | extension | covered by `internal/status` tests |
+| `field:superseded-by` | `- **superseded-by:** 002` | Successor reference (FS-04) | extension | hand-edits |
+| `item-heading-struck` | `### ~~004 — Original idea~~  [status: abandoned]` | Item read normally; speckit.roadmap.write strikes through superseded entries | hand-edit | hand-edits |
 | `block-quote` | `> …` prose between sections | Prose outside items (under an item it is fatal) | hand-edit | speckit-roadmap-upstream |
 
 The status vocabulary is the nine tokens in the template legend. Unknown tokens are kept raw with a warning.

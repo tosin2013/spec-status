@@ -1,17 +1,36 @@
 {
-  "pins": ["spec-kit@v1.2.0"],
+  "pins": [
+    "spec-kit@v1.2.0"
+  ],
   "origin": "upstream-generated",
   "counted_by": "implementer (Claude Code), hand count of the tasks.md that /speckit-tasks produced for feature 002, stored unedited, 2026-11-07",
   "outcome": "report",
   "exit": 0,
   "items": [
-    {"id": "001", "status": "planned", "active": true, "dependencies": [],
-     "tasks": {"checked": 0, "total": 30}}
+    {
+      "id": "001",
+      "status": "planned",
+      "active": true,
+      "dependencies": [],
+      "tasks": {
+        "checked": 0,
+        "total": 30
+      },
+      "spec_dir": "specs/002-sample",
+      "superseded_by": null
+    }
   ],
   "summary": {
-    "total_items": 1, "active_items": 1, "verified_active_items": 0,
-    "blocked_count": 0, "human_review_count": 0,
-    "tasks": {"checked": 0, "total": 30, "files_read": 1}
+    "total_items": 1,
+    "active_items": 1,
+    "verified_active_items": 0,
+    "blocked_count": 0,
+    "human_review_count": 0,
+    "tasks": {
+      "checked": 0,
+      "total": 30,
+      "files_read": 1
+    }
   },
   "diagnostics": []
 }

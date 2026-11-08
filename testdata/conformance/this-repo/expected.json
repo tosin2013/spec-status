@@ -1,31 +1,116 @@
 {
-  "pins": ["speckit-roadmap@v0.1.0"],
+  "pins": [
+    "speckit-roadmap@v0.1.0"
+  ],
   "origin": "upstream-generated",
   "counted_by": "implementer (Claude Code), hand count from the snapshot (roadmap 1.1.0 written with speckit.roadmap.write), 2026-11-07",
   "outcome": "report",
   "exit": 0,
   "items": [
-    {"id": "001", "status": "implemented", "active": true, "dependencies": [],
-     "tasks": {"checked": 0, "total": 0}},
-    {"id": "002", "status": "needs-info", "active": true, "dependencies": []},
-    {"id": "003", "status": "planned", "active": true,
-     "dependencies": [{"id": "001", "state": "unfinished"}]},
-    {"id": "004", "status": "needs-info", "active": true,
-     "dependencies": [{"id": "002", "state": "unfinished"}, {"id": "003", "state": "unfinished"}]},
-    {"id": "005", "status": "deferred", "active": false,
-     "dependencies": [{"id": "002", "state": "unfinished"}]},
-    {"id": "006", "status": "deferred", "active": false, "dependencies": []}
+    {
+      "id": "001",
+      "status": "implemented",
+      "active": true,
+      "dependencies": [],
+      "tasks": {
+        "checked": 0,
+        "total": 0
+      },
+      "spec_dir": "specs/001-spec-status",
+      "superseded_by": null
+    },
+    {
+      "id": "002",
+      "status": "needs-info",
+      "active": true,
+      "dependencies": [],
+      "spec_dir": null,
+      "superseded_by": null
+    },
+    {
+      "id": "003",
+      "status": "planned",
+      "active": true,
+      "dependencies": [
+        {
+          "id": "001",
+          "state": "unfinished"
+        }
+      ],
+      "spec_dir": null,
+      "superseded_by": null
+    },
+    {
+      "id": "004",
+      "status": "needs-info",
+      "active": true,
+      "dependencies": [
+        {
+          "id": "002",
+          "state": "unfinished"
+        },
+        {
+          "id": "003",
+          "state": "unfinished"
+        }
+      ],
+      "spec_dir": null,
+      "superseded_by": null
+    },
+    {
+      "id": "005",
+      "status": "deferred",
+      "active": false,
+      "dependencies": [
+        {
+          "id": "002",
+          "state": "unfinished"
+        }
+      ],
+      "spec_dir": null,
+      "superseded_by": null
+    },
+    {
+      "id": "006",
+      "status": "deferred",
+      "active": false,
+      "dependencies": [],
+      "spec_dir": null,
+      "superseded_by": null
+    }
   ],
   "summary": {
-    "total_items": 6, "active_items": 4, "verified_active_items": 0,
-    "blocked_count": 2, "human_review_count": 0,
-    "tasks": {"checked": 0, "total": 0, "files_read": 1}
+    "total_items": 6,
+    "active_items": 4,
+    "verified_active_items": 0,
+    "blocked_count": 2,
+    "human_review_count": 0,
+    "tasks": {
+      "checked": 0,
+      "total": 0,
+      "files_read": 1
+    }
   },
   "diagnostics": [
-    {"code": "SS_SPEC_REFERENCE_MISSING", "item": "003"},
-    {"code": "SS_DEPENDENCY_BLOCKED", "item": "003"},
-    {"code": "SS_DEPENDENCY_BLOCKED", "item": "004"},
-    {"code": "SS_DEPENDENCY_BLOCKED", "item": "004"},
-    {"code": "SS_DEPENDENCY_BLOCKED", "item": "005"}
+    {
+      "code": "SS_SPEC_REFERENCE_MISSING",
+      "item": "003"
+    },
+    {
+      "code": "SS_DEPENDENCY_BLOCKED",
+      "item": "003"
+    },
+    {
+      "code": "SS_DEPENDENCY_BLOCKED",
+      "item": "004"
+    },
+    {
+      "code": "SS_DEPENDENCY_BLOCKED",
+      "item": "004"
+    },
+    {
+      "code": "SS_DEPENDENCY_BLOCKED",
+      "item": "005"
+    }
   ]
 }

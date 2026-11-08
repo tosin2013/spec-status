@@ -30,7 +30,7 @@ Each conformance fixture directory holds an `expected.json` written by **hand co
 ## Rules
 
 - `outcome` and `exit` are required. `exit` is the exit code at the default threshold (`error`).
-- `items` lists every item in document order, with `id`, `status`, and `active`. `dependencies` and `tasks` are compared when present.
+- `items` lists every item in document order, with `id`, `status`, and `active`. `dependencies`, `tasks`, `spec_dir`, and `superseded_by` are compared when present; `null` means none. `spec_dir` is the normalized root-relative path, without a trailing slash. These two fields check rule (b) of D-2026-11-07-09 directly.
 - `summary` fields are compared when present.
 - `diagnostics` is compared as a multiset of `(code, item)` pairs: every listed pair must occur, and no other pair may occur. Messages and lines are not compared.
 - For a fatal fixture, `outcome` is `fatal` and `fatal` gives `{"code": …, "path": …, "line": …}`. `items` and `summary` are omitted.

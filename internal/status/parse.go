@@ -67,6 +67,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 	// Like a blank line or heading, that lets a type-7 HTML block start: in
 	// CommonMark only a paragraph prevents it.
 	blockEnd := false
+	metricOpen, metricBlank := false, false
 	apply := func() {
 		if pending != nil && cur != nil {
 			applyField(cur, pending.field, pending.value, pending.line)
@@ -108,6 +109,19 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			}
 			continue
 		}
+		// D3 (review 8): a Depends on, Spec dir, or superseded-by value
+		// continued on an indented line after a blank line renders as part
+		// of the same bullet, but is not joined to the value: fail visibly.
+		if cur != nil && metricOpen {
+			switch w, _ := leadingIndent(line); {
+			case strings.TrimSpace(line) == "":
+				metricBlank = true
+			case w == 0:
+				metricOpen, metricBlank = false, false
+			case metricBlank && !listMarker(line):
+				return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by value continued after a blank line is not supported.", lineNo)
+			}
+		}
 		if cur != nil && bareMetricLabel(line) {
 			// "superseded-by: 002" or "Depends on: 001" without a list marker
 			// renders as text, but its author meant a field: fail visibly.
@@ -120,7 +134,10 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 					if metricFields[pending.field] {
 						return nil, nil, fail("SS_ITEM_MALFORMED", "A list under a Depends on, Spec dir, or superseded-by field is not supported.", lineNo)
 					}
-				} else if _, _, isFence := openFence(line); !isFence && !strings.HasPrefix(line[b:], "<!--") {
+				} else if !startsBlock(line, b) {
+					// Only paragraph text continues a value. A line that starts
+					// a block (heading, break, HTML, fence, comment, quote, or
+					// an item-like line) is handled on its own below.
 					pending.value = strings.TrimSpace(pending.value + " " + strings.TrimSpace(line))
 					continue
 				}
@@ -163,7 +180,11 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		if w, b := leadingIndent(line); w <= 3 && otherHTMLBlock(line[b:]) {
 			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML processing instruction, CDATA, or declaration block is not supported.", lineNo)
 		}
-		if w, b := leadingIndent(line); w <= 3 && cur == nil && htmlBlockStart(line[b:], notParagraph(last) || prevBlockEnd) {
+		if w, b := leadingIndent(line); ((cur == nil && w <= 3) || (cur != nil && w >= 1 && w <= 5)) && htmlBlockStart(line[b:], notParagraph(last) || prevBlockEnd) {
+			// Under an item, an indented HTML block (for example <details>)
+			// hides its content from renderers, so a field or item heading
+			// inside it is fatal (review 8 D2). A column-0 HTML line under an
+			// item stays fatal under the closed item body.
 			inHTML = true
 			continue
 		}
@@ -236,10 +257,11 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			// known descriptive field, or a thematic break that ends the item.
 			// Anything else is fatal instead of being read as prose.
 			switch {
-			case strings.TrimSpace(line) == "", width > 0, descriptiveField(line):
-				continue
 			case thematicBreak(line):
+				// An indented break (one to three spaces) also ends the item.
 				flush()
+				continue
+			case strings.TrimSpace(line) == "", width > 0, descriptiveField(line):
 				continue
 			}
 			return nil, nil, fail("SS_ITEM_MALFORMED", "Line under an item is not a supported field or an indented continuation.", lineNo)
@@ -255,6 +277,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		}
 		cur.seen[field] = true
 		pending = &pendingField{field: field, value: value, line: lineNo}
+		metricOpen, metricBlank = metricFields[field], false
 	}
 	apply()
 	if inFence {
@@ -291,6 +314,12 @@ func matchItem(line string) (id, title, status string, ok bool) {
 		return "", "", "", false
 	}
 	body := rest[len(prefix):]
+	// speckit.roadmap.write strikes through superseded entries:
+	// "### ~~006 — Title~~  [status: abandoned]" is read as item 006.
+	struck := strings.HasPrefix(body, "~~")
+	if struck {
+		body = body[2:]
+	}
 	if len(body) < 6 || !isDigit3(body[:3]) || !strings.HasPrefix(body[3:], " — ") {
 		return "", "", "", false
 	}
@@ -304,6 +333,12 @@ func matchItem(line string) (id, title, status string, ok bool) {
 		return "", "", "", false
 	}
 	title = strings.TrimSpace(after[:mark])
+	if struck {
+		if !strings.HasSuffix(title, "~~") || strings.Contains(strings.TrimSuffix(title, "~~"), "~~") {
+			return "", "", "", false
+		}
+		title = strings.TrimSpace(strings.TrimSuffix(title, "~~"))
+	}
 	status = strings.TrimSpace(after[mark+len(" [status: ") : len(after)-1])
 	if title == "" || status == "" || strings.ContainsAny(title, "\r\n") {
 		return "", "", "", false
@@ -1045,4 +1080,19 @@ func bareMetricLabel(line string) bool {
 		}
 	}
 	return false
+}
+
+// startsBlock reports a line that begins a new block rather than continuing
+// a field's paragraph: a heading, a thematic break, an HTML block, a fence,
+// a comment, a block quote, or an item-like line. rest starts at byte b.
+func startsBlock(line string, b int) bool {
+	rest := line[b:]
+	if _, _, _, ok := heading(line); ok || thematicBreak(line) || itemLikeLine(line) {
+		return true
+	}
+	if _, _, ok := openFence(line); ok {
+		return true
+	}
+	return strings.HasPrefix(rest, "<!--") || strings.HasPrefix(rest, ">") ||
+		rawHTMLBlock(rest) || otherHTMLBlock(rest) || htmlBlockStart(rest, true)
 }
