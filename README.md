@@ -121,6 +121,16 @@ On this Linux amd64 host, nine runs of a 100-item, 10,000-task fixture had a med
 
 There is no package-manager install, release workflow, or file-updating command. No license is selected.
 
+## Draft proposals
+
+These are not commands in this build. On 7 November 2026 the owner authorized writing them down. That did not approve implementation or the open choices.
+
+- [Timing and evidence](specs/001-spec-status/timing-evidence.md) keeps inferred quarters omitted. Optional recorded dates are a proposal, not a forecast.
+- [Companion prompts](specs/001-spec-status/companion.md) sketches an opt-in prompt file and a local evidence envelope. The core would still not embed a model.
+- [Project manager sample](specs/001-spec-status/examples/prompts/project-manager.txt) and [software engineer sample](specs/001-spec-status/examples/prompts/software-engineer.txt) are editable proposed texts, not embedded prompts and not write-back.
+
+A harness, in that companion draft, means an external tool. Claude Code, Grok Bot, Muse, and OpenCode are illustrative consumers only. They are not verified integrations. If one of them is allowed to run the CLI, it can show the human status text on a supported terminal and can read the JSON. That is not an automatic graphic and not a model inside `spec`.
+
 ## Specification
 
 `README.md` stays at the repository root. The constitution is `.specify/memory/constitution.md`. Feature `001-spec-status` documents are under `specs/001-spec-status/`.
@@ -137,6 +147,7 @@ There is no package-manager install, release workflow, or file-updating command.
 | [Ordered tasks](specs/001-spec-status/tasks.md) | Backlog and the current implementation record |
 | [Build/release/distribution](specs/001-spec-status/build-release.md) | Future release gates |
 | [Phase two](specs/001-spec-status/phase2.md) | Future write-back, not in this build |
+| [Timing draft](specs/001-spec-status/timing-evidence.md), [companion draft](specs/001-spec-status/companion.md) | Draft proposals only, not implemented |
 | [Requirements/traceability](specs/001-spec-status/traceability.md) | Where each baseline requirement is recorded |
 
 The original input-format prose is not completely recovered verbatim. This repository is a working development build of that interpretation, not an upstream compatibility certification.

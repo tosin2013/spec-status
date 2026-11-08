@@ -131,3 +131,7 @@ The development CLI covers the read-only reporting path: narrow roadmap parsing,
 Still open as product work, not silently dropped: owner approval of DC-01–08, real dogfood roadmaps, release identity and multi-platform execution, signing, license, and phase-two mutation. Acceptance rows AC-21–AC-25 are not met. AC-20 has one host measurement and is not a passed certification.
 
 Documentation review still must assess details, not only identifier counts. Cases where ambiguity remains (grammar/source provenance, metadata races, unsafe skips versus fatal, duplicate counts and stage matrix) are labelled as implementation blockers or candidate policies rather than falsely resolved requirements.
+
+## Draft proposals outside the baseline count
+
+[timing-evidence.md](timing-evidence.md) and [companion.md](companion.md) are not among the 97 baseline entries and they are not F-05. They record a 7 November 2026 request to draft proposals. The owner omission of inferred quarters stays T-01–T-03. Cobra, Lip Gloss, the summary panel, and filters with `--explain` stay the approvals already recorded. The drafts do not approve DC-01–DC-08 and do not resurrect quarter inference.

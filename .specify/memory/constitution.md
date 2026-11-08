@@ -34,7 +34,7 @@ Version input dialect, JSON schema and CLI release identity separately. Document
 
 ## Article VI — No inferred quarters
 
-Inferred quarters are excluded from v1, not experimental opt-in. No quarter buckets, percentages, denominators, flags or inference JSON fields. Explicit timing, if supported, stays recorded rather than estimated. Retired heuristic requirements are not implementation tasks. Any future timing experiment needs separate evidence and scope approval.
+Inferred quarters are excluded from v1, not experimental opt-in. No quarter buckets, percentages, denominators, flags or inference JSON fields. Explicit timing, if supported, stays recorded rather than estimated. Retired heuristic requirements are not implementation tasks. Any future timing experiment needs separate evidence and scope approval. A draft proposal for recorded dates and a separate companion-prompt draft are [timing-evidence.md](../../specs/001-spec-status/timing-evidence.md) and [companion.md](../../specs/001-spec-status/companion.md). They are not amendments to this article and they do not approve implementation.
 
 ## Article VII — Distribution claims need evidence
 

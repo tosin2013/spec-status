@@ -70,3 +70,5 @@ TASK-10 and TASK-11 may be independent after parser/safety APIs stabilize; they 
 ## Definition of done for a future task
 
 Observed evidence matches its approved contract and acceptance cases; traceability updated, unsupported behavior disclosed, no unresolved decision silently encoded, no claimed success without execution. Product tasks require implementation/test evidence. Documentation-only checks cannot mark product tasks complete. License, root safety, malformed metrics and support promises cannot be accepted through implication or omission.
+
+Draft proposals [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md) are documentation only. They are not TASK-22, TASK-23, or authorization to code.

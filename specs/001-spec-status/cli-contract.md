@@ -72,3 +72,7 @@ Severity order is info < warning < error. Threshold info fails for any finding, 
 ## Compatibility gates
 
 Approve executable/grammar/help/error behavior before coding. Preserve existing --json/snake_case concepts rather than inventing aliases to match earlier illustrative reviews. Document breaking command/meaning changes with CLI SemVer rules; do not conflate input v0.1.1 with CLI 0.1.1. Any decision to support an alternate satisfaction policy or date/config feature updates help, JSON effective configuration, fixtures and compatibility policy explicitly. No command examples here authorize mutations or release creation.
+
+## Not part of the working command
+
+[timing-evidence.md](timing-evidence.md) and [companion.md](companion.md) are draft proposals. `spec companion` is not a command in this build. No quarter option is added. Human styled status text remains for supported terminal surfaces. JSON remains the machine evidence. An external harness is not a native integration.

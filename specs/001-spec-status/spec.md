@@ -100,3 +100,7 @@ Owner-approved RC precedes first stable tag. Platform matrix remains undecided; 
 Functional acceptance requires the detailed cases in [acceptance.md](acceptance.md); coverage mapping is [traceability.md](traceability.md). No test has been executed or implementation accepted. The <100 ms median cold-start target applies to a documented 100-item/10,000-task fixture on disclosed hardware/OS and is not a measured fact.
 
 Before implementation: resolve DC-01–06 and affected PROFILE-R1 details, select approved real fixture inputs and separately authorize implementation. Release-specific decisions DC-07–08 must be resolved before release/support claims; license selection remains open; the repository is established separately and no repository operation is performed here. All pending choices and alternative effects must be recorded rather than turning this draft into implicit approval.
+
+## 6. Draft proposals, not approvals
+
+[Timing and evidence](timing-evidence.md) and [companion prompts](companion.md) are draft proposals authorized for documentation on 7 November 2026. They do not change the settled omission of inferred quarters, the working `spec status` command, or phase-two write-back. Sample texts under [examples/prompts/](examples/prompts/) are proposed documentation, not embedded prompts. Open pull request work on other branches is not adopted or reverted by these drafts.
