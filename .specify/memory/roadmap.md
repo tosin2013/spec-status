@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.0 → 1.3.1
+Bump rationale: PATCH — status transition only.
+
+Changes this revision:
+  - 007 status: in-progress → implemented (owner, 2026-11-08, after the
+    post-implementation debrief; all tasks done except review-only T026)
+
+Specs affected: 007
+Open questions added/resolved: none
+
+Previous revision (1.3.0, 2026-11-08):
 Version change: 1.2.0 → 1.3.0
 Bump rationale: MINOR — new spec 008 (two-mode roadmap and inventory) and new
 decisions C-09 (D-2026-11-08-01) and C-10 (D-2026-11-08-02).
@@ -222,7 +233,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** Blocked on DC-07 (targets, runners, identity policy) and on a license
   choice; no license is selected today.
 
-### 007 — Upstream-format conformance [status: in-progress]
+### 007 — Upstream-format conformance [status: implemented]
 
 - **Description:** Define supported input as the shapes produced by pinned
   upstream templates, with hand-counted conformance fixtures, a drift check
@@ -237,7 +248,8 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Governed by:** C-01, C-02, C-03, C-08
 - **Spec dir:** specs/002-upstream-format-conformance
 - **Notes:** Created with /speckit-specify, /speckit-plan, and /speckit-tasks;
-  implementation approved by the owner on 2026-11-07.
+  implementation approved by the owner on 2026-11-07. Recorded implemented
+  on 2026-11-08; verified only after T026 (independent review of 001) passes.
 
 ### Future
 
@@ -288,4 +300,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08
+**Version**: 1.3.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08
