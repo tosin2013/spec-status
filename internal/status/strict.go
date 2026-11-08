@@ -12,7 +12,7 @@ func leadingIndent(line string) (width, bytes int) {
 		case ' ':
 			width++
 		case '\t':
-			width += 4
+			width += 4 - width%4 // advance to the next tab stop
 		default:
 			return width, bytes
 		}
