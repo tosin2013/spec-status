@@ -52,10 +52,16 @@ func TestTaskFenceAndCommentBoundaries(t *testing.T) { // D4, D5
 	}
 }
 
-func TestIndentedCodeInTasksIsNotTasks(t *testing.T) { // D6, N3
-	tasks := "Example:\n\n    - [x] T999 sample\n    " + fence + "\n\n- [ ] T001\n  - [x] nested child\n\n    - [ ] continued in the list\n"
-	rep := Evaluate(Option{Root: project(t, oneSpec, map[string]string{"specs/a/tasks.md": tasks})})
+func TestIndentedCodeInTasks(t *testing.T) { // D6, N3; narrow tasks dialect
+	// Indented code without checkboxes is ignored, fences in it included.
+	ok := "Example:\n\n    make test\n    " + fence + "\n\n- [ ] T001\n  - [x] nested child\n\n    - [ ] continued in the list\n"
+	rep := Evaluate(Option{Root: project(t, oneSpec, map[string]string{"specs/a/tasks.md": ok})})
 	if rep.Outcome != "report" || rep.Summary.Tasks.Total != 3 || rep.Summary.Tasks.Checked != 1 {
 		t.Fatalf("tasks %+v (outcome %s), want 1/3", rep.Summary, rep.Outcome)
+	}
+	// A checkbox inside indented code is fatal rather than silently skipped.
+	code := "Example:\n\n    - [x] T999 sample\n\n- [ ] T001\n"
+	if c := fatalCode(t, oneSpec, map[string]string{"specs/a/tasks.md": code}); c != "SS_LAYOUT_UNSUPPORTED" {
+		t.Fatalf("code %s", c)
 	}
 }

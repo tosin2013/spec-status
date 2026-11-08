@@ -101,6 +101,12 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		// roadmap data. A comment opens only at three or fewer columns of
 		// indentation; deeper "<!--" is indented code or continuation text.
 		// An unclosed comment is fatal below.
+		if w, b := leadingIndent(line); w <= 3 && (strings.HasPrefix(line[b:], "<!-->") || strings.HasPrefix(line[b:], "<!--->")) {
+			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Empty HTML comment is read differently by renderers.", lineNo)
+		}
+		if w, b := leadingIndent(line); w <= 3 && rawHTMLBlock(line[b:]) {
+			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Raw HTML block (pre, script, style, textarea) is not supported.", lineNo)
+		}
 		if w, b := leadingIndent(line); w <= 3 && strings.HasPrefix(line[b:], "<!--") {
 			trim := strings.TrimSpace(line)
 			if end := strings.Index(trim[4:], "-->"); end >= 0 {
@@ -249,6 +255,9 @@ func matchItem(line string) (id, title, status string, ok bool) {
 	}
 	id = body[:3]
 	after := body[3+len(" — "):]
+	if strings.Count(after, "[status:") > 1 {
+		return "", "", "", false // two status markers: ambiguous, fatal upstream
+	}
 	mark := strings.LastIndex(after, " [status: ")
 	if mark <= 0 || !strings.HasSuffix(after, "]") {
 		return "", "", "", false
@@ -397,10 +406,16 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 	allLines := strings.Split(text, "\n")
 	refs := referenceDefinitions(allLines)
 	inTask, taskChecked := false, false
-	// inList tracks whether the current line can belong to a list item. A
-	// line indented four or more columns outside a list is an indented code
-	// block, so it is neither a task, a fence, nor a comment.
-	inList, prevBlank := false, true
+	// Narrow tasks dialect (owner decision, 7 November 2026). items holds the
+	// open list items; indentation is measured from the innermost item's
+	// content column. Where the answer would depend on CommonMark container
+	// rules, the file is fatal instead of guessed.
+	var items []listItem
+	prevBlank := true
+	fatalAt := func(msg string, line int) (taskFile, *Diagnostic) {
+		d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: msg, Path: rel, Line: line}
+		return taskFile{}, &d
+	}
 	for i, line := range allLines {
 		if inFence {
 			if fenceIndent > 0 && strings.TrimSpace(line) != "" {
@@ -432,22 +447,68 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 		}
 		blank := strings.TrimSpace(line) == ""
 		width, b := leadingIndent(line)
-		_, _, _, isHeading := heading(line)
-		switch {
-		case blank:
-		case isHeading:
-			inList = false
-		case listMarker(line) && (width <= 3 || inList):
-			inList = true
-		case width <= 3 && prevBlank && !strings.HasPrefix(line[b:], ">"):
-			inList = false // a paragraph after a blank line ends the list
-		}
+		wasBlank := prevBlank
 		prevBlank = blank
-		if !blank && width >= 4 && !inList {
+		if blank {
 			inTask = false
-			continue // indented code block: not tasks, fences, or comments
+			continue
 		}
-		if n, ch, ok := openFenceIndent(line, 1<<30); ok {
+		if _, _, _, isHeading := heading(line); isHeading && width <= 3 {
+			items, inTask = nil, false
+			continue
+		}
+		if strings.HasPrefix(line[b:], ">") {
+			// Block quotes: a fence, comment, checkbox, or indented code inside
+			// a quote depends on container rules, so it is fatal.
+			inner := line[b:]
+			for strings.HasPrefix(inner, ">") {
+				inner = strings.TrimPrefix(strings.TrimPrefix(inner[1:], " "), "\t")
+			}
+			innerW, innerB := leadingIndent(inner)
+			if _, _, ok := openFence(inner); ok || innerW >= 4 || strings.HasPrefix(inner[innerB:], "<!--") {
+				return fatalAt("Fence, comment, or indented code inside a block quote in a tasks file is not supported.", i+1)
+			}
+			if _, _, ok := matchTask(line); ok {
+				return fatalAt("Checkbox inside a block quote in a tasks file is not supported.", i+1)
+			}
+			inTask = false
+			continue
+		}
+		isMarker := listMarker(line)
+		if isMarker {
+			for len(items) > 0 && items[len(items)-1].marker >= width {
+				items = items[:len(items)-1]
+			}
+		} else if wasBlank {
+			// A paragraph after a blank line closes the items it is not
+			// indented into.
+			for len(items) > 0 && width < items[len(items)-1].content {
+				items = items[:len(items)-1]
+			}
+		}
+		base := 0
+		if len(items) > 0 {
+			base = items[len(items)-1].content
+		}
+		if width-base >= 4 && (isMarker || wasBlank) {
+			// Four or more columns past the enclosing content: renderers read
+			// this as code or continuation text, not as a list item.
+			if _, _, ok := matchTask(line); ok {
+				return fatalAt("Checkbox is indented four or more columns past its list item; renderers read it as code or text.", i+1)
+			}
+			inTask = false
+			continue
+		}
+		if isMarker {
+			items = append(items, listItem{marker: width, content: contentColumn(line)})
+		}
+		if strings.HasPrefix(line[b:], "<!-->") || strings.HasPrefix(line[b:], "<!--->") {
+			return fatalAt("Empty HTML comment is read differently by renderers.", i+1)
+		}
+		if rawHTMLBlock(line[b:]) {
+			return fatalAt("Raw HTML block (pre, script, style, textarea) in a tasks file is not supported.", i+1)
+		}
+		if n, ch, ok := openFenceIndent(line, base+3); ok && !isMarker {
 			inFence, fence, fenceN, fenceLine = true, ch, n, i+1
 			fenceIndent = width
 			continue
@@ -694,4 +755,42 @@ func listMarker(line string) bool {
 		j++
 	}
 	return j > 0 && j+1 < len(trim) && (trim[j] == '.' || trim[j] == ')') && (trim[j+1] == ' ' || trim[j+1] == '\t')
+}
+
+type listItem struct{ marker, content int }
+
+// contentColumn returns the column where a list item's content starts: the
+// marker width plus one to four following spaces (one if more than four).
+func contentColumn(line string) int {
+	width, b := leadingIndent(line)
+	rest := line[b:]
+	m := 1
+	if rest[0] >= '0' && rest[0] <= '9' {
+		for m < len(rest) && rest[m] >= '0' && rest[m] <= '9' {
+			m++
+		}
+		m++ // the "." or ")"
+	}
+	spaces := 0
+	for m+spaces < len(rest) && rest[m+spaces] == ' ' {
+		spaces++
+	}
+	if spaces == 0 || spaces > 4 || m+spaces == len(rest) {
+		spaces = 1
+	}
+	return width + m + spaces
+}
+
+// rawHTMLBlock reports a CommonMark type-1 HTML block opener (<pre>,
+// <script>, <style>, <textarea>), whose content is hidden or raw until the
+// closing tag.
+func rawHTMLBlock(rest string) bool {
+	lower := strings.ToLower(rest)
+	for _, tag := range []string{"<pre", "<script", "<style", "<textarea"} {
+		if strings.HasPrefix(lower, tag) {
+			after := lower[len(tag):]
+			return after == "" || after[0] == ' ' || after[0] == '>' || after[0] == '\t'
+		}
+	}
+	return false
 }
