@@ -84,3 +84,15 @@ TASK-10 and TASK-11 may be independent after parser/safety APIs stabilize; they 
 Observed evidence matches its approved contract and acceptance cases; traceability updated, unsupported behavior disclosed, no unresolved decision silently encoded, no claimed success without execution. Product tasks require implementation/test evidence. Documentation-only checks cannot mark product tasks complete. License, root safety, malformed metrics and support promises cannot be accepted through implication or omission.
 
 Draft proposals [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md) are documentation only. They are not TASK-22, TASK-23, or authorization to code.
+
+## Two-mode follow-up — not started
+
+D-2026-11-08-01 is recorded in [two-mode-direction.md](two-mode-direction.md). These tasks are unimplemented. They do not start until the open choices named there are decided, and deciding them is a separate step from this documentation.
+
+| ID | Depends on | Work |
+|---|---|---|
+| TASK-24 | Open choices in D-2026-11-08-01 | Write the chosen command, version-identification, folder, and checkbox rules into the CLI, JSON, and roadmap-format contracts. No code in this row. |
+| TASK-25 | TASK-24 | Implement the two modes without a silent fallback, with tests for missing, empty, unrecognized, and malformed inputs. Not authorized by the documentation pull request. |
+| TASK-26 | TASK-24 | Add the supported-format bug and compatibility-request issue text to the repository's issue guidance only after the owner asks for the forms. |
+
+Pull request 15 (reviewed at `a6a6ad04bc861608e3b0bea014ff7dc021542259`; current head `bb3af1ff8d0ea2eb074a3427714a7a11ff6718ad` adds one README Limits line and no code) remains a supported-roadmap grammar repair. It is not this follow-up, and this table does not decide its merge.

@@ -135,3 +135,5 @@ Documentation review still must assess details, not only identifier counts. Case
 ## Draft proposals outside the baseline count
 
 [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md) are not among the 97 baseline entries and they are not F-05. They record a 7 November 2026 request to draft proposals. The owner omission of inferred quarters stays T-01–T-03. Cobra, Lip Gloss, the summary panel, and filters with `--explain` stay the approvals already recorded. The drafts do not approve DC-01–DC-08 and do not resurrect quarter inference.
+
+[two-mode-direction.md](two-mode-direction.md) is D-2026-11-08-01. It amends the roadmap-required rule only as product direction. It is not one of the 97 baseline entries, and it does not implement a command. Rollout and the open syntax choices stay undecided. Inferred quarters stay omitted.
