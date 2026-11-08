@@ -73,3 +73,13 @@ Not chosen, and not implemented: the implemented-or-verified dependency alternat
 ## Change procedure
 
 Record a choice with decision ID, approver, date, chosen alternative, rejected alternatives and impacted requirements/tests. Do not replace “proposed” with “approved” merely because it appears in several documents. A scoped decision may clear one gate without clearing implementation/release. Revisions of input/schema compatibility must identify migration/fixtures. Licensing decisions must be explicit; public visibility does not imply a permissive license.
+
+## Draft proposals recorded, not chosen
+
+On 7 November 2026 the owner authorized drafting, not implementation and not a decision on the open choices. This pull request records two drafts: [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md).
+
+Retained baseline: inferred quarters stay omitted from v1. Four ordinal buckets cannot answer a delivery date. Approved exceptions that stay approved are Cobra for commands, help, and flags; Lip Gloss for human text; the static summary panel; and human-text filters with `--explain`. Those approvals do not make the rest of the roadmap profile approved. DC-01–DC-08 stay open in this document. A separate open pull request may record other owner decisions; this section does not adopt or revert that pull request.
+
+Assistant drafting choices, not owner decisions: where to file the drafts, the tentative command spelling `spec companion --prompt-file`, the 64 KiB sketch, and the citable field list. Syntax, date severity, input-extension version, invalid-supersession denominator policy, envelope version, loader placement, and consent rules remain open.
+
+A clarification in the same documentation authorization says a harness means an external tool, with Claude Code, Grok Bot, Muse, and OpenCode as illustrative consumers only. That is not verified compatibility and not permission to embed a model in the core.

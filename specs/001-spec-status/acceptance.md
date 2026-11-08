@@ -52,3 +52,20 @@ Performance is an acceptance target, not an implementation estimate. Source form
 ## Acceptance readiness
 
 Block final implementation acceptance if grammar/stage matrix, invalid replacement metrics, HUMAN_REVIEW count policy, schema/code meanings, safe-read limits/matcher or toolchain policies remain ambiguous. Block release acceptance if support targets, runner evidence, pins, archive manifest or RC approval missing. A spec draft may be complete as documentation while these implementation/release gates remain unresolved. No [x] completion state or passing-test badge is appropriate today.
+
+## Draft proposal sketches — not product acceptance
+
+These rows record the 7 November 2026 drafting request. They are not AC cases, not executed tests, and not implementation approval. Details are in [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md). Illustrative IDs and date shapes in those drafts are not facts about this repository.
+
+| Sketch | Proposed outcome if later adopted |
+|---|---|
+| Timing, unknown status | Raw token kept, warning, not recorded verified; otherwise the active rules still apply. No inferred date. |
+| Timing, valid supersession | History, ID, and raw status kept; excluded from the active denominator; not reported as success. Zero active is not 100. |
+| Timing, superseded dependency | Human review, original edge kept, no redirect. |
+| Timing, bad graph | Self, missing, and cycle references are diagnostics. A missing reference is not proof that code failed. |
+| Timing, filters | Full totals, findings, and exit stay on the unfiltered result. |
+| Timing, malformed explicit value | Reported as malformed. Not repaired into a quarter or an ETA. |
+| Companion, opt-in | Ordinary `spec status` JSON unchanged. |
+| Companion, bad prompt file | Exit 2, no partial envelope, no default prompt, no write, no model call. |
+| Companion, envelope | Same common status model. No computed quarter or ETA. |
+| Companion, malicious prompt | Does not elevate harness permissions. A harness boundary test would be required. The CLI alone would not certify that. |
