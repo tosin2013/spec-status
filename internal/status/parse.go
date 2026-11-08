@@ -56,7 +56,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		d := Diagnostic{Code: code, Severity: "error", Message: msg, Path: rel, Line: line}
 		return &d
 	}
-	fenceLine, commentLine := 0, 0
+	fenceLine, commentLine, fenceIndent := 0, 0, 0
 	inComment, inTable := false, false
 	prev := ""
 	for i, line := range lines {
@@ -64,6 +64,13 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		last := prev
 		prev = line
 		if inFence {
+			if fenceIndent > 0 && strings.TrimSpace(line) != "" {
+				if w, _ := leadingIndent(line); w < fenceIndent {
+					// The list item holding the fence ended before the fence
+					// closed. Renderers close it there; we fail visibly.
+					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence inside a list item is not closed before the item ends.", fenceLine)
+				}
+			}
 			if closesFence(line, fence, fenceN) {
 				inFence = false
 			}
@@ -77,6 +84,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		}
 		if n, ch, ok := openFence(line); ok {
 			inFence, fence, fenceN, fenceLine = true, ch, n, lineNo
+			fenceIndent, _ = leadingIndent(line)
 			continue
 		}
 		// HTML comments are not rendered, so like fences they are not live
@@ -127,17 +135,30 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		}
 		field, value, ok := matchField(line)
 		if !ok {
-			near, isNear := fieldPrefix(line)
-			if !isNear {
+			width, _ := leadingIndent(line)
+			if near, isNear := fieldPrefix(line); isNear {
+				// Metric fields are strict everywhere. A descriptive label is
+				// strict only at the top level of an item; elsewhere it is prose.
+				if metricFields[near] || (cur != nil && width == 0) {
+					return nil, nil, fail("SS_ITEM_MALFORMED", "Field label does not match the supported spelling.", lineNo)
+				}
 				continue
 			}
-			width, _ := leadingIndent(line)
-			// Metric fields are strict everywhere. A descriptive label is
-			// strict only at the top level of an item; elsewhere it is prose.
-			if metricFields[near] || (cur != nil && width == 0) {
-				return nil, nil, fail("SS_ITEM_MALFORMED", "Field label does not match the supported spelling.", lineNo)
+			if cur == nil {
+				continue
 			}
-			continue
+			// Closed item body (owner decision, 7 November 2026): under an item
+			// heading, a line must be blank, indented continuation text, a
+			// known descriptive field, or a thematic break that ends the item.
+			// Anything else is fatal instead of being read as prose.
+			switch {
+			case strings.TrimSpace(line) == "", width > 0, descriptiveField(line):
+				continue
+			case thematicBreak(line):
+				flush()
+				continue
+			}
+			return nil, nil, fail("SS_ITEM_MALFORMED", "Line under an item is not a supported field or an indented continuation.", lineNo)
 		}
 		if cur == nil {
 			if metricFields[field] {
@@ -354,10 +375,19 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 	var tf taskFile
 	inFence := false
 	var fence byte
-	var fenceN, fenceLine int
+	var fenceN, fenceLine, fenceIndent int
 	inComment, commentLine := false, 0
-	for i, line := range strings.Split(text, "\n") {
+	allLines := strings.Split(text, "\n")
+	refs := referenceDefinitions(allLines)
+	inTask, taskChecked := false, false
+	for i, line := range allLines {
 		if inFence {
+			if fenceIndent > 0 && strings.TrimSpace(line) != "" {
+				if w, _ := leadingIndent(line); w < fenceIndent {
+					d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: "Code fence inside a task list item is not closed before the item ends.", Path: rel, Line: fenceLine}
+					return taskFile{}, &d
+				}
+			}
 			if closesFence(line, fence, fenceN) {
 				inFence = false
 			}
@@ -369,8 +399,9 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 			}
 			continue
 		}
-		if n, ch, ok := openFence(line); ok {
+		if n, ch, ok := openFenceIndent(line, 1<<30); ok {
 			inFence, fence, fenceN, fenceLine = true, ch, n, i+1
+			fenceIndent, _ = leadingIndent(line)
 			continue
 		}
 		if trim := strings.TrimSpace(line); strings.HasPrefix(trim, "<!--") {
@@ -381,8 +412,20 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 		}
 		checked, body, ok := matchTask(line)
 		if !ok {
+			// A wrapped continuation of a task can carry a link. It is not
+			// checked, so it is reported rather than ignored.
+			if strings.TrimSpace(line) == "" {
+				inTask = false
+			} else if _, _, _, isHeading := heading(line); isHeading {
+				inTask = false
+			} else if inTask {
+				for _, link := range extractLinks(line, refs) {
+					tf.Links = append(tf.Links, taskLink{Kind: "unsupported", Checked: taskChecked, Line: i + 1, Path: link.Path})
+				}
+			}
 			continue
 		}
+		inTask, taskChecked = true, checked
 		if indentDepth(line) > maxNesting {
 			d := Diagnostic{Code: "SS_INPUT_LIMIT", Severity: "error", Message: "Task nesting limit exceeded.", Path: rel, Line: i + 1}
 			return taskFile{}, &d
@@ -396,7 +439,7 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 		if checked {
 			tf.Checked++
 		}
-		for _, link := range extractLinks(body) {
+		for _, link := range extractLinks(body, refs) {
 			link.Checked = checked
 			link.Line = i + 1
 			tf.Links = append(tf.Links, link)
@@ -415,22 +458,31 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 
 // matchTask recognizes "- [ ] text" with a -, *, or + marker, or an ordered
 // marker such as "1. [x] text" or "2) [ ] text".
+// Like GFM, it allows block-quote markers and one or more spaces or tabs
+// after the list marker.
 func matchTask(line string) (checked bool, body string, ok bool) {
 	trim := strings.TrimLeft(line, " \t")
-	var rest string
+	for strings.HasPrefix(trim, ">") {
+		trim = strings.TrimLeft(trim[1:], " \t")
+	}
+	var after string
 	switch {
-	case strings.HasPrefix(trim, "- [") || strings.HasPrefix(trim, "* [") || strings.HasPrefix(trim, "+ ["):
-		rest = trim[2:]
+	case len(trim) > 1 && (trim[0] == '-' || trim[0] == '*' || trim[0] == '+'):
+		after = trim[1:]
 	default:
 		j := 0
 		for j < len(trim) && j < 9 && trim[j] >= '0' && trim[j] <= '9' {
 			j++
 		}
-		if j == 0 || j+2 >= len(trim) || (trim[j] != '.' && trim[j] != ')') || trim[j+1] != ' ' || trim[j+2] != '[' {
+		if j == 0 || j+1 >= len(trim) || (trim[j] != '.' && trim[j] != ')') {
 			return false, "", false
 		}
-		rest = trim[j+2:]
+		after = trim[j+1:]
 	}
+	if after == "" || (after[0] != ' ' && after[0] != '\t') {
+		return false, "", false
+	}
+	rest := strings.TrimLeft(after, " \t")
 	if len(rest) < 3 || rest[0] != '[' || rest[2] != ']' {
 		return false, "", false
 	}
@@ -448,8 +500,15 @@ func matchTask(line string) (checked bool, body string, ok bool) {
 // be wrapped in <...> and may carry a quoted title. Reference-style links
 // "[label][ref]" and autolinks "<path>" are reported as unsupported rather
 // than skipped, so they are never silently ignored.
-func extractLinks(body string) []taskLink {
-	var out []taskLink
+func extractLinks(body string, refs map[string]bool) (out []taskLink) {
+	inline := 0
+	defer func() {
+		// Every "](" should belong to an inline link found above. Any left
+		// over (nested brackets, for example) is a link we could not parse.
+		for extra := strings.Count(body, "](") - inline; extra > 0; extra-- {
+			out = append(out, taskLink{Kind: "unsupported"})
+		}
+	}()
 	for i := 0; i < len(body); i++ {
 		if body[i] == '<' {
 			if end := strings.IndexByte(body[i+1:], '>'); end > 0 {
@@ -478,6 +537,11 @@ func extractLinks(body string) []taskLink {
 			continue
 		}
 		if endLabel+1 >= len(body) || body[endLabel+1] != '(' {
+			// A shortcut reference "[label]" whose definition exists.
+			if refs[strings.ToLower(strings.TrimSpace(body[i+1:endLabel]))] {
+				out = append(out, taskLink{Kind: "unsupported"})
+				i = endLabel
+			}
 			continue
 		}
 		end := strings.IndexByte(body[endLabel+2:], ')')
@@ -487,6 +551,7 @@ func extractLinks(body string) []taskLink {
 		end += endLabel + 2
 		target, okTarget := linkDestination(body[endLabel+2 : end])
 		i = end
+		inline++
 		if image || !okTarget || unsupportedTarget(target) {
 			out = append(out, taskLink{Kind: "unsupported", Path: ""})
 			continue
@@ -544,4 +609,24 @@ func unsupportedTarget(target string) bool {
 		return true
 	}
 	return false
+}
+
+// referenceDefinitions collects "[label]: target" definitions, lowercased.
+func referenceDefinitions(lines []string) map[string]bool {
+	refs := map[string]bool{}
+	for _, line := range lines {
+		width, b := leadingIndent(line)
+		rest := line[b:]
+		if width > 3 || !strings.HasPrefix(rest, "[") {
+			continue
+		}
+		end := strings.Index(rest, "]:")
+		if end <= 1 {
+			continue
+		}
+		if strings.TrimSpace(rest[end+2:]) != "" {
+			refs[strings.ToLower(strings.TrimSpace(rest[1:end]))] = true
+		}
+	}
+	return refs
 }

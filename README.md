@@ -121,6 +121,15 @@ On this Linux amd64 host, nine runs of a 100-item, 10,000-task fixture had a med
 
 There is no package-manager install, release workflow, or file-updating command. No license is selected.
 
+Known limits, which the 001 acceptance bar (decision D-2026-11-07-06) is judged against:
+
+- Only the documented dialect is read. Under an item heading, every line must be a recognized or descriptive field, indented continuation, a blank line, a fence, a comment, or a thematic break; anything else is fatal. Outside items, prose is not checked, except that `Depends on`, `Spec dir`, and `superseded-by` labels are fatal there.
+- Tasks files are free text. Only recognized checkboxes count, and only inline links with a simple local path are checked; other link forms are reported as unsupported, not checked.
+- Reads are not an atomic snapshot. A change that keeps the same size and modification time may go undetected.
+- On Darwin there is no `/proc/self/fd` check after open, so a parent directory swapped between the checks and the open is not detected.
+- The sensitive-name matcher is incomplete by design (for example, `id_rsa` is not matched).
+- Open non-blocking defects from review: human text omits `status_counts`, `invalid_supersession_items`, and per-item task attribution, and does not mark an invalid supersession; a fatal error in a tasks file cites the roadmap path; a FIFO or directory where a tasks file is expected is reported as absent; an over-long or empty `Spec dir` is reported as unsafe; `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`; an absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected.
+
 ## Draft proposals
 
 These are not commands in this build. On 7 November 2026 the owner authorized writing them down. That did not approve implementation or the open choices.

@@ -43,6 +43,10 @@ type Entry struct {
 	Exists  bool
 	Dir     bool
 	Regular bool
+	// ID identifies the file by device and inode where the platform reports
+	// them, so two path spellings of one file (for example on a
+	// case-insensitive filesystem) can be recognized. Empty if unknown.
+	ID string
 }
 
 // FS is a root-confined reader. It does not write, follow linked-path
@@ -201,7 +205,7 @@ func (f *FS) StatRel(rel string) (Entry, error) {
 	if dev, ok := deviceOf(info); ok && dev != f.dev {
 		return Entry{}, errCode(CodeUnsafe)
 	}
-	return Entry{Exists: true, Dir: info.IsDir(), Regular: info.Mode().IsRegular()}, nil
+	return Entry{Exists: true, Dir: info.IsDir(), Regular: info.Mode().IsRegular(), ID: fileID(info)}, nil
 }
 
 // ReadRel reads one regular file under the root, counting it against the budgets.

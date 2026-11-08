@@ -112,6 +112,7 @@ func build(rel string, items []rawItem, fs *safeio.FS) Report {
 	taskReads := map[string]taskFile{}
 	taskMissing := map[string]struct{}{}
 	taskSkipped := map[string]struct{}{}
+	taskIDs := map[string]string{}
 	outItems := make([]Item, len(items))
 	for i, it := range items {
 		item := Item{
@@ -132,7 +133,7 @@ func build(rel string, items []rawItem, fs *safeio.FS) Report {
 		}
 		item.Tasks.State = "not_linked"
 		if it.HasSpec {
-			itemDiags, tasks, specDir := inspectSpec(fs, rel, it, &rep, taskReads, taskMissing, taskSkipped)
+			itemDiags, tasks, specDir := inspectSpec(fs, rel, it, &rep, taskReads, taskMissing, taskSkipped, taskIDs)
 			if rep.Outcome == "fatal" {
 				return rep
 			}
@@ -435,7 +436,10 @@ func classifyDep(src int, it rawItem, dep, rel string, byID map[string][]int, it
 	return d, &base
 }
 
-func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads map[string]taskFile, missing, skipped map[string]struct{}) ([]Diagnostic, ItemTasks, string) {
+// ids maps a file identity (device and inode) to the first path it was read
+// under, so one tasks file reached through two spellings, for example on a
+// case-insensitive filesystem, is read and counted once.
+func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads map[string]taskFile, missing, skipped map[string]struct{}, ids map[string]string) ([]Diagnostic, ItemTasks, string) {
 	var diags []Diagnostic
 	tasks := ItemTasks{State: "not_linked"}
 	specDir, err := safeio.NormalizeRel(it.SpecDir)
@@ -511,6 +515,13 @@ func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads m
 				})
 			}
 			continue
+		}
+		if st.ID != "" {
+			if first, seen := ids[st.ID]; seen {
+				p = first
+			} else {
+				ids[st.ID] = p
+			}
 		}
 		tasks.Source = p
 		if !st.Exists || !st.Regular {
