@@ -124,13 +124,13 @@ There is no package-manager install, release workflow, or file-updating command.
 Known limits, which the 001 acceptance bar (decision D-2026-11-07-06) is judged against:
 
 - Only the documented dialect is read. Under an item heading, every line must be a recognized or descriptive field, indented continuation, a blank line, a fence, a comment, or a thematic break; anything else is fatal. Outside items, prose is not checked, except that `Depends on`, `Spec dir`, and `superseded-by` labels are fatal there.
-- Tasks files are free text in a narrow dialect. Only recognized checkboxes in ordinary lists count; layouts whose meaning depends on block-quote or list-nesting rules are fatal. Only inline links with a simple local path are checked; other link forms are reported as unsupported, not checked.
+- Tasks files are free text in a narrow dialect. Only recognized checkboxes in ordinary lists count. Layouts whose count would depend on block-quote, list-nesting, or raw HTML rules are fatal; the cases are listed in roadmap-format.md §3. Only inline links with a simple local path are checked; other link forms are reported as unsupported, not checked.
 - Reads are not an atomic snapshot. A change that keeps the same size and modification time may go undetected.
 - On Darwin there is no `/proc/self/fd` check after open, so a parent directory swapped between the checks and the open is not detected.
 - The sensitive-name matcher is incomplete by design (for example, `id_rsa` is not matched).
 - A hard link inside the root that points at a file outside it cannot be told apart from an ordinary file, so it is read. Symlinks are rejected.
 - Unicode lookalike letters are not normalized. Spaces, dashes, and invisible characters are, but a field label spelled with, for example, a Cyrillic `е` in a nested line is read as prose.
-- Open non-blocking defects from review: human text omits `status_counts`, `invalid_supersession_items`, and per-item task attribution, and does not mark an invalid supersession; a fatal error in a tasks file cites the roadmap path; a FIFO or directory where a tasks file is expected is reported as absent; an over-long or empty `Spec dir` is reported as unsafe; `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`; an absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected; `--json=false` with an invalid flag still emits a JSON error.
+- Open non-blocking defects from review: human text omits `status_counts`, `invalid_supersession_items`, and per-item task attribution, and does not mark an invalid supersession; a FIFO or directory where a tasks file is expected is reported as absent; an over-long or empty `Spec dir` is reported as unsafe; `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`; an absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected; `--json=false` with an invalid flag still emits a JSON error.
 
 ## Draft proposals
 

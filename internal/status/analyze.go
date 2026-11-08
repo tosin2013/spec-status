@@ -552,6 +552,11 @@ func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads m
 			tf, ferr := parseTasks(p, data)
 			if ferr != nil {
 				*rep = fatalReport(ferr.Code, ferr.Message, roadmap, "")
+				// Cite the tasks file and line, not the roadmap.
+				rep.Diagnostics[0].Path, rep.Diagnostics[0].Line = ferr.Path, ferr.Line
+				if rep.Fatal != nil {
+					rep.Fatal.Path, rep.Fatal.Line = ferr.Path, ferr.Line
+				}
 				return nil, tasks, ""
 			}
 			reads[p] = tf
