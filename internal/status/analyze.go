@@ -500,6 +500,14 @@ func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads m
 				return nil, tasks, ""
 			}
 			reads[p] = tf
+			total := 0
+			for _, read := range reads {
+				total += read.Total
+			}
+			if total > maxTasks {
+				*rep = fatalReport("SS_INPUT_LIMIT", "Task checkbox limit exceeded across task files.", roadmap, "")
+				return nil, tasks, ""
+			}
 			for _, link := range tf.Links {
 				diags = append(diags, checkTaskLink(fs, p, it.ID, link)...)
 			}
