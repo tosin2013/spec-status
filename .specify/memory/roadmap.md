@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.1 → 1.3.2
+Bump rationale: PATCH — wording: C-08 notes its amendment D-2026-11-08-03.
+
+Changes this revision:
+  - C-08: rule (b) means any block layout; markup-encoded labels are a README
+    limit (D-2026-11-08-03, after the T026 review)
+
+Specs affected: 001, 007
+Open questions added/resolved: none
+
+Previous revision (1.3.1, 2026-11-08):
 Version change: 1.3.0 → 1.3.1
 Bump rationale: PATCH — status transition only.
 
@@ -130,7 +141,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   srobroek/speckit-roadmap v0.1.0 templates produce; a blocking defect is a
   wrong result on those shapes or a silently misread `Depends on`, `Spec dir`,
   or `superseded-by`; other exotic Markdown fails visibly or is a README
-  limit. Replaces D-2026-11-07-06.
+  limit. Replaces D-2026-11-07-06. Amended by D-2026-11-08-03 (2026-11-08):
+  rule (b) covers any block layout; labels encoded with markup are a README
+  limit.
 - **C-09 — Two-mode direction (D-2026-11-08-01, 2026-11-08):** supported
   roadmaps are a finite set of versioned templates; missing, empty,
   unrecognized, and malformed roadmaps stay distinct; a roadmap-free feature
@@ -300,4 +313,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08
+**Version**: 1.3.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08

@@ -133,6 +133,12 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				metricBlank = true
 			case w == 0:
 				metricOpen, metricBlank = false, false
+			case listMarker(line) || strings.HasPrefix(line[b:], ">"):
+				// A list or quote nested under the field renders as part of
+				// the value, with or without a blank line, comment, or other
+				// block before it. It is never joined to the value, so fail
+				// visibly (T026 review B1).
+				return nil, nil, fail("SS_ITEM_MALFORMED", "A list or quote nested under a Depends on, Spec dir, or superseded-by field is not supported.", lineNo)
 			case startsBlock(line, b):
 				// A comment, quote, fence, or HTML block between the value and
 				// later indented text separates them like a blank line (review
