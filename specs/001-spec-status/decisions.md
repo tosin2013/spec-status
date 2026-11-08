@@ -95,4 +95,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-08-01 | Owner, 8 November 2026 | Product direction in [two-mode-direction.md](two-mode-direction.md): versioned templates only; separate roadmap and inventory modes; missing, empty, unrecognized, and malformed stay distinct; no silent inventory fallback; checklists excluded; extension recommended but not required | Command syntax, default mode, version identification, folder and checkbox grammar, inventory schema and exits, v1 placement. Those remain open |
 
+## Recorded decision — line-level label rule, 8 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-08-02 | Owner, 8 November 2026 (approved by "proceed" on the proposed rule) | Any visible roadmap line containing a `Depends on`, `Spec dir`, or `superseded-by` label with a colon must be an accepted field line under an item, otherwise fatal. Rule (b) of D-2026-11-07-09 then holds by construction rather than by listing layouts. Prose containing those labels with a colon is rejected and listed in README Limits | Listing further layouts one review at a time; marking item 001 verified without a review |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.

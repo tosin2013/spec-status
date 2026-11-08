@@ -1,6 +1,20 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.2.0 → 1.3.0
+Bump rationale: MINOR — new spec 008 (two-mode roadmap and inventory) and new
+decisions C-09 (D-2026-11-08-01) and C-10 (D-2026-11-08-02).
+
+Changes this revision:
+  - Added spec 008 — Two-mode roadmap and feature inventory (needs-info)
+  - Decisions recorded: C-09 (two-mode direction), C-10 (line-level label rule)
+  - 001 now also governed by C-10
+  - Open question added: Q6 (two-mode open choices)
+
+Specs affected: 001, 008
+Open questions added/resolved: Q6 added
+
+Previous revision (1.2.0, 2026-11-07):
 Version change: 1.1.0 → 1.2.0
 Bump rationale: MINOR — new planned spec 007 (upstream-format conformance)
 and new decision C-08 (acceptance bar D-2026-11-07-09).
@@ -106,6 +120,16 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   wrong result on those shapes or a silently misread `Depends on`, `Spec dir`,
   or `superseded-by`; other exotic Markdown fails visibly or is a README
   limit. Replaces D-2026-11-07-06.
+- **C-09 — Two-mode direction (D-2026-11-08-01, 2026-11-08):** supported
+  roadmaps are a finite set of versioned templates; missing, empty,
+  unrecognized, and malformed roadmaps stay distinct; a roadmap-free feature
+  inventory is a separate explicit mode and never a silent fallback;
+  requirements checklists are excluded. Direction only; recorded in
+  `specs/001-spec-status/two-mode-direction.md`.
+- **C-10 — Line-level label rule (D-2026-11-08-02, 2026-11-08):** a visible
+  roadmap line containing a `Depends on`, `Spec dir`, or `superseded-by` label
+  with a colon must be an accepted field line under an item, otherwise the
+  report is fatal.
 
 ## Planned Specs
 
@@ -122,7 +146,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   defaults; speckit-roadmap bold field labels (owner-approved DC-01 refinement).
 - **Scope (out):** release artifacts, write-back, inferred quarters, dashboards.
 - **Depends on:** none
-- **Governed by:** C-01, C-02, C-03, C-04, C-05
+- **Governed by:** C-01, C-02, C-03, C-04, C-05, C-10
 - **Spec dir:** specs/001-spec-status
 - **Notes:** Recorded implemented, not verified: tests were run by the
   implementer on Linux amd64 and Darwin arm64 and have not been independently
@@ -143,6 +167,24 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   spelling), all of DC-03 (C-07), and the DC-08 dogfood inputs. Still open: the
   rest of DC-01, DC-02, DC-04–DC-07, and DC-08's license, security route and
   support window.
+
+### 008 — Two-mode roadmap and feature inventory [status: needs-info]
+
+- **Description:** TASK-24–26: distinguish an empty supported roadmap from an
+  unrecognized file, and add a separate, explicit inventory of feature folders
+  for repositories without a roadmap.
+- **Outcome:** An unrecognized roadmap is never reported as an empty supported
+  one, and a repository without a roadmap can list its features, file
+  presence, and task checkbox counts without any silent fallback.
+- **Scope (in):** Contracts for the chosen command, version identification,
+  folder and checkbox rules, inventory schema and exits; then the two modes
+  with tests for missing, empty, unrecognized, and malformed roadmaps.
+- **Scope (out):** Inferring priority, dependencies, or lifecycle from
+  folders; counting requirements checklists; network or upstream lookups.
+- **Depends on:** 001
+- **Governed by:** C-01, C-02, C-08, C-09
+- **Notes:** Needs the owner's choices in Q6 before any contract or code
+  work; README Limits records today's zero-item result.
 
 ### Evidence and distribution
 
@@ -233,6 +275,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   (`003-brief (verified)`) gain any further support, or stay a visible
   SS_DEPENDENCY_MALFORMED finding?
 
+- **Q6 —** For 008: command names and flags, default mode, how a template
+  version is identified, feature-folder and checkbox rules, inventory JSON
+  schema and exit codes, and whether it ships in v1.
+
 ## Cross-Cutting Notes
 
 - This roadmap is read by this repository's own `spec status`; keep `Depends on`
@@ -242,4 +288,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.2.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-07
+**Version**: 1.3.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08

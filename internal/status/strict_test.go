@@ -84,7 +84,7 @@ func TestNearMissFieldLabelsAreFatal(t *testing.T) { // review D3
 		}
 	}
 	// Other extension fields and free bullets remain descriptive text.
-	ok := base + "- **Scope (out):** x\n- **Governed by:** C-01\n- **Notes:** depends on: nothing\n"
+	ok := base + "- **Scope (out):** x\n- **Governed by:** C-01\n- **Notes:** depends on nothing yet\n"
 	if rep := Evaluate(Option{Root: project(t, ok, nil), FailOn: "none"}); rep.Outcome != "report" {
 		t.Fatalf("descriptive bullets became fatal: %+v", rep.Fatal)
 	}

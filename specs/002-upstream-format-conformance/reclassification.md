@@ -141,9 +141,13 @@ No rule (a) defect: a realistic `/speckit-tasks` file, 2/3/4-space, tab, and 8-s
 | D6 | Prose bullets starting "Depends on …" were fatal; `- **Superseded by:** 002` fatal; a placeholder `Spec dir` an error | no | no | over-strict (prose fixed; the other two listed in README Limits) | `TestDependsOnProseIsNotAField` |
 | D7 | An empty `- [ ]` was not counted | no | no | fixed | `TestEmptyCheckboxCounts` |
 
+## Line-level label rule (D-2026-11-08-02)
+
+Each review from 7 to 9 found another layout that hid or split a metric field. Instead of a tenth case list, a check after parsing makes any visible line with a `Depends on`, `Spec dir`, or `superseded-by` label and a colon fatal unless it was accepted as a field line under an item (`labelrule_test.go`). Of its twelve fatal cases, eight were accepted silently on `main` at 5135231, mostly outside items (tables, text after a comment, inline HTML, prose, lookalike spacing) plus a label inside a `Notes` value. Real roadmaps and every conformance fixture give byte-identical output. Over-strictness: prose that contains such a label with a colon is fatal; it is listed in README Limits.
+
 ## Result
 
 - Upstream-shape findings: 2 (review 5 B4, review 6 D1). Both fixed and covered by fixtures.
 - Metric findings: all fixed or visible. Review 5 N2 (letter homoglyphs) was the last; while writing this table it was found to fall under D-2026-11-07-09 (b), so feature 002 extended lookalike normalization to common Cyrillic and Greek letters, with `TestLetterLookalikesInMetricLabels`.
 - Every finding classed as a limit or over-strict is listed in README Limits.
-- Open blocking after review 9 fixes: **none known**. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.
+- Open blocking after review 9 fixes and the line-level label rule: **none known**. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.
