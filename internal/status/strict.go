@@ -293,7 +293,21 @@ func fieldPrefix(line string) (field string, ok bool) {
 			return true
 		}
 		c := norm[len(p)]
-		return !(c >= 'a' && c <= 'z')
+		if c >= 'a' && c <= 'z' {
+			return false
+		}
+		// Without a colon, the words are a field label only when a value
+		// follows: a digit, a path, "none", or a separator. "Depends on
+		// whether the vendor ships" is prose (review 9 D6).
+		after := strings.TrimLeft(norm[len(p):], " ")
+		if after == "" {
+			return true
+		}
+		if f := after[0]; !(f >= 'a' && f <= 'z') {
+			return true
+		}
+		word := strings.Fields(after)[0]
+		return strings.Contains(word, "/") || strings.TrimRight(word, ".,;") == "none"
 	}
 	for _, m := range []struct{ prefix, field string }{
 		{"depends on", "Depends on"}, {"dependson", "Depends on"},

@@ -127,9 +127,23 @@ The reviewer recounted four fixtures by hand (all matched), compared tasks count
 
 The previous version of this table said "Open blocking: none". Review 8 showed that was wrong for rule (b); the corrected result is below.
 
+## Review 9 (main at ed5d88e, narrowed to D-2026-11-07-09)
+
+No rule (a) defect: a realistic `/speckit-tasks` file, 2/3/4-space, tab, and 8-space nesting, lazy wraps, details paragraphs, fences, comments, quotes, breaks, and `<details>` all matched GFM. Rule (b) failed in four layouts:
+
+| ID | Finding | Upstream shape | Metric | Class | Where |
+|---|---|---|---|---|---|
+| D1 | An inline tag (`<br>`, `<span>`) on a continuation line cut a `Depends on` or `superseded-by` value short (a regression from the review-8 D1 fix) | no | yes | visible | `TestInlineTagInsideWrappedValue` |
+| D2 | A field line containing `\|` after an indented table was swallowed by the table | no | yes | fixed | `TestTableEndsAtListMarker` |
+| D3 | Text after a multi-line comment's `-->` under an item was dropped | no | yes | visible | `TestTextAfterMultiLineCommentIsFatal` |
+| D4 | A comment, quote, `<details>`, or heading between value lines dropped the later line | no | yes | visible | `TestBlockSeparatesMetricValue` |
+| D5 | A metric label written as a heading was ignored | no | yes | visible | `TestMetricLabelAsHeadingIsFatal` |
+| D6 | Prose bullets starting "Depends on …" were fatal; `- **Superseded by:** 002` fatal; a placeholder `Spec dir` an error | no | no | over-strict (prose fixed; the other two listed in README Limits) | `TestDependsOnProseIsNotAField` |
+| D7 | An empty `- [ ]` was not counted | no | no | fixed | `TestEmptyCheckboxCounts` |
+
 ## Result
 
 - Upstream-shape findings: 2 (review 5 B4, review 6 D1). Both fixed and covered by fixtures.
 - Metric findings: all fixed or visible. Review 5 N2 (letter homoglyphs) was the last; while writing this table it was found to fall under D-2026-11-07-09 (b), so feature 002 extended lookalike normalization to common Cyrillic and Greek letters, with `TestLetterLookalikesInMetricLabels`.
 - Every finding classed as a limit or over-strict is listed in README Limits.
-- Open blocking after review 8 fixes: **none known**. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.
+- Open blocking after review 9 fixes: **none known**. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.
