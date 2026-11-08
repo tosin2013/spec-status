@@ -1,23 +1,30 @@
 {
   "pins": ["spec-kit@v1.2.0", "speckit-roadmap@v0.1.0"],
   "origin": "hand-edit",
-  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07",
+  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07; item 004 added after review 8",
   "outcome": "report",
   "exit": 0,
   "items": [
     {"id": "001", "status": "verified", "active": true, "dependencies": [],
+     "spec_dir": "specs/001-base", "superseded_by": null,
      "tasks": {"checked": 2, "total": 2}},
     {"id": "002", "status": "planned", "active": true,
      "dependencies": [{"id": "001", "state": "satisfied"}, {"id": "003", "state": "unfinished"}],
+     "spec_dir": "specs/002-edits", "superseded_by": null,
      "tasks": {"checked": 5, "total": 8}},
-    {"id": "003", "status": "undecided", "active": true, "dependencies": []}
+    {"id": "003", "status": "undecided", "active": true,
+     "dependencies": [{"id": "004", "state": "human_review"}],
+     "spec_dir": null, "superseded_by": null},
+    {"id": "004", "status": "abandoned", "active": false, "dependencies": [],
+     "spec_dir": null, "superseded_by": "002"}
   ],
   "summary": {
-    "total_items": 3, "active_items": 3, "verified_active_items": 1,
-    "blocked_count": 1, "human_review_count": 0,
+    "total_items": 4, "active_items": 3, "verified_active_items": 1,
+    "blocked_count": 2, "human_review_count": 1,
     "tasks": {"checked": 7, "total": 10, "files_read": 2}
   },
   "diagnostics": [
-    {"code": "SS_DEPENDENCY_BLOCKED", "item": "002"}
+    {"code": "SS_DEPENDENCY_BLOCKED", "item": "002"},
+    {"code": "SS_DEPENDENCY_HUMAN_REVIEW", "item": "003"}
   ]
 }

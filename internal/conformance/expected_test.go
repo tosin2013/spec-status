@@ -35,6 +35,10 @@ type expectedItem struct {
 	Active       *bool          `json:"active"`
 	Dependencies *[]expectedDep `json:"dependencies"`
 	Tasks        *expectedTasks `json:"tasks"`
+	// SpecDir and SupersededBy are compared when present; JSON null means
+	// "none". They check rule (b) of D-2026-11-07-09 directly.
+	SpecDir      json.RawMessage `json:"spec_dir"`
+	SupersededBy json.RawMessage `json:"superseded_by"`
 }
 
 type expectedDep struct {
@@ -184,6 +188,16 @@ func compareItem(w expectedItem, it status.Item) []string {
 			add("dependencies: got [%s], want [%s]", strings.Join(got, ","), strings.Join(want, ","))
 		}
 	}
+	if want, ok, err := optionalString(w.SpecDir); err != nil {
+		add("spec_dir: %v", err)
+	} else if ok && it.SpecDir != want {
+		add("spec_dir: got %q, want %q", it.SpecDir, want)
+	}
+	if want, ok, err := optionalString(w.SupersededBy); err != nil {
+		add("superseded_by: %v", err)
+	} else if ok && it.SupersededBy != want {
+		add("superseded_by: got %q, want %q", it.SupersededBy, want)
+	}
 	if w.Tasks != nil {
 		if w.Tasks.Checked != nil && it.Tasks.Checked != *w.Tasks.Checked {
 			add("tasks.checked: got %d, want %d", it.Tasks.Checked, *w.Tasks.Checked)
@@ -214,4 +228,17 @@ func sortedKeys(maps ...map[string]int) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+// optionalString decodes an optional JSON string; null decodes to "".
+func optionalString(raw json.RawMessage) (string, bool, error) {
+	if len(raw) == 0 {
+		return "", false, nil
+	}
+	if string(raw) == "null" {
+		return "", true, nil
+	}
+	var v string
+	err := json.Unmarshal(raw, &v)
+	return v, true, err
 }

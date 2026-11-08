@@ -82,7 +82,7 @@ Task T024, FR-015. Every finding from the seven independent acceptance reviews o
 | B1 | Empty comment `<!-->` hid content | no | yes | visible | #11 `TestEmptyCommentsAreFatal` |
 | B2 | Block-quoted fences and checkboxes counted | no | no | visible | #11 |
 | B3 | Indented code inside list items counted | no | no | visible | #11 |
-| B4 | Nested task after an indented details paragraph dropped | **yes** (hand-edit `task-details`) | no | fixed | #11 `TestNestedTasksAfterIndentedParagraph` |
+| B4 | Nested task after an indented details paragraph dropped | **yes** (hand edit covered by the hand-edits fixture: `task-nested` after a details paragraph) | no | fixed | #11 `TestNestedTasksAfterIndentedParagraph` |
 | B5 | Raw `<style>`-type blocks read as live | no | yes | visible | #11 `TestRawHTMLBlocksAreFatal` |
 | N1 | Two `[status:` markers | no | no | visible | #11 |
 | N2 | Cyrillic homoglyph in a nested label | no | yes | visible | feature 002 `TestLetterLookalikesInMetricLabels` |
@@ -112,9 +112,24 @@ Task T024, FR-015. Every finding from the seven independent acceptance reviews o
 | N1 | `<details>` inside a task item closed by an indented `</details>` with the next task directly after is fatal | no | no | over-strict | visible; passes with a blank line |
 | N2 | Reference definition after a fence that follows a task gets a spurious `SS_REFERENCE_UNSUPPORTED` warning | no | no | over-strict | visible warning |
 
+## Review 8 (PR #13 at 9e8dff0, the first review under D-2026-11-07-09)
+
+The reviewer recounted four fixtures by hand (all matched), compared tasks counts with pandoc on 11 fixture files, the pinned template, and 23 realistic `/speckit-tasks` variations (all matched apart from ordered-list checkboxes, which pandoc does not render), and found no wrong count on any upstream shape. Rule (b) failed:
+
+| ID | Finding | Upstream shape | Metric | Class | Where |
+|---|---|---|---|---|---|
+| D1 | An item heading indented one to three spaces after a field line was joined to that field; the next item's `Spec dir` and `superseded-by` attached to the item above | no | yes | visible | `TestBlockStartsAreNotFieldContinuations` |
+| D2 | An indented HTML block under an item did not hide its fields or item headings | no | yes | visible | `TestHTMLBlocksUnderItems` |
+| D3 | A `Depends on` value continued after a blank line lost the continued IDs | no | yes | visible | `TestMetricValueAfterBlankLineIsFatal` |
+| D4 | A struck-through item heading, which speckit.roadmap.write produces for superseded entries, was fatal | **yes** (new hand-edit shape `item-heading-struck`) | no | fixed | `TestStruckThroughItemHeading`; hand-edits fixture |
+| — | `expected.json` did not assert `spec_dir` or `superseded_by` | — | yes | fixed | comparator and all five fixtures |
+| — | The shape inventory did not say how paragraph text is treated | — | no | fixed | inventory wording |
+
+The previous version of this table said "Open blocking: none". Review 8 showed that was wrong for rule (b); the corrected result is below.
+
 ## Result
 
 - Upstream-shape findings: 2 (review 5 B4, review 6 D1). Both fixed and covered by fixtures.
 - Metric findings: all fixed or visible. Review 5 N2 (letter homoglyphs) was the last; while writing this table it was found to fall under D-2026-11-07-09 (b), so feature 002 extended lookalike normalization to common Cyrillic and Greek letters, with `TestLetterLookalikesInMetricLabels`.
 - Every finding classed as a limit or over-strict is listed in README Limits.
-- Open blocking: **none**.
+- Open blocking after review 8 fixes: **none known**. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.

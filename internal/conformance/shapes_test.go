@@ -20,6 +20,7 @@ type shape struct {
 var (
 	reHeading    = regexp.MustCompile(`^ {0,3}(#{1,6})(?:[ \t]|$)`)
 	reItem       = regexp.MustCompile(`^### [0-9]{3} — .*\[status: [^\]]+\]\s*$`)
+	reItemStruck = regexp.MustCompile(`^### ~~[0-9]{3} — .*~~\s+\[status: [^\]]+\]\s*$`)
 	reTask       = regexp.MustCompile(`^(\s*)[-*+] \[([ xX])\] (.*)$`)
 	reTaskID     = regexp.MustCompile(`^T[0-9]+\b`)
 	reMarkers    = regexp.MustCompile(`^T[0-9]+((?: \[[^\]]+\])*)`)
@@ -85,6 +86,10 @@ func classify(text string) []shape {
 			if !strings.Contains(trim[4:], "-->") {
 				inComment = true
 			}
+		case reItemStruck.MatchString(line):
+			emit("item-heading", i)
+			emit("item-heading-struck", i)
+			inItem = true
 		case reItem.MatchString(line):
 			emit("item-heading", i)
 			inItem = true
