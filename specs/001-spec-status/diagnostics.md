@@ -24,8 +24,8 @@ Retained severity assignments: duplicate ID error; unknown status warning; missi
 | SS_DEPENDENCY_AMBIGUOUS | error, report | Referenced ID duplicated | Proposed explicit case |
 | SS_DEPENDENCY_SELF | error, report | Row depends on itself | Retained severity |
 | SS_DEPENDENCY_CYCLE | error, report | Dependency cycle; show direct references/membership | Retained severity |
-| SS_DEPENDENCY_BLOCKED | warning, report | Ordinary unfinished/deferred/abandoned target blocks selected policy | Retained blocked- unfinished rule; exact scope proposed |
-| SS_DEPENDENCY_HUMAN_REVIEW | warning, report | Any dependency on valid superseded row, even successor verified | Human review retained; severity/count treatment proposed |
+| SS_DEPENDENCY_BLOCKED | warning, report | Ordinary unfinished/deferred/abandoned target blocks selected policy | Retained blocked- unfinished rule; exact scope proposed Severity approved under D-2026-11-07-03. |
+| SS_DEPENDENCY_HUMAN_REVIEW | warning, report | Any dependency on valid superseded row, even successor verified | Human review retained; severity/count treatment proposed Severity approved under D-2026-11-07-03. |
 | SS_VERIFIED_DEPENDENCY_CONTRADICTION | error, report | Recorded verified row has unsatisfied/review dependency | Finding retained; severity proposed |
 | SS_SUPERSESSION_MALFORMED | error, report | Non-single-ID/multiple replacement declaration | Validation retained; severity proposed |
 | SS_SUPERSESSION_MISSING | error, report | Replacement ID missing | Validation retained; severity proposed |
@@ -35,7 +35,7 @@ Retained severity assignments: duplicate ID error; unknown status warning; missi
 | SS_SUPERSESSION_CHAIN_INVALID | error, report | Direct edge leads into invalid downstream chain | PROFILE-R1 proposal |
 | SS_SPEC_REFERENCE_MISSING | info for planned; error candidate for specced/later | Stage lacks required spec link | Planned info retained; exact matrix/error choice proposed |
 | SS_SPEC_DIRECTORY_MISSING | error, report | Explicit safe linked spec directory absent | Detection retained; severity proposed |
-| SS_STAGE_FILE_MISSING | error under candidate matrix | Stage-appropriate spec/plan/tasks missing | Detection retained; stage matrix/severity proposed |
+| SS_STAGE_FILE_MISSING | error under candidate matrix | Stage-appropriate spec/plan/tasks missing | Detection retained; stage matrix/severity proposed Severity approved under D-2026-11-07-03. |
 | SS_TASK_TARGET_MISSING | error if checked, info if unchecked | Explicit supported local link target absent | Retained |
 | SS_REFERENCE_UNSUPPORTED | warning, report unless required parse fatal | Explicit reference syntax outside approved grammar | Proposed, never turns URL/prose into path |
 | SS_PATH_UNSAFE | error; fatal for required source | Escape/traversal/symlink/mount/regular-file policy violation | Confinement retained; classification proposed |

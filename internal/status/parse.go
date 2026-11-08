@@ -110,7 +110,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		case "Spec dir":
 			cur.HasSpec = true
 			cur.SpecLine = lineNo
-			cur.SpecDir = unwrapPath(value)
+			cur.SpecDir = unwrapPath(trimSentenceDot(value))
 		case "superseded-by":
 			cur.HasSuper = true
 			cur.SuperLine = lineNo
@@ -195,29 +195,66 @@ func itemLikeHeading(line string) bool {
 	return r >= '0' && r <= '9'
 }
 
+// fieldLabels maps each accepted label to the field it fills. "Scope (in)" is
+// the speckit-roadmap spelling of Scope; using both in one item is a repeat.
+var fieldLabels = []struct{ label, field string }{
+	{"Description", "Description"},
+	{"Outcome", "Outcome"},
+	{"Scope (in)", "Scope"},
+	{"Scope", "Scope"},
+	{"Depends on", "Depends on"},
+	{"Spec dir", "Spec dir"},
+	{"superseded-by", "superseded-by"},
+}
+
+// matchField recognizes "- Label: value". The speckit-roadmap bold spellings
+// "- **Label:** value" and "- **Label**: value" are read as the same field.
 func matchField(line string) (name, value string, ok bool) {
 	if !strings.HasPrefix(line, "- ") {
 		return "", "", false
 	}
 	body := line[2:]
-	for _, field := range []string{"Description", "Outcome", "Scope", "Depends on", "Spec dir", "superseded-by"} {
-		p := field + ":"
-		if strings.HasPrefix(body, p) {
-			return field, strings.TrimSpace(body[len(p):]), true
+	for _, f := range fieldLabels {
+		for _, p := range []string{f.label + ":", "**" + f.label + ":**", "**" + f.label + "**:"} {
+			if strings.HasPrefix(body, p) {
+				return f.field, strings.TrimSpace(body[len(p):]), true
+			}
 		}
 	}
 	return "", "", false
 }
 
-func parseIDList(value string) ([]string, bool) {
+// trimSentenceDot removes one trailing period, as in "Depends on: 002."
+func trimSentenceDot(value string) string {
 	value = strings.TrimSpace(value)
+	return strings.TrimSpace(strings.TrimSuffix(value, "."))
+}
+
+// stripNote removes one trailing parenthetical note, as in "002 (verified)".
+func stripNote(s string) string {
+	s = strings.TrimSpace(s)
+	if strings.HasSuffix(s, ")") {
+		if open := strings.LastIndex(s, " ("); open > 0 {
+			return strings.TrimSpace(s[:open])
+		}
+	}
+	return s
+}
+
+// parseIDList reads "001, 002". It accepts "none", one trailing period, and a
+// parenthetical note after each ID. Any other element marks the list malformed.
+func parseIDList(value string) ([]string, bool) {
+	value = trimSentenceDot(value)
 	if value == "" {
 		return nil, true
+	}
+	if strings.EqualFold(value, "none") {
+		return nil, false
 	}
 	parts := strings.Split(value, ",")
 	out := make([]string, 0, len(parts))
 	for _, p := range parts {
-		id := strings.TrimSpace(p)
+		id := stripNote(p)
 		if !isDigit3(id) {
 			return nil, true
 		}
@@ -227,7 +264,7 @@ func parseIDList(value string) ([]string, bool) {
 }
 
 func parseSingleID(value string) (string, bool) {
-	id := strings.TrimSpace(value)
+	id := trimSentenceDot(value)
 	if !isDigit3(id) {
 		return "", true
 	}

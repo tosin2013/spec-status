@@ -15,12 +15,13 @@ Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01
 | Lip Gloss human text | Owner-approved styling exception | Headings, columns, progress, and restrained color. JSON, fatal text, version, and completion stay plain. Not a security review, and not approval of other PROFILE-R1 choices. |
 | Compact summary panel | Owner-approved presentation on the same human-text surface | Static one-shot panel. Counts stay separate. Not a dashboard. |
 | Human-text filters and `--explain` | Owner-approved view on the existing feature | Exact status match, blocked, human review, active, and historical filters. Mechanical file:line reasons. JSON schema 1.0 payload unchanged. Not approval of DC-01–DC-08. |
+| speckit-roadmap field spelling | Owner-approved DC-01 refinement | Bold labels, `Scope (in)`, and annotated `Depends on` lists are read; leftovers are flagged as SS_DEPENDENCY_MALFORMED. Exercised against the extension's v0.1.0 roadmap and specs in `testdata/speckit-roadmap-upstream` (Apache-2.0, copied unmodified). Not upstream certification. |
 | In-repo unit, integration, and adversarial filesystem tests | Executed by the implementer | `CGO_ENABLED=0 go test ./...` on Linux amd64, Go 1.22.2, and on Darwin arm64, Go 1.24.3. Darwin needed a per-OS termios ioctl (`TIOCGETA`) and now runs the FIFO test. Not an independent review and not a support claim. |
 | Spec Kit scaffolding and roadmap extension | Development tooling only | `.specify/templates`, `scripts`, `workflows`, and `extensions/roadmap` (speckit-roadmap v0.1.0, manifest script names renamed to pass specify-cli 1.2.0 validation). The `spec` CLI does not read or require them. `.claude/` is ignored. |
 | Cold-start sample | Measured by the implementer on one host | Nine runs of 100 items and 10,000 tasks, median about 3.9 ms. Not a support claim. |
 | TASK-17–21 release, tags, signing, support matrix | Not started | No workflow, tag, or published binary. |
 | TASK-22–23 phase-two writes and deferred products | Not started | No write command. |
-| Real approved roadmaps (AC-24) | Not started | Only the synthetic fixture in `testdata/example-roadmap` has been exercised. |
+| Real approved roadmaps (AC-24) | Hand-count parity observed by the implementer | Inputs approved under D-2026-11-07-08. This repository's roadmap: 6 items, 4 active, 0/4 recorded verified, 2 active blockers, 1 task file with 0 checkboxes. speckit-roadmap v0.1.0: 7 items, 6 active, 4/6 recorded verified, 2 active blockers, 43/43 checked tasks in 4 files. Both match `spec status` text and JSON. Counted by the implementer on 7 November 2026; not an independent review. |
 
 ## Gate 0 — approve the contract before coding
 

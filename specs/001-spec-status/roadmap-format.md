@@ -15,6 +15,7 @@ Default selected root: nearest ancestor from invocation directory containing `.s
 - Candidate field bullets directly under a row: `- Description: ...`, `- Outcome: ...`, `- Scope: ...`, optional `- Depends on: 001, 002`, optional `- Spec dir: specs/003-example`, optional `- superseded-by: 004`. Continuation text may be retained as raw text, never executable syntax. PROFILE-R1 accepts one backtick pair around an explicitly declared local path or bare path text; no whitespace guessing/URL decoding.
 - Fields occur before the next row heading. Top-level metadata/prose and non-item headings are allowed but not parsed as items. Fenced code, including matching backtick/tilde fence families, is excluded from field/item/task recognition; fence edge cases require approved fixtures.
 - Nested non-reference bullets may be retained as descriptive text. They do not create hidden dependency/spec-dir fields. Duplicate recognized fields, malformed ID lists or unsupported item-like table/header structures are diagnosed; if inventory cannot be trusted, PROFILE-R1 fatal parse suppresses authoritative totals.
+- **Owner-approved on 7 November 2026 (speckit-roadmap spelling).** The speckit-roadmap extension writes field labels in bold. `- **Label:** value` and `- **Label**: value` are read as `- Label: value` for every field above. `Scope (in)` fills `Scope`; giving both `Scope` and `Scope (in)` in one row is a repeated field. Other extension fields (`Scope (out)`, `Governed by`, `Addresses`, `Notes`) are descriptive text and create no references. `Depends on` accepts `none` (any case) as an empty list, one trailing period, and one trailing parenthetical note per ID, so `002 (verified), 003 (verified).` reads as 002 and 003. Any element that is still not three digits, such as `003-brief`, makes the whole list malformed (SS_DEPENDENCY_MALFORMED); nothing is silently dropped. `Spec dir` and `superseded-by` accept one trailing period; `superseded-by` takes no note. These rules are exercised against the extension's own v0.1.0 roadmap in `testdata/speckit-roadmap-upstream`, which is a fixture, not a certification of upstream compatibility.
 - Known statuses are exact lowercase tokens: undecided, needs-info, planned, specced, in-progress, implemented, verified, deferred, abandoned. Unknown raw tokens retained without case folding/remapping; warning. Empty/malformed status is not an alias for planned.
 - IDs are unique within the selected roadmap. Spec/task files do not create additional roadmap item IDs. Duplicate roadmap occurrences remain visible inventory plus error; references to duplicated IDs are ambiguous, not first-match wins.
 - An advisory format declaration may be documented, but no unapproved mandatory marker or migration is required of existing v0.1.1-shaped files. Marker exact syntax/version rules remain DC-01.
@@ -64,17 +65,17 @@ Every original dependency edge pointing at a superseded item requires human revi
 
 Reason/evidence/decision-date/decision-maker fields may be useful later but are not silently required by this one-field extension. No external evidence fetching. Extension authoring is future approved write-back, never read-only parser output.
 
-## 5. Candidate lifecycle artifact expectations (not approved)
+## 5. Lifecycle artifact expectations (approved 7 November 2026, D-2026-11-07-03)
 
 | Recorded status | Spec reference / spec.md | plan.md / tasks.md |
 |---|---|---|
 | undecided, needs-info | Not required | Not required |
 | planned | Missing link info; if explicit link exists inspect safely | Not required; missing optional files not error |
-| specced | Candidate required, missing link/file error | Not required |
-| in-progress, implemented, verified | Candidate required, missing link/file error | PROFILE-R1 proposes required files, missing error |
+| specced | Required, missing link/file error | Not required |
+| in-progress, implemented, verified | Required, missing link/file error | Required, missing error |
 | deferred, abandoned, unknown | No invented stage requirement; explicit links still checked | No inferred requirement |
 
-This matrix is a new proposed mapping for DC-03 approval; source requirements required stage-appropriate checks but did not settle this matrix. Alternative: minimal spec-only matrix until real conventions establish plan/tasks expectations. Choosing that alternative changes fixtures/diagnostics explicitly, not silently. Supersession retains recorded lifecycle; PROFILE-R1 stage findings remain visible on historical rows, without affecting active completion eligibility. A missing link or file proves only a mechanical absence, not that implementation is wrong.
+The owner approved this matrix on 7 November 2026 and rejected the minimal spec-only alternative (D-2026-11-07-03). Changing it later changes fixtures and diagnostics explicitly, not silently. Supersession retains recorded lifecycle; PROFILE-R1 stage findings remain visible on historical rows, without affecting active completion eligibility. A missing link or file proves only a mechanical absence, not that implementation is wrong.
 
 ## 6. Safety and compatibility limits
 

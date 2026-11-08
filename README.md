@@ -103,7 +103,7 @@ The Go module is `github.com/tosin2013/spec-status`. The command is `spec status
 
 ## What this build does
 
-The development build reads a narrow heading-and-bullet roadmap shape. Unknown status words stay as written. Checkbox progress, recorded `implemented`, and recorded `verified` stay separate. Superseded items remain in the history. A dependency on a superseded item stays on that item and is marked for human review.
+The development build reads a narrow heading-and-bullet roadmap shape, including the bold field labels (`- **Depends on:** 002.`) that the speckit-roadmap extension writes. Unknown status words stay as written. Checkbox progress, recorded `implemented`, and recorded `verified` stay separate. Superseded items remain in the history. A dependency on a superseded item stays on that item and is marked for human review.
 
 Text and JSON are two views of one result. Human-text filters and `--explain` select or annotate item rows only; they do not change the summary, the findings, or the JSON bytes. Commands, help, and flags use Cobra. Human text uses Lip Gloss for headings, columns, the summary panel, and restrained status color. The owner approved those two dependencies and no others. Roadmap parsing and file reads stay in the Go standard library. The program is built with `CGO_ENABLED=0`. While it runs it does not use the network, Git, a subprocess, or write files.
 
