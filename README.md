@@ -128,7 +128,8 @@ Known limits, which the 001 acceptance bar (decision D-2026-11-07-06) is judged 
 - Reads are not an atomic snapshot. A change that keeps the same size and modification time may go undetected.
 - On Darwin there is no `/proc/self/fd` check after open, so a parent directory swapped between the checks and the open is not detected.
 - The sensitive-name matcher is incomplete by design (for example, `id_rsa` is not matched).
-- Open non-blocking defects from review: human text omits `status_counts`, `invalid_supersession_items`, and per-item task attribution, and does not mark an invalid supersession; a fatal error in a tasks file cites the roadmap path; a FIFO or directory where a tasks file is expected is reported as absent; an over-long or empty `Spec dir` is reported as unsafe; `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`; an absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected.
+- A hard link inside the root that points at a file outside it cannot be told apart from an ordinary file, so it is read. Symlinks are rejected.
+- Open non-blocking defects from review: human text omits `status_counts`, `invalid_supersession_items`, and per-item task attribution, and does not mark an invalid supersession; a fatal error in a tasks file cites the roadmap path; a FIFO or directory where a tasks file is expected is reported as absent; an over-long or empty `Spec dir` is reported as unsafe; `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`; an absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected; `--json=false` with an invalid flag still emits a JSON error.
 
 ## Draft proposals
 

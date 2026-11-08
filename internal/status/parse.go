@@ -56,7 +56,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		d := Diagnostic{Code: code, Severity: "error", Message: msg, Path: rel, Line: line}
 		return &d
 	}
-	fenceLine, commentLine, fenceIndent := 0, 0, 0
+	fenceLine, commentLine, fenceIndent, commentIndent := 0, 0, 0, 0
 	inComment, inTable := false, false
 	prev := ""
 	for i, line := range lines {
@@ -72,11 +72,21 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				}
 			}
 			if closesFence(line, fence, fenceN) {
+				if w, _ := leadingIndent(line); w != fenceIndent {
+					// CommonMark limits a closer's indentation; rather than
+					// guess where a renderer ends the block, fail visibly.
+					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence closer is indented differently from its opener.", lineNo)
+				}
 				inFence = false
 			}
 			continue
 		}
 		if inComment {
+			if commentIndent > 0 && strings.TrimSpace(line) != "" {
+				if w, _ := leadingIndent(line); w < commentIndent {
+					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment inside a list item is not closed before the item ends.", commentLine)
+				}
+			}
 			if strings.Contains(line, "-->") {
 				inComment = false
 			}
@@ -88,10 +98,17 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			continue
 		}
 		// HTML comments are not rendered, so like fences they are not live
-		// roadmap data. An unclosed comment is fatal below.
-		if trim := strings.TrimSpace(line); strings.HasPrefix(trim, "<!--") {
-			if !strings.Contains(trim[4:], "-->") {
-				inComment, commentLine = true, lineNo
+		// roadmap data. A comment opens only at three or fewer columns of
+		// indentation; deeper "<!--" is indented code or continuation text.
+		// An unclosed comment is fatal below.
+		if w, b := leadingIndent(line); w <= 3 && strings.HasPrefix(line[b:], "<!--") {
+			trim := strings.TrimSpace(line)
+			if end := strings.Index(trim[4:], "-->"); end >= 0 {
+				if cur != nil && strings.TrimSpace(trim[4+end+3:]) != "" {
+					return nil, nil, fail("SS_ITEM_MALFORMED", "Text follows an HTML comment on the same line under an item.", lineNo)
+				}
+			} else {
+				inComment, commentLine, commentIndent = true, lineNo, w
 			}
 			continue
 		}
@@ -375,11 +392,15 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 	var tf taskFile
 	inFence := false
 	var fence byte
-	var fenceN, fenceLine, fenceIndent int
+	var fenceN, fenceLine, fenceIndent, commentIndent int
 	inComment, commentLine := false, 0
 	allLines := strings.Split(text, "\n")
 	refs := referenceDefinitions(allLines)
 	inTask, taskChecked := false, false
+	// inList tracks whether the current line can belong to a list item. A
+	// line indented four or more columns outside a list is an indented code
+	// block, so it is neither a task, a fence, nor a comment.
+	inList, prevBlank := false, true
 	for i, line := range allLines {
 		if inFence {
 			if fenceIndent > 0 && strings.TrimSpace(line) != "" {
@@ -389,24 +410,51 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 				}
 			}
 			if closesFence(line, fence, fenceN) {
+				if w, _ := leadingIndent(line); w != fenceIndent {
+					d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: "Code fence closer in tasks file is indented differently from its opener.", Path: rel, Line: i + 1}
+					return taskFile{}, &d
+				}
 				inFence = false
 			}
 			continue
 		}
 		if inComment {
+			if commentIndent > 0 && strings.TrimSpace(line) != "" {
+				if w, _ := leadingIndent(line); w < commentIndent {
+					d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: "HTML comment inside a task list item is not closed before the item ends.", Path: rel, Line: commentLine}
+					return taskFile{}, &d
+				}
+			}
 			if strings.Contains(line, "-->") {
 				inComment = false
 			}
 			continue
 		}
+		blank := strings.TrimSpace(line) == ""
+		width, b := leadingIndent(line)
+		_, _, _, isHeading := heading(line)
+		switch {
+		case blank:
+		case isHeading:
+			inList = false
+		case listMarker(line) && (width <= 3 || inList):
+			inList = true
+		case width <= 3 && prevBlank && !strings.HasPrefix(line[b:], ">"):
+			inList = false // a paragraph after a blank line ends the list
+		}
+		prevBlank = blank
+		if !blank && width >= 4 && !inList {
+			inTask = false
+			continue // indented code block: not tasks, fences, or comments
+		}
 		if n, ch, ok := openFenceIndent(line, 1<<30); ok {
 			inFence, fence, fenceN, fenceLine = true, ch, n, i+1
-			fenceIndent, _ = leadingIndent(line)
+			fenceIndent = width
 			continue
 		}
-		if trim := strings.TrimSpace(line); strings.HasPrefix(trim, "<!--") {
-			if !strings.Contains(trim[4:], "-->") {
-				inComment, commentLine = true, i+1
+		if strings.HasPrefix(line[b:], "<!--") {
+			if !strings.Contains(line[b+4:], "-->") {
+				inComment, commentLine, commentIndent = true, i+1, width
 			}
 			continue
 		}
@@ -629,4 +677,21 @@ func referenceDefinitions(lines []string) map[string]bool {
 		}
 	}
 	return refs
+}
+
+// listMarker reports a line that starts a list item: "-", "*", or "+" and a
+// space, or "1." / "1)" and a space, after indentation and quote markers.
+func listMarker(line string) bool {
+	trim := strings.TrimLeft(line, " \t")
+	for strings.HasPrefix(trim, ">") {
+		trim = strings.TrimLeft(trim[1:], " \t")
+	}
+	if len(trim) > 1 && (trim[0] == '-' || trim[0] == '*' || trim[0] == '+') && (trim[1] == ' ' || trim[1] == '\t') {
+		return true
+	}
+	j := 0
+	for j < len(trim) && j < 9 && trim[j] >= '0' && trim[j] <= '9' {
+		j++
+	}
+	return j > 0 && j+1 < len(trim) && (trim[j] == '.' || trim[j] == ')') && (trim[j+1] == ' ' || trim[j+1] == '\t')
 }
