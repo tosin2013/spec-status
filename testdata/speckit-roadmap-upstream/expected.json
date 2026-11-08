@@ -1,0 +1,41 @@
+{
+  "pins": ["speckit-roadmap@v0.1.0", "spec-kit (tasks files generated upstream by Spec Kit)"],
+  "origin": "upstream-generated",
+  "counted_by": "implementer (Claude Code), hand count from the files, recounted 2026-11-07",
+  "outcome": "report",
+  "exit": 1,
+  "items": [
+    {"id": "001", "status": "implemented", "active": true, "dependencies": []},
+    {"id": "002", "status": "verified", "active": true,
+     "dependencies": [{"id": "001", "state": "unfinished"}],
+     "tasks": {"checked": 30, "total": 30}},
+    {"id": "003", "status": "verified", "active": true,
+     "dependencies": [{"id": "002", "state": "satisfied"}],
+     "tasks": {"checked": 5, "total": 5}},
+    {"id": "004", "status": "verified", "active": true, "dependencies": [],
+     "tasks": {"checked": 4, "total": 4}},
+    {"id": "005", "status": "verified", "active": true,
+     "dependencies": [{"id": "002", "state": "satisfied"}],
+     "tasks": {"checked": 4, "total": 4}},
+    {"id": "006", "status": "abandoned", "active": false,
+     "dependencies": [{"id": "002", "state": "satisfied"}]},
+    {"id": "007", "status": "planned", "active": true,
+     "dependencies": [
+       {"id": "002", "state": "satisfied"}, {"id": "003", "state": "satisfied"},
+       {"id": "004", "state": "satisfied"}, {"id": "005", "state": "satisfied"},
+       {"id": "006", "state": "unfinished"}]}
+  ],
+  "summary": {
+    "total_items": 7, "active_items": 6, "verified_active_items": 4,
+    "blocked_count": 2, "human_review_count": 0,
+    "tasks": {"checked": 43, "total": 43, "files_read": 4}
+  },
+  "diagnostics": [
+    {"code": "SS_SPEC_REFERENCE_MISSING", "item": "001"},
+    {"code": "SS_DEPENDENCY_BLOCKED", "item": "002"},
+    {"code": "SS_VERIFIED_DEPENDENCY_CONTRADICTION", "item": "002"},
+    {"code": "SS_DEPENDENCY_MALFORMED", "item": "004"},
+    {"code": "SS_SPEC_REFERENCE_MISSING", "item": "007"},
+    {"code": "SS_DEPENDENCY_BLOCKED", "item": "007"}
+  ]
+}

@@ -57,12 +57,28 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		return &d
 	}
 	fenceLine, commentLine, fenceIndent, commentIndent := 0, 0, 0, 0
-	inComment, inTable := false, false
+	inComment, inTable, inHTML := false, false, false
 	prev := ""
+	// pending holds the last field line until its indented continuation
+	// lines, if any, have been joined to it, the way renderers show a
+	// wrapped value. It is applied before any other line is processed.
+	var pending *pendingField
+	// blockEnd is true on the line right after a fence or comment closed.
+	// Like a blank line or heading, that lets a type-7 HTML block start: in
+	// CommonMark only a paragraph prevents it.
+	blockEnd := false
+	apply := func() {
+		if pending != nil && cur != nil {
+			applyField(cur, pending.field, pending.value, pending.line)
+		}
+		pending = nil
+	}
 	for i, line := range lines {
 		lineNo := i + 1
 		last := prev
 		prev = line
+		prevBlockEnd := blockEnd
+		blockEnd = false
 		if inFence {
 			if fenceIndent > 0 && strings.TrimSpace(line) != "" {
 				if w, _ := leadingIndent(line); w < fenceIndent {
@@ -77,7 +93,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 					// guess where a renderer ends the block, fail visibly.
 					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence closer is indented differently from its opener.", lineNo)
 				}
-				inFence = false
+				inFence, blockEnd = false, true
 			}
 			continue
 		}
@@ -88,7 +104,44 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				}
 			}
 			if strings.Contains(line, "-->") {
-				inComment = false
+				inComment, blockEnd = false, true
+			}
+			continue
+		}
+		if cur != nil && bareMetricLabel(line) {
+			// "superseded-by: 002" or "Depends on: 001" without a list marker
+			// renders as text, but its author meant a field: fail visibly.
+			return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label without a list marker is not supported.", lineNo)
+		}
+		if pending != nil {
+			w, b := leadingIndent(line)
+			if w > 0 && strings.TrimSpace(line) != "" {
+				if listMarker(line) {
+					if metricFields[pending.field] {
+						return nil, nil, fail("SS_ITEM_MALFORMED", "A list under a Depends on, Spec dir, or superseded-by field is not supported.", lineNo)
+					}
+				} else if _, _, isFence := openFence(line); !isFence && !strings.HasPrefix(line[b:], "<!--") {
+					pending.value = strings.TrimSpace(pending.value + " " + strings.TrimSpace(line))
+					continue
+				}
+			}
+			apply()
+		}
+		if inHTML {
+			if strings.TrimSpace(line) == "" {
+				inHTML = false
+				continue
+			}
+			// A raw HTML block runs to the next blank line; renderers show its
+			// lines as raw HTML, not as roadmap structure.
+			if _, _, _, ok := matchItem(line); ok || itemLikeLine(line) {
+				return nil, nil, fail("SS_ITEM_MALFORMED", "Roadmap item inside a raw HTML block; renderers show it as text.", lineNo)
+			}
+			if _, _, ok := matchField(line); ok {
+				return nil, nil, fail("SS_ITEM_MALFORMED", "Item field inside a raw HTML block; renderers show it as text.", lineNo)
+			}
+			if _, ok := fieldPrefix(line); ok {
+				return nil, nil, fail("SS_ITEM_MALFORMED", "Item field inside a raw HTML block; renderers show it as text.", lineNo)
 			}
 			continue
 		}
@@ -107,9 +160,17 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		if w, b := leadingIndent(line); w <= 3 && rawHTMLBlock(line[b:]) {
 			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Raw HTML block (pre, script, style, textarea) is not supported.", lineNo)
 		}
+		if w, b := leadingIndent(line); w <= 3 && otherHTMLBlock(line[b:]) {
+			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML processing instruction, CDATA, or declaration block is not supported.", lineNo)
+		}
+		if w, b := leadingIndent(line); w <= 3 && cur == nil && htmlBlockStart(line[b:], notParagraph(last) || prevBlockEnd) {
+			inHTML = true
+			continue
+		}
 		if w, b := leadingIndent(line); w <= 3 && strings.HasPrefix(line[b:], "<!--") {
 			trim := strings.TrimSpace(line)
 			if end := strings.Index(trim[4:], "-->"); end >= 0 {
+				blockEnd = true
 				if cur != nil && strings.TrimSpace(trim[4+end+3:]) != "" {
 					return nil, nil, fail("SS_ITEM_MALFORMED", "Text follows an HTML comment on the same line under an item.", lineNo)
 				}
@@ -193,29 +254,9 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			return nil, nil, fail("SS_ITEM_MALFORMED", "Item repeats a recognized field.", lineNo)
 		}
 		cur.seen[field] = true
-		switch field {
-		case "Description":
-			cur.Description = value
-		case "Outcome":
-			cur.Outcome = value
-		case "Scope":
-			cur.Scope = value
-		case "Depends on":
-			cur.DepsLine = lineNo
-			ids, bad := parseIDList(value)
-			cur.Deps, cur.DepsBad = ids, bad
-		case "Spec dir":
-			cur.HasSpec = true
-			cur.SpecLine = lineNo
-			cur.SpecDir = unwrapPath(trimSentenceDot(value))
-		case "superseded-by":
-			cur.HasSuper = true
-			cur.SuperLine = lineNo
-			cur.SuperRaw = value
-			id, bad := parseSingleID(value)
-			cur.SuperID, cur.SuperBad = id, bad
-		}
+		pending = &pendingField{field: field, value: value, line: lineNo}
 	}
+	apply()
 	if inFence {
 		return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence is not closed.", fenceLine)
 	}
@@ -411,7 +452,11 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 	// content column. Where the answer would depend on CommonMark container
 	// rules, the file is fatal instead of guessed.
 	var items []listItem
-	prevBlank := true
+	prevBlank, inHTML := true, false
+	// lastPara is true when the previous non-blank line was paragraph text
+	// (including a list item's first line). Only a paragraph allows lazy
+	// continuation and stops a type-7 HTML block from starting.
+	lastPara := false
 	fatalAt := func(msg string, line int) (taskFile, *Diagnostic) {
 		d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: msg, Path: rel, Line: line}
 		return taskFile{}, &d
@@ -429,7 +474,7 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 					d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: "Code fence closer in tasks file is indented differently from its opener.", Path: rel, Line: i + 1}
 					return taskFile{}, &d
 				}
-				inFence = false
+				inFence, lastPara = false, false
 			}
 			continue
 		}
@@ -441,7 +486,7 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 				}
 			}
 			if strings.Contains(line, "-->") {
-				inComment = false
+				inComment, lastPara = false, false
 			}
 			continue
 		}
@@ -450,12 +495,33 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 		wasBlank := prevBlank
 		prevBlank = blank
 		if blank {
-			inTask = false
+			inTask, inHTML = false, false
+			continue
+		}
+		prevPara := lastPara
+		lastPara = true
+		if inHTML {
+			lastPara = false
+			// A raw HTML block runs to the next blank line; renderers show a
+			// checkbox in it as raw text.
+			if _, _, ok := matchTask(line); ok {
+				return fatalAt("Checkbox inside a raw HTML block; renderers show it as text.", i+1)
+			}
 			continue
 		}
 		if _, _, _, isHeading := heading(line); isHeading && width <= 3 {
-			items, inTask = nil, false
+			items, inTask, lastPara = nil, false, false
 			continue
+		}
+		closesItems := strings.HasPrefix(line[b:], ">") || thematicBreak(line) || strings.HasPrefix(line[b:], "<") || func() bool { _, _, ok := openFence(line); return ok }()
+		if closesItems && !listMarker(line) {
+			lastPara = false
+			// A quote, break, fence, comment, or HTML line less indented than
+			// an item's content ends that item; lazy continuation applies to
+			// paragraph text only.
+			for len(items) > 0 && width < items[len(items)-1].content {
+				items = items[:len(items)-1]
+			}
 		}
 		if strings.HasPrefix(line[b:], ">") {
 			// Block quotes: a fence, comment, checkbox, or indented code inside
@@ -475,20 +541,48 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 			continue
 		}
 		isMarker := listMarker(line)
+		sibling := false
 		if isMarker {
-			for len(items) > 0 && items[len(items)-1].marker >= width {
+			ordered, number := orderedMarker(line[b:])
+			// A marker closes items at its indentation or deeper, and items
+			// whose content column it does not reach.
+			for len(items) > 0 && (items[len(items)-1].marker >= width || width < items[len(items)-1].content) {
+				if items[len(items)-1].marker == width && items[len(items)-1].ordered == ordered {
+					sibling = true
+				}
 				items = items[:len(items)-1]
 			}
-		} else if wasBlank {
-			// A paragraph after a blank line closes the items it is not
-			// indented into.
+			_, _, isTask := matchTask(line)
+			if ordered && number != 1 && !wasBlank && prevPara && !sibling {
+				// An ordered list not starting at 1 cannot interrupt a
+				// paragraph, so this line is paragraph text.
+				if isTask {
+					return fatalAt("Checkbox in an ordered list that does not start at 1 directly after text; renderers read it as text.", i+1)
+				}
+				continue
+			}
+			if spacesAfterMarker(line[b:]) >= 5 && isTask {
+				return fatalAt("Checkbox five or more spaces after its list marker is indented code to renderers.", i+1)
+			}
+			if inner := afterMarker(line[b:]); listMarker(inner) {
+				if _, _, ok := matchTask(inner); ok {
+					return fatalAt("Nested list marker on the same line as its parent is not supported.", i+1)
+				}
+			}
+		} else if wasBlank || !prevPara {
+			// A line after a blank line, or after a block that is not a
+			// paragraph (a closed fence or comment), is not a lazy
+			// continuation: it closes the items it is not indented into.
 			for len(items) > 0 && width < items[len(items)-1].content {
 				items = items[:len(items)-1]
 			}
 		}
 		base := 0
-		if len(items) > 0 {
-			base = items[len(items)-1].content
+		for j := len(items) - 1; j >= 0; j-- {
+			if items[j].content <= width {
+				base = items[j].content
+				break
+			}
 		}
 		if width-base >= 4 && (isMarker || wasBlank) {
 			// Four or more columns past the enclosing content: renderers read
@@ -500,13 +594,21 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 			continue
 		}
 		if isMarker {
-			items = append(items, listItem{marker: width, content: contentColumn(line)})
+			ordered, _ := orderedMarker(line[b:])
+			items = append(items, listItem{marker: width, content: contentColumn(line), ordered: ordered})
 		}
 		if strings.HasPrefix(line[b:], "<!-->") || strings.HasPrefix(line[b:], "<!--->") {
 			return fatalAt("Empty HTML comment is read differently by renderers.", i+1)
 		}
 		if rawHTMLBlock(line[b:]) {
 			return fatalAt("Raw HTML block (pre, script, style, textarea) in a tasks file is not supported.", i+1)
+		}
+		if otherHTMLBlock(line[b:]) {
+			return fatalAt("HTML processing instruction, CDATA, or declaration block in a tasks file is not supported.", i+1)
+		}
+		if width-base <= 3 && !isMarker && htmlBlockStart(line[b:], wasBlank || !prevPara) {
+			inHTML, inTask = true, false
+			continue
 		}
 		if n, ch, ok := openFenceIndent(line, base+3); ok && !isMarker {
 			inFence, fence, fenceN, fenceLine = true, ch, n, i+1
@@ -757,7 +859,50 @@ func listMarker(line string) bool {
 	return j > 0 && j+1 < len(trim) && (trim[j] == '.' || trim[j] == ')') && (trim[j+1] == ' ' || trim[j+1] == '\t')
 }
 
-type listItem struct{ marker, content int }
+type listItem struct {
+	marker, content int
+	ordered         bool
+}
+
+// orderedMarker reports whether rest starts with an ordered marker, and its number.
+func orderedMarker(rest string) (bool, int) {
+	n, j := 0, 0
+	for j < len(rest) && j < 9 && rest[j] >= '0' && rest[j] <= '9' {
+		n = n*10 + int(rest[j]-'0')
+		j++
+	}
+	return j > 0 && j < len(rest) && (rest[j] == '.' || rest[j] == ')'), n
+}
+
+// markerWidth is the width of the list marker at the start of rest.
+func markerWidth(rest string) int {
+	if ok, _ := orderedMarker(rest); ok {
+		j := 0
+		for rest[j] >= '0' && rest[j] <= '9' {
+			j++
+		}
+		return j + 1
+	}
+	return 1
+}
+
+// spacesAfterMarker counts the spaces between a list marker and its content.
+func spacesAfterMarker(rest string) int {
+	m, n := markerWidth(rest), 0
+	for m+n < len(rest) && rest[m+n] == ' ' {
+		n++
+	}
+	return n
+}
+
+// afterMarker returns the content after a list marker and its spaces.
+func afterMarker(rest string) string {
+	m := markerWidth(rest)
+	if m >= len(rest) {
+		return ""
+	}
+	return strings.TrimLeft(rest[m:], " \t")
+}
 
 // contentColumn returns the column where a list item's content starts: the
 // marker width plus one to four following spaces (one if more than four).
@@ -790,6 +935,113 @@ func rawHTMLBlock(rest string) bool {
 		if strings.HasPrefix(lower, tag) {
 			after := lower[len(tag):]
 			return after == "" || after[0] == ' ' || after[0] == '>' || after[0] == '\t'
+		}
+	}
+	return false
+}
+
+type pendingField struct {
+	field, value string
+	line         int
+}
+
+// applyField stores a field value, after any continuation lines were joined.
+func applyField(cur *rawItem, field, value string, lineNo int) {
+	switch field {
+	case "Description":
+		cur.Description = value
+	case "Outcome":
+		cur.Outcome = value
+	case "Scope":
+		cur.Scope = value
+	case "Depends on":
+		cur.DepsLine = lineNo
+		ids, bad := parseIDList(value)
+		cur.Deps, cur.DepsBad = ids, bad
+	case "Spec dir":
+		cur.HasSpec = true
+		cur.SpecLine = lineNo
+		cur.SpecDir = unwrapPath(trimSentenceDot(value))
+	case "superseded-by":
+		cur.HasSuper = true
+		cur.SuperLine = lineNo
+		cur.SuperRaw = value
+		id, bad := parseSingleID(value)
+		cur.SuperID, cur.SuperBad = id, bad
+	}
+}
+
+// htmlBlockTags are the CommonMark type-6 block tags.
+var htmlBlockTags = map[string]bool{}
+
+func init() {
+	for _, t := range strings.Fields("address article aside base basefont blockquote body caption center col colgroup dd details dialog dir div dl dt fieldset figcaption figure footer form frame frameset h1 h2 h3 h4 h5 h6 head header hr html iframe legend li link main menu menuitem nav noframes ol optgroup option p param search section summary table tbody td tfoot th thead title tr track ul") {
+		htmlBlockTags[t] = true
+	}
+}
+
+// htmlBlockStart reports a CommonMark type-6 or type-7 HTML block opener.
+// Such a block runs to the next blank line. Type 7 (any single complete tag
+// alone on its line) cannot interrupt a paragraph, so it needs a blank line
+// or the start of the file before it.
+func htmlBlockStart(rest string, afterBlank bool) bool {
+	if !strings.HasPrefix(rest, "<") || strings.HasPrefix(rest, "<!--") {
+		return false
+	}
+	t := rest[1:]
+	t = strings.TrimPrefix(t, "/")
+	n := 0
+	for n < len(t) && (t[n] >= 'a' && t[n] <= 'z' || t[n] >= 'A' && t[n] <= 'Z' || n > 0 && (t[n] >= '0' && t[n] <= '9' || t[n] == '-')) {
+		n++
+	}
+	if n == 0 {
+		return false
+	}
+	name, after := strings.ToLower(t[:n]), t[n:]
+	if htmlBlockTags[name] && (after == "" || after[0] == ' ' || after[0] == '\t' || after[0] == '>' || strings.HasPrefix(after, "/>")) {
+		return true
+	}
+	if !afterBlank {
+		return false
+	}
+	trim := strings.TrimRight(rest, " \t")
+	return strings.HasSuffix(trim, ">") && strings.Count(trim, "<") == 1 && strings.Count(trim, ">") == 1
+}
+
+// notParagraph reports a previous line after which a type-7 HTML block may
+// start: a blank line, a heading, or a thematic break.
+func notParagraph(last string) bool {
+	if strings.TrimSpace(last) == "" || thematicBreak(last) {
+		return true
+	}
+	_, _, _, ok := heading(last)
+	return ok
+}
+
+// otherHTMLBlock reports CommonMark HTML block types 3 to 5 (processing
+// instructions, declarations, CDATA), which span blank lines.
+func otherHTMLBlock(rest string) bool {
+	if strings.HasPrefix(rest, "<?") || strings.HasPrefix(rest, "<![CDATA[") {
+		return true
+	}
+	return len(rest) > 2 && strings.HasPrefix(rest, "<!") && (rest[2] >= 'A' && rest[2] <= 'Z' || rest[2] >= 'a' && rest[2] <= 'z')
+}
+
+// bareMetricLabel reports a line without a list marker that starts with a
+// Depends on, Spec dir, or superseded-by label and a colon, at any
+// indentation and in any lookalike spelling.
+func bareMetricLabel(line string) bool {
+	rest := strings.TrimLeft(normalizeLookalikes(line), " \t")
+	if listMarker(rest) || strings.HasPrefix(rest, ">") {
+		return false
+	}
+	rest = strings.ToLower(strings.NewReplacer("*", "", "`", "", "_", " ", "-", " ").Replace(rest))
+	rest = strings.Join(strings.Fields(rest), " ")
+	for _, label := range []string{"depends on", "spec dir", "superseded by", "dependson", "specdir", "supersededby"} {
+		if strings.HasPrefix(rest, label) {
+			if after := strings.TrimLeft(rest[len(label):], " "); strings.HasPrefix(after, ":") {
+				return true
+			}
 		}
 	}
 	return false

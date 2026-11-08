@@ -113,6 +113,15 @@ Text and JSON are two views of one result. Human-text filters and `--explain` se
 
 Choices that were still open in PROFILE-R1 are used here as reversible implementation defaults, not as owner approvals. The list is in [decisions](specs/001-spec-status/decisions.md).
 
+## Supported input
+
+The roadmap and tasks shapes this build is checked against come from pinned upstream versions:
+
+- [github/spec-kit](https://github.com/github/spec-kit) v1.2.0 (commit `4ca46a07`), for `tasks.md` (`spec.md` and `plan.md` are only checked for existence)
+- [srobroek/speckit-roadmap](https://github.com/srobroek/speckit-roadmap) v0.1.0, for `.specify/memory/roadmap.md`
+
+The [shape inventory](specs/002-upstream-format-conformance/contracts/shape-inventory.md) lists every construct those templates produce and how it is read. Hand-counted fixtures in `testdata/conformance/` cover each one, including real files produced by the upstream commands. Other versions are not claimed. A newer upstream release is adopted only after the drift check in `internal/conformance` reports no unresolved shape change (see `testdata/upstream/README.md`). Markdown outside these shapes either fails visibly or is listed under Limits.
+
 ## Limits
 
 Inferred quarters are not calculated. The sensitive-name filter and symlink checks are candidate safeguards, not a certification that every secret or mount escape is caught. This build was executed on Linux amd64 and Darwin arm64, by the implementer, on one machine each. On Darwin the post-open path check that Linux performs through `/proc/self/fd` is skipped; reads there rely on `O_NOFOLLOW`, the symlink-component check, and the device check. No operating system is a supported release target, and nothing is signed.
@@ -121,16 +130,17 @@ On this Linux amd64 host, nine runs of a 100-item, 10,000-task fixture had a med
 
 There is no package-manager install, release workflow, or file-updating command. No license is selected.
 
-Known limits, which the 001 acceptance bar (decision D-2026-11-07-06) is judged against:
+Known limits. Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input outside the [supported shapes](specs/002-upstream-format-conformance/contracts/shape-inventory.md) is non-blocking when it fails visibly or is listed here; the classification of every review finding is in [reclassification.md](specs/002-upstream-format-conformance/reclassification.md).
 
 - Only the documented dialect is read. Under an item heading, every line must be a recognized or descriptive field, indented continuation, a blank line, a fence, a comment, or a thematic break; anything else is fatal. Outside items, prose is not checked, except that `Depends on`, `Spec dir`, and `superseded-by` labels are fatal there.
-- Tasks files are free text in a narrow dialect. Only recognized checkboxes in ordinary lists count; layouts whose meaning depends on block-quote or list-nesting rules are fatal. Only inline links with a simple local path are checked; other link forms are reported as unsupported, not checked.
+- Tasks files are free text in a narrow dialect. Only recognized checkboxes in ordinary lists count. Layouts whose count would depend on block-quote, list-nesting, or raw HTML rules are fatal; the cases are listed in roadmap-format.md §3. Only inline links with a simple local path are checked; other link forms are reported as unsupported, not checked.
 - Reads are not an atomic snapshot. A change that keeps the same size and modification time may go undetected.
 - On Darwin there is no `/proc/self/fd` check after open, so a parent directory swapped between the checks and the open is not detected.
 - The sensitive-name matcher is incomplete by design (for example, `id_rsa` is not matched).
 - A hard link inside the root that points at a file outside it cannot be told apart from an ordinary file, so it is read. Symlinks are rejected.
-- Unicode lookalike letters are not normalized. Spaces, dashes, and invisible characters are, but a field label spelled with, for example, a Cyrillic `е` in a nested line is read as prose.
-- Open non-blocking defects from review: human text omits `status_counts`, `invalid_supersession_items`, and per-item task attribution, and does not mark an invalid supersession; a fatal error in a tasks file cites the roadmap path; a FIFO or directory where a tasks file is expected is reported as absent; an over-long or empty `Spec dir` is reported as unsafe; `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`; an absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected; `--json=false` with an invalid flag still emits a JSON error.
+- Lookalike normalization covers Unicode spaces, dashes, invisible characters, and common Cyrillic and Greek letters that look like Latin ones. Other homoglyphs in a field label are not recognized.
+- Open non-blocking defects from review: human text omits `status_counts`, `invalid_supersession_items`, and per-item task attribution, and does not mark an invalid supersession; a FIFO or directory where a tasks file is expected is reported as absent; an over-long or empty `Spec dir` is reported as unsafe; `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`; an absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected; `--json=false` with an invalid flag still emits a JSON error; an empty `--root` or `--roadmap` value falls back to the default; a spec directory rejected as unsafe shows tasks as `not_linked` and is not counted in `files_skipped`.
+- Visible over-strictness (rejected although a renderer accepts it): a fence or comment indented one to three columns whose content is less indented; a `<details>` block inside a task item closed by an indented `</details>` with the next task directly after it (it passes with a blank line); a spurious `SS_REFERENCE_UNSUPPORTED` warning for a reference definition after a fence that follows a task.
 
 ## Draft proposals
 

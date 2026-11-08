@@ -1,0 +1,83 @@
+# Dependency-ordered work backlog
+
+The table below is the original backlog. It is not a checklist of verified work. A checked task, an implemented change, and independent verification are different. Tests in this repository were run by the implementer; they are not independent review.
+
+Sequence is a proposal, not a delivery commitment. “Parallel” below means logically independent future work only after dependencies and separate authorization are satisfied.
+
+## Implementation record — 7 November 2026
+
+Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01–08. The development CLI uses those documents as reversible defaults, recorded in decisions.md.
+
+| Area | State | Evidence |
+|---|---|---|
+| Read-only `spec status` CLI, parser, history, JSON/text, exits 0/1/2 | Implemented | Source under `cmd/spec` and `internal/`. Not independently verified. |
+| Cobra command, help, and flag handling | Owner-approved dependency exception | Pinned in go.mod. Parsing and safeio stay standard library. The process unsets `BASH_COMP_DEBUG_FILE` for each call so Cobra cannot append that log. Not a security review of Cobra. |
+| Lip Gloss human text | Owner-approved styling exception | Headings, columns, progress, and restrained color. JSON, fatal text, version, and completion stay plain. Not a security review, and not approval of other PROFILE-R1 choices. |
+| Compact summary panel | Owner-approved presentation on the same human-text surface | Static one-shot panel. Counts stay separate. Not a dashboard. |
+| Human-text filters and `--explain` | Owner-approved view on the existing feature | Exact status match, blocked, human review, active, and historical filters. Mechanical file:line reasons. JSON schema 1.0 payload unchanged. Not approval of DC-01–DC-08. |
+| speckit-roadmap field spelling | Owner-approved DC-01 refinement | Bold labels, `Scope (in)`, and annotated `Depends on` lists are read; leftovers are flagged as SS_DEPENDENCY_MALFORMED. Exercised against the extension's v0.1.0 roadmap and specs in `testdata/speckit-roadmap-upstream` (Apache-2.0, copied unmodified). Not upstream certification. |
+| Acceptance review of 001, 7 November 2026 | Fixes applied for D1–D6; D7–D10 open | A separate agent reviewed AC-01–19 and AC-26 and found that `verified` was not supportable: item-like headings, tables, near-miss field labels, and odd fences were dropped silently (D1–D3), a FIFO swap could hang a read (D4), the checkbox cap was per file (D5), and some task link forms were mishandled (D6). Each now fails visibly or is handled, with regression tests in `internal/status/strict_test.go` and `internal/safeio/fs_test.go` that fail on the previous code. A 400-run FIFO swap race gave no hangs. Example, upstream, and repository roadmaps produce byte-identical output. Not yet re-reviewed. D7 cycle-edge labels, D8 skipped-coverage reporting, D9 invalid supersession in text, and D10 macOS `/private` root and invocation `fail_on` remain. |
+| Second acceptance review of 001, 7 November 2026 | Fixes applied; not yet re-reviewed | A second separate review of `main` at 3535381 still found silent drops: colon-less, backtick-wrapped, and block-quoted field labels; GFM tables without outer pipes; bullet item rows; items in HTML comments counted live; setext headings not ending an item; every edge from a cycle member labelled `cycle`, hiding human review; root discovery passing an unusable `.specify`; scheme and absolute links checked as local paths. Fixed under D-2026-11-07-04, with tests in `internal/status/review2_test.go`; the 10 behavior tests fail on 3535381. Coverage added for duplicate IDs, missing/self/cycle dependencies, and BOM/CRLF/CR. Open low items: D11 text omits `status_counts` and invalid supersession, D12 tasks-file fatal cites the roadmap path, D13 FIFO/directory targets reported as absent, D14 long or empty Spec dir reported as unsafe, D16 `--root version --json` and invocation `fail_on`, D17 macOS `/private` root, D18 some checkbox spellings. |
+| Linux evidence, 7 November 2026 | Executed by the implementer in Docker | `go vet` and `go test ./...` pass on linux/arm64 (native) and linux/amd64 (emulated on an arm64 host), Go 1.22.2. `strace` of seven runs (example, upstream, and repository roadmaps; a fixture with a symlink to `/etc/passwd` and a FIFO; `--fail-on none`; `completion bash`; `--help`): one `execve` (the program), no socket calls, every open `O_RDONLY\|O_NONBLOCK\|O_NOFOLLOW`, no filesystem mutation, no writes except stdout/stderr, the `/proc/self/fd` check exercised, the symlink and FIFO never opened, and `BASH_COMP_DEBUG_FILE` not created. One trace host; not an independent review. |
+| Third acceptance review of 001, 7 November 2026 | Fixes applied; not yet re-reviewed | A third separate review of `main` at a2e045e confirmed the Linux evidence and found five blocking defects: an unclosed fence inside a list item swallowing later items and tasks; Unicode lookalikes (U+2011, U+00A0, U+200B) slipping past the field rules; GFM checkbox spellings not counted; nested-bracket, shortcut-reference, and continuation-line links never checked; one tasks file double-counted under two paths. Fixed under D-2026-11-07-05 with tests in `internal/status/review2_test.go` and `review3_test.go`; the 7 behavior tests fail on a2e045e. Bare field lines under items (review note N2) are now fatal under the closed item body. Open non-blocking items are listed in README.md Limits. |
+| Fourth acceptance review of 001, 7 November 2026 | Fixes applied; not yet re-reviewed | A fourth separate review of `main` at 0dd26df, judged against the D-2026-11-07-06 bar, found dependency, history, stage, exit-code, confinement, and budget logic sound, and the closed item body, near-miss, table, and Unicode checks failing visibly. It found six blocking boundary defects: a fence closer at a different indentation ending a block early (roadmaps and tasks), a comment opened inside a list item hiding the next item (roadmaps and tasks), a 4-space-indented `<!--` treated as a comment, and a checkbox inside an indented code block counted. Fixed with tests in `internal/status/review4_test.go`; the 4 tests fail on 0dd26df. Not re-run on Linux by the reviewer (no disk space); the implementer ran the suite on linux/arm64 and linux/amd64. |
+| Fifth acceptance review of 001, 7 November 2026 | Fixes applied; not yet re-reviewed | A fifth separate review of PR #11 at c3f450e, compared against markdown-it and pandoc, found the roadmap item parser failing visibly on 37 of 39 near-miss variants and the metric, history, dependency, exit-code, filter, confinement, and budget logic sound; it confirmed the fixture counts in this table and linux/arm64 tests. Blocking: an empty comment `<!-->` hiding content (roadmaps and tasks); block-quoted fences, comments, and indented code counted as tasks; indented code inside list items counted; a nested task after an indented paragraph dropped; and raw `<style>`-type blocks read as live roadmap data. Fixed under D-2026-11-07-07 with tests in `internal/status/review5_test.go`; the 6 tests fail on c3f450e. |
+| Sixth acceptance review of 001, 7 November 2026 | Fixes applied; not yet re-reviewed | A sixth separate review of PR #11 at af59ab2 (now `main`), using hand cases and differential fuzzing against pandoc, found metric, history, dependency, stage, exit-code, filter, confinement, and budget logic sound and roadmap item detection robust (the roadmap fuzzer found only the HTML-block case). Blocking: a `Depends on` list wrapped onto an indented line lost its later IDs (realistic: hard-wrapping editors); checkboxes inside a raw HTML block were counted; column-0 breaks, fences, and quotes did not close list items; several GFM list rules were not applied; and an item heading after a type-7 HTML line was counted. Fixed with tests in `internal/status/review6_test.go`; the 5 tests fail on bbd0fe7. JSON for wrapped description, outcome, and scope now carries the full text instead of the first line; counts and diagnostics are unchanged. |
+| Seventh acceptance review of 001, 7 November 2026 | Fixes applied; not yet re-reviewed | A seventh separate review of PR #12 at c4824a6, with differential fuzzing (about 6,000 tasks files and 2,600 roadmaps against pandoc, disputes re-checked with markdown-it) and a sandboxed run denying writes, network, and fork, found everything outside the parser sound and realistic Spec Kit layouts counted correctly. Blocking: a lone HTML tag after a heading hid content only from renderers (plausible); a column-0 paragraph after a fence inside a task did not close it (plausible); HTML block types 3 to 5 were not recognized; tabs counted as a fixed four columns; a stale list-item stack. It also observed that a bare indented `superseded-by:` line under an item was silently ignored. Each now fails visibly, with tests in `internal/status/review7_test.go`; the 6 tests fail on c4824a6. |
+| In-repo unit, integration, and adversarial filesystem tests | Executed by the implementer | `CGO_ENABLED=0 go test ./...` on Linux amd64, Go 1.22.2, and on Darwin arm64, Go 1.24.3. Darwin needed a per-OS termios ioctl (`TIOCGETA`) and now runs the FIFO test. Not an independent review and not a support claim. |
+| Spec Kit scaffolding and roadmap extension | Development tooling only | `.specify/templates`, `scripts`, `workflows`, and `extensions/roadmap` (speckit-roadmap v0.1.0, manifest script names renamed to pass specify-cli 1.2.0 validation). The `spec` CLI does not read or require them. `.claude/` is ignored. |
+| Cold-start sample | Measured by the implementer on one host | Nine runs of 100 items and 10,000 tasks, median about 3.9 ms. Not a support claim. |
+| TASK-17–21 release, tags, signing, support matrix | Not started | No workflow, tag, or published binary. |
+| TASK-22–23 phase-two writes and deferred products | Not started | No write command. |
+| Real approved roadmaps (AC-24) | Hand-count parity observed by the implementer | Inputs approved under D-2026-11-07-08. This repository's roadmap: 6 items, 4 active, 0/4 recorded verified, 2 active blockers, 1 task file with 0 checkboxes. speckit-roadmap v0.1.0: 7 items, 6 active, 4/6 recorded verified, 2 active blockers, 43/43 checked tasks in 4 files. Both match `spec status` text and JSON. Counted by the implementer on 7 November 2026; not an independent review. |
+
+## Gate 0 — approve the contract before coding
+
+| ID | Depends on | Future work / completion evidence | Acceptance mapping |
+|---|---|---|---|
+| TASK-01 | — | Review constitution, settled boundaries and scope; record exact implementation authorization separately. Confirm no inferred quarters, strict supersession, no runtime side effects. | AC-19, AC-24 |
+| TASK-02 | TASK-01 | Resolve DC-01 and DC-03 grammar/discovery/stage matrix with approved examples; resolve local link/checkbox/duplicate behavior and unsupported input boundary. Produce fixture definitions, not guessed compatibility. | AC-02, AC-04–07, AC-13 |
+| TASK-03 | TASK-01 | Resolve DC-02 and related DC-03 graph/metric rules: chains, invalid references, review severity/blocking, recorded contradictions. Preserve owner history rules. | AC-03, AC-08–12 |
+| TASK-04 | TASK-01 | Resolve DC-04 CLI/schema/code/rounding/date/task scope, preserving --json, superseded_by and 0/1/2. Record no-config/date-independent default or alternative explicitly. | AC-03, AC-17–19 |
+| TASK-05 | TASK-01 | Resolve DC-05/06 safe-open, symlink/mount/exclusion/regular-file/mid-read/limit policy; independently review current toolchain and security evidence. Calibrate candidate caps against fixtures. | AC-13–16, AC-20 |
+| TASK-06 | TASK-02–05 | Reconcile specification/contracts/traceability and fixture oracles; remove contradictions. Name approved real dogfood inputs under DC-08. Implementation gate requires separate approval, not inferred from task completion. | AC-01–20, AC-24 |
+
+## Gate 1 — candidate core, only after implementation authorization
+
+| ID | Depends on | Future work / completion evidence | Acceptance mapping |
+|---|---|---|---|
+| TASK-07 | TASK-06 | Establish minimal stdlib Go build/test baseline, development identity and fixture runner under approved repository controls. No release workflow or code is created by this backlog itself. | AC-01, AC-18–19 |
+| TASK-08 | TASK-07 | Implement sole filesystem boundary per approved policy with bounded reads/metadata and safe stable failures; adversarial fixture coverage before parser accesses sources. | AC-13–16 |
+| TASK-09 | TASK-08 | Implement supported roadmap/fence/encoding parser with raw statuses/source mapping, duplicate occurrence preservation and visible unsupported failures. | AC-02, AC-04–05 |
+| TASK-10 | TASK-09 | Implement explicit spec-dir/stage-file/task/reference inspection only through safe boundary; no recursive repository scan or semantic verification. | AC-05–07 |
+| TASK-11 | TASK-09 | Implement replacement validity/chain/cycle model preserving raw/history and no mutation; no dependency redirection. | AC-09–10 |
+| TASK-12 | TASK-09, TASK-11 | Implement dependency direct-blocker/cycle/human-review/contradiction results using original references and approved scope/count rules. | AC-08, AC-11–12 |
+| TASK-13 | TASK-10–12 | Implement raw/active/verified/task metrics and coverage; invalid/empty/weighted/shared-file cases explicit. | AC-03, AC-09–12 |
+| TASK-14 | TASK-04, TASK-13 | Implement common result rendering, text/JSON schema, canonical order/rounding/redaction and threshold exits/fatal envelopes; no independent AI mode. | AC-17–19 |
+| TASK-15 | TASK-08, TASK-14 | End-to-end safety/no-side-effect and compatibility fixtures across candidate targets; bounded fuzz/adversarial cases, document residual limits. | AC-01–19 |
+| TASK-16 | TASK-15 | Run disclosed cold-start benchmark and approved two-roadmap hand-count dogfood; record observed outcomes and limitations rather than target claims. | AC-20, AC-24 |
+
+TASK-10 and TASK-11 may be independent after parser/safety APIs stabilize; they must reconverge before metrics/rendering. All graph work remains bounded; no “quick” bypass of safe reads to unblock development.
+
+## Gate 2 — release engineering, separately authorized
+
+| ID | Depends on | Future work / completion evidence | Acceptance mapping |
+|---|---|---|---|
+| TASK-17 | TASK-06 | Resolve DC-07/08 support matrix/runner coverage, pins, public license/security/support/hosting expectations and identity policy. Public docs namespace intent is not a selected license or release approval. | AC-21–24 |
+| TASK-18 | TASK-15, TASK-17 | Design and, only when authorized, implement least-privilege tag-triggered test-before-publish build/package workflow using reviewed pins. Audit version/tag mismatch and failing-gate behavior. | AC-21 |
+| TASK-19 | TASK-16, TASK-18 | Produce candidate archives/checksum/version/target evidence and execute runtime smoke on every advertised target; no publishing authorization inferred. | AC-22 |
+| TASK-20 | TASK-19 | Complete independently exercised no-Go/source rootless install/upgrade docs, OS limits/caveats, immutable correction policy and any approved rollback/identity claims. | AC-23–24 |
+| TASK-21 | TASK-20 | Present tested release candidate and complete evidence to owner; first stable tag created only by owner after explicit RC approval. Publishing requires its own authorized action. | AC-21–24 |
+
+## Future work — not part of v1
+
+| ID | Depends on | Boundary |
+|---|---|---|
+| TASK-22 | Separate future scope approval, stable core contract | Design optional supported-extension mutation interface with each-ID/change/path approval, source reapproval and persisted reread. Not a v1 runtime dependency. AC-25 applies only if approved. |
+| TASK-23 | Separate future scope/demand/maintenance approval | Evaluate deferred dashboards/trends/notifications/digests/multirepo/package-manager ideas. Do not create background stores/listeners/sends/schedules merely because listed. |
+
+## Definition of done for a future task
+
+Observed evidence matches its approved contract and acceptance cases; traceability updated, unsupported behavior disclosed, no unresolved decision silently encoded, no claimed success without execution. Product tasks require implementation/test evidence. Documentation-only checks cannot mark product tasks complete. License, root safety, malformed metrics and support promises cannot be accepted through implication or omission.
+
+Draft proposals [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md) are documentation only. They are not TASK-22, TASK-23, or authorization to code.
