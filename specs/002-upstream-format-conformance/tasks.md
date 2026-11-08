@@ -130,10 +130,10 @@ description: "Task list for upstream-format conformance (feature 002)"
 
 **Purpose**: Roadmap, records, and end-to-end validation
 
-- [ ] T027 [P] Add roadmap item 007 for this feature to .specify/memory/roadmap.md through speckit.roadmap.write, with Spec dir specs/002-upstream-format-conformance and Depends on 001
-- [ ] T028 [P] Add a row for feature 002 to the implementation record in specs/001-spec-status/tasks.md
-- [ ] T029 [P] Add the conformance and drift test commands to the Commands section of CLAUDE.md
-- [ ] T030 Run every step in specs/002-upstream-format-conformance/quickstart.md, then CGO_ENABLED=0 go test ./... on darwin/arm64 and in Docker on linux/arm64 and linux/amd64, and confirm text and JSON output on testdata/example-roadmap is unchanged
+- [X] T027 [P] Add roadmap item 007 for this feature to .specify/memory/roadmap.md through speckit.roadmap.write, with Spec dir specs/002-upstream-format-conformance and Depends on 001
+- [X] T028 [P] Add a row for feature 002 to the implementation record in specs/001-spec-status/tasks.md
+- [X] T029 [P] Add the conformance and drift test commands to the Commands section of CLAUDE.md
+- [X] T030 Run every step in specs/002-upstream-format-conformance/quickstart.md, then CGO_ENABLED=0 go test ./... on darwin/arm64 and in Docker on linux/arm64 and linux/amd64, and confirm text and JSON output on testdata/example-roadmap is unchanged
 
 ---
 
