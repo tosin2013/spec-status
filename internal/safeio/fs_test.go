@@ -148,3 +148,29 @@ func TestSourceChangeAndLimit(t *testing.T) {
 		t.Fatalf("limit err=%v", err)
 	}
 }
+
+// A FIFO swapped in after the Lstat check must not block the open (review D4).
+func TestOpenNoFollowDoesNotBlockOnFIFO(t *testing.T) {
+	root := t.TempDir()
+	pipe := filepath.Join(root, "tasks.md")
+	if err := syscall.Mkfifo(pipe, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() {
+		f, err := openNoFollow(pipe)
+		if err == nil {
+			info, statErr := f.Stat()
+			f.Close()
+			if statErr == nil && info.Mode().IsRegular() {
+				err = os.ErrInvalid
+			}
+		}
+		done <- err
+	}()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("openNoFollow blocked on a FIFO")
+	}
+}

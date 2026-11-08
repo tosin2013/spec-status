@@ -17,8 +17,12 @@ func deviceOf(fi os.FileInfo) (uint64, bool) {
 	return uint64(st.Dev), true
 }
 
+// openNoFollow opens without following a final symlink. O_NONBLOCK keeps the
+// open from waiting on a FIFO that replaced a regular file after the Lstat
+// check; the caller's fstat then rejects anything that is not a regular file.
+// Regular-file reads are unaffected by O_NONBLOCK.
 func openNoFollow(path string) (*os.File, error) {
-	fd, err := syscall.Open(path, syscall.O_RDONLY|syscall.O_NOFOLLOW, 0)
+	fd, err := syscall.Open(path, syscall.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK|syscall.O_CLOEXEC, 0)
 	if err != nil {
 		return nil, mapOpenErr(err)
 	}
@@ -27,8 +31,10 @@ func openNoFollow(path string) (*os.File, error) {
 
 func confirmOpened(f *os.File, root string) error {
 	if runtime.GOOS != "linux" {
-		// Darwin builds keep O_NOFOLLOW and the device check.
-		// This environment did not execute a Darwin binary.
+		// Darwin has no /proc/self/fd. Reads there rely on O_NOFOLLOW, the
+		// symlink-component check, the device check, and the before/after
+		// identity check. A parent directory swapped between those checks
+		// and the open is a documented residual limit on Darwin.
 		return nil
 	}
 	link, err := os.Readlink("/proc/self/fd/" + itoa(int(f.Fd())))

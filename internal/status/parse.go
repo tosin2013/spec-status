@@ -56,22 +56,20 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		d := Diagnostic{Code: code, Severity: "error", Message: msg, Path: rel, Line: line}
 		return &d
 	}
+	fenceLine := 0
 	for i, line := range lines {
 		lineNo := i + 1
-		if n, ch, ok := fenceMark(line); ok {
-			if !inFence {
-				inFence, fence, fenceN = true, ch, n
-				continue
-			}
-			if ch == fence && n >= fenceN && strings.TrimSpace(line) == strings.Repeat(string(ch), n) {
-				inFence = false
-				continue
-			}
-		}
 		if inFence {
+			if closesFence(line, fence, fenceN) {
+				inFence = false
+			}
 			continue
 		}
-		if strings.Contains(line, "[status:") && strings.Contains(line, "|") {
+		if n, ch, ok := openFence(line); ok {
+			inFence, fence, fenceN, fenceLine = true, ch, n, lineNo
+			continue
+		}
+		if tableItemRow(line) {
 			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
 		}
 		if id, title, status, ok := matchItem(line); ok {
@@ -79,10 +77,13 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			cur = &rawItem{ID: id, Title: title, Status: status, Line: lineNo, seen: map[string]bool{}}
 			continue
 		}
-		if itemLikeHeading(line) {
+		if itemLikeLine(line) {
 			return nil, nil, fail("SS_ITEM_MALFORMED", "Item heading does not match the supported shape.", lineNo)
 		}
-		if cur == nil {
+		if _, _, _, ok := heading(line); ok {
+			// Any other heading ends the current item, so the fields under it
+			// cannot attach to the item above.
+			flush()
 			continue
 		}
 		if depth := indentDepth(line); depth > maxNesting {
@@ -90,7 +91,13 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		}
 		field, value, ok := matchField(line)
 		if !ok {
+			if fieldLike(line) {
+				return nil, nil, fail("SS_ITEM_MALFORMED", "Field label does not match the supported spelling.", lineNo)
+			}
 			continue
+		}
+		if cur == nil {
+			return nil, nil, fail("SS_ITEM_MALFORMED", "Item field appears outside an item.", lineNo)
 		}
 		if cur.seen[field] {
 			return nil, nil, fail("SS_ITEM_MALFORMED", "Item repeats a recognized field.", lineNo)
@@ -119,6 +126,9 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			cur.SuperID, cur.SuperBad = id, bad
 		}
 	}
+	if inFence {
+		return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence is not closed.", fenceLine)
+	}
 	flush()
 	if len(items) > maxItems {
 		return nil, nil, fail("SS_INPUT_LIMIT", "Roadmap item limit exceeded.", 0)
@@ -134,22 +144,6 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		return nil, nil, fail("SS_INPUT_LIMIT", "Reference edge limit exceeded.", 0)
 	}
 	return items, diags, nil
-}
-
-func fenceMark(line string) (n int, ch byte, ok bool) {
-	trim := strings.TrimSpace(line)
-	if len(trim) < 3 || (trim[0] != '`' && trim[0] != '~') {
-		return 0, 0, false
-	}
-	ch = trim[0]
-	i := 0
-	for i < len(trim) && trim[i] == ch {
-		i++
-	}
-	if i < 3 {
-		return 0, 0, false
-	}
-	return i, ch, true
 }
 
 func matchItem(line string) (id, title, status string, ok bool) {
@@ -178,21 +172,6 @@ func matchItem(line string) (id, title, status string, ok bool) {
 		return "", "", "", false
 	}
 	return id, title, status, true
-}
-
-func itemLikeHeading(line string) bool {
-	if !strings.HasPrefix(line, "### ") {
-		return false
-	}
-	rest := strings.TrimSpace(strings.TrimPrefix(line, "### "))
-	if rest == "" {
-		return false
-	}
-	if strings.Contains(line, "[status:") {
-		return true
-	}
-	r, _ := utf8.DecodeRuneInString(rest)
-	return r >= '0' && r <= '9'
 }
 
 // fieldLabels maps each accepted label to the field it fills. "Scope (in)" is
@@ -326,19 +305,16 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 	var tf taskFile
 	inFence := false
 	var fence byte
-	var fenceN int
+	var fenceN, fenceLine int
 	for i, line := range strings.Split(text, "\n") {
-		if n, ch, ok := fenceMark(line); ok {
-			if !inFence {
-				inFence, fence, fenceN = true, ch, n
-				continue
-			}
-			if ch == fence && n >= fenceN && strings.TrimSpace(line) == strings.Repeat(string(ch), n) {
+		if inFence {
+			if closesFence(line, fence, fenceN) {
 				inFence = false
 			}
 			continue
 		}
-		if inFence {
+		if n, ch, ok := openFence(line); ok {
+			inFence, fence, fenceN, fenceLine = true, ch, n, i+1
 			continue
 		}
 		checked, body, ok := matchTask(line)
@@ -364,21 +340,30 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 			tf.Links = append(tf.Links, link)
 		}
 	}
+	if inFence {
+		d := Diagnostic{Code: "SS_LAYOUT_UNSUPPORTED", Severity: "error", Message: "Code fence in tasks file is not closed.", Path: rel, Line: fenceLine}
+		return taskFile{}, &d
+	}
 	return tf, nil
 }
 
+// matchTask recognizes "- [ ] text" with a -, *, or + marker, or an ordered
+// marker such as "1. [x] text" or "2) [ ] text".
 func matchTask(line string) (checked bool, body string, ok bool) {
 	trim := strings.TrimLeft(line, " \t")
-	if !strings.HasPrefix(trim, "- [") && !strings.HasPrefix(trim, "* [") && !strings.HasPrefix(trim, "+ [") {
-		return false, "", false
-	}
-	// bullet marker then space? accept "- [ ]" with the marker and a space before bracket, or "-[" rejected.
 	var rest string
 	switch {
 	case strings.HasPrefix(trim, "- [") || strings.HasPrefix(trim, "* [") || strings.HasPrefix(trim, "+ ["):
 		rest = trim[2:]
 	default:
-		return false, "", false
+		j := 0
+		for j < len(trim) && j < 9 && trim[j] >= '0' && trim[j] <= '9' {
+			j++
+		}
+		if j == 0 || j+2 >= len(trim) || (trim[j] != '.' && trim[j] != ')') || trim[j+1] != ' ' || trim[j+2] != '[' {
+			return false, "", false
+		}
+		rest = trim[j+2:]
 	}
 	if len(rest) < 3 || rest[0] != '[' || rest[2] != ']' {
 		return false, "", false
@@ -393,9 +378,23 @@ func matchTask(line string) (checked bool, body string, ok bool) {
 	return mark == 'x' || mark == 'X', strings.TrimSpace(rest[4:]), true
 }
 
+// extractLinks finds inline links "[label](target)" in a task. A target may
+// be wrapped in <...> and may carry a quoted title. Reference-style links
+// "[label][ref]" and autolinks "<path>" are reported as unsupported rather
+// than skipped, so they are never silently ignored.
 func extractLinks(body string) []taskLink {
 	var out []taskLink
 	for i := 0; i < len(body); i++ {
+		if body[i] == '<' {
+			if end := strings.IndexByte(body[i+1:], '>'); end > 0 {
+				inner := body[i+1 : i+1+end]
+				if !strings.ContainsAny(inner, " \t") && strings.ContainsAny(inner, "./:") {
+					out = append(out, taskLink{Kind: "unsupported"})
+					i += end + 1
+				}
+			}
+			continue
+		}
 		if body[i] != '[' {
 			continue
 		}
@@ -405,6 +404,13 @@ func extractLinks(body string) []taskLink {
 			continue
 		}
 		endLabel += i + 1
+		if endLabel+1 < len(body) && body[endLabel+1] == '[' {
+			if endRef := strings.IndexByte(body[endLabel+2:], ']'); endRef >= 0 {
+				out = append(out, taskLink{Kind: "unsupported"})
+				i = endLabel + 2 + endRef
+			}
+			continue
+		}
 		if endLabel+1 >= len(body) || body[endLabel+1] != '(' {
 			continue
 		}
@@ -413,15 +419,42 @@ func extractLinks(body string) []taskLink {
 			continue
 		}
 		end += endLabel + 2
-		target := body[endLabel+2 : end]
+		target, okTarget := linkDestination(body[endLabel+2 : end])
 		i = end
-		if image || unsupportedTarget(target) {
+		if image || !okTarget || unsupportedTarget(target) {
 			out = append(out, taskLink{Kind: "unsupported", Path: ""})
 			continue
 		}
 		out = append(out, taskLink{Kind: "local", Path: target})
 	}
 	return out
+}
+
+// linkDestination splits "path" or "path \"title\"" or "<path> 'title'" into
+// the path. Anything else after the path makes the link unsupported.
+func linkDestination(raw string) (string, bool) {
+	raw = strings.TrimSpace(raw)
+	if strings.HasPrefix(raw, "<") {
+		end := strings.IndexByte(raw, '>')
+		if end < 0 {
+			return "", false
+		}
+		dest, rest := raw[1:end], strings.TrimSpace(raw[end+1:])
+		return dest, rest == "" || quotedTitle(rest)
+	}
+	cut := strings.IndexAny(raw, " \t")
+	if cut < 0 {
+		return raw, true
+	}
+	return raw[:cut], quotedTitle(strings.TrimSpace(raw[cut:]))
+}
+
+func quotedTitle(s string) bool {
+	if len(s) < 2 {
+		return false
+	}
+	q := s[0]
+	return (q == '"' || q == '\'') && s[len(s)-1] == q
 }
 
 func unsupportedTarget(target string) bool {
