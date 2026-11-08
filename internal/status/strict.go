@@ -89,7 +89,7 @@ var lookalikes = strings.NewReplacer(
 	"\u200a", " ", "\u202f", " ", "\u205f", " ", "\u3000", " ",
 	"\u2010", "-", "\u2011", "-", "\u2012", "-", "\u2212", "-", "\ufe63", "-", "\uff0d", "-",
 	"\u200b", "", "\u200c", "", "\u200d", "", "\u2060", "", "\ufeff", "", "\u00ad", "",
-	"\uff1a", ":",
+	"\uff1a", ":", "\u2236", ":", "\ua789", ":", "\ufe13", ":", "\ufe55", ":", "\u02f8", ":",
 	// Cyrillic and Greek letters that look like Latin ones, so a label such
 	// as "Dеpends on" (Cyrillic е) is still recognized as a field label.
 	"\u0430", "a", "\u0435", "e", "\u043e", "o", "\u0440", "p", "\u0441", "c",

@@ -1,6 +1,18 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.3 → 1.3.4
+Bump rationale: PATCH — status transitions.
+
+Changes this revision:
+  - 001 status: implemented → verified (D-2026-11-08-05; three T026 review
+    rounds and their fixes; residual risk in README Limits)
+  - 007 status: implemented → verified (T026 complete)
+
+Specs affected: 001, 007
+Open questions added/resolved: none
+
+Previous revision (1.3.3, 2026-11-08):
 Version change: 1.3.2 → 1.3.3
 Bump rationale: PATCH — wording: C-10 notes the closed field body
 (D-2026-11-08-04).
@@ -168,7 +180,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ### Core
 
-### 001 — Read-only spec status core [status: implemented]
+### 001 — Read-only spec status core [status: verified]
 
 - **Description:** The development `spec status` CLI: roadmap and tasks parsing,
   supersession and dependency analysis, text and schema 1.0 JSON, exits 0/1/2,
@@ -181,9 +193,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Depends on:** none
 - **Governed by:** C-01, C-02, C-03, C-04, C-05, C-10
 - **Spec dir:** specs/001-spec-status
-- **Notes:** Recorded implemented, not verified: tests were run by the
-  implementer on Linux amd64 and Darwin arm64 and have not been independently
-  reviewed. PROFILE-R1 choices remain reversible until 002 lands.
+- **Notes:** Recorded verified on 2026-11-08 by owner decision D-2026-11-08-05:
+  three independent T026 review rounds by separate AI agent sessions, every
+  blocking finding fixed, no round with zero findings; residual risk in README
+  Limits. Not a human review or an upstream certification. PROFILE-R1 choices remain reversible until 002 lands.
 
 ### 002 — Contract approval DC-01–DC-08 [status: needs-info]
 
@@ -255,7 +268,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** Blocked on DC-07 (targets, runners, identity policy) and on a license
   choice; no license is selected today.
 
-### 007 — Upstream-format conformance [status: implemented]
+### 007 — Upstream-format conformance [status: verified]
 
 - **Description:** Define supported input as the shapes produced by pinned
   upstream templates, with hand-counted conformance fixtures, a drift check
@@ -271,7 +284,8 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Spec dir:** specs/002-upstream-format-conformance
 - **Notes:** Created with /speckit-specify, /speckit-plan, and /speckit-tasks;
   implementation approved by the owner on 2026-11-07. Recorded implemented
-  on 2026-11-08; verified only after T026 (independent review of 001) passes.
+  on 2026-11-08; recorded verified the same day when T026 completed under
+  D-2026-11-08-05.
 
 ### Future
 
@@ -322,4 +336,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08
+**Version**: 1.3.4 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08

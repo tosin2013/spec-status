@@ -170,9 +170,22 @@ No rule (a) defect (a realistic speckit-roadmap file and about 45 tasks.md shape
 | N2 | Markdown-link `Spec dir` reported as missing, not unsupported | no | no | limit | README Limits |
 | N3 | Trailing `###`, indented item heading, and four bullet forms fatal | no | no | over-strict | README Limits |
 
+## T026 round 3 (main at 4574c13)
+
+No rule (a) defect for the third round. The closed field body held against about 30 probes. Findings:
+
+| ID | Finding | Upstream shape | Metric | Class | Where |
+|---|---|---|---|---|---|
+| B1 | An HTML tag line after a setext heading, after indented code, or with `>` in an attribute was not seen as a raw HTML block, so an item and its fields shown as text were counted | no | yes | visible | `TestItemAfterHTMLTagLineIsFatal` |
+| B2 | Markup spanning a comma in a `Depends on` list (link title, comment, attribute) added a hidden dependency | no | yes | visible (malformed) | `TestMarkupInDependsOnIsMalformed` |
+| N1 | A backslash-escaped colon after a metric label was not recognized | no | yes | fixed | `TestEscapedAndLookalikeColonsAreLabels` |
+| N2 | Colon lookalikes other than U+FF1A were not recognized | no | yes | fixed | same |
+| N3 | Same cause as B1 in tasks files | no | no | limit | README Limits |
+| N4 | `  2. 003` under a field, and notes containing a comma, are fatal or malformed | no | no | over-strict | README Limits |
+
 ## Result
 
 - Upstream-shape findings: 2 (review 5 B4, review 6 D1). Both fixed and covered by fixtures.
 - Metric findings: all fixed or visible. Review 5 N2 (letter homoglyphs) was the last; while writing this table it was found to fall under D-2026-11-07-09 (b), so feature 002 extended lookalike normalization to common Cyrillic and Greek letters, with `TestLetterLookalikesInMetricLabels`.
 - Every finding classed as a limit or over-strict is listed in README Limits.
-- Open blocking after the closed field body (D-2026-11-08-04): **none known**. T026 did not pass at ac62214 or dadd8fd; one more narrowed review is needed before item 001 is recorded verified. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.
+- Open blocking after the round-3 fixes: **none known**. No T026 round returned zero blocking defects; by owner decision D-2026-11-08-05, item 001 is recorded verified on the three rounds and their fixes, with the residual risk in README Limits. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.

@@ -68,6 +68,13 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 	// CommonMark only a paragraph prevents it.
 	blockEnd := false
 	metricOpen, metricBlank := false, false
+	// tagRun is true from a line outside items that starts with an HTML tag
+	// up to the next blank line. Renderers may show that run as a raw HTML
+	// block, so an item heading or field inside it is fatal even when the
+	// tag does not start a block by the stricter checks below (T026 round 3
+	// B1: after a setext heading, after indented code, or with ">" inside
+	// an attribute).
+	tagRun := false
 	// hidden marks lines inside fences and comments; tails holds the visible
 	// text after a comment closes on a line; metricLine marks lines accepted
 	// as a Depends on, Spec dir, or superseded-by field. They feed the
@@ -123,6 +130,11 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				inComment, blockEnd = false, true
 			}
 			continue
+		}
+		if strings.TrimSpace(line) == "" {
+			tagRun = false
+		} else if w, b := leadingIndent(line); cur == nil && w <= 3 && htmlTagLine(line[b:]) {
+			tagRun = true
 		}
 		// D3 (review 8): a Depends on, Spec dir, or superseded-by value
 		// continued on an indented line after a blank line renders as part
@@ -252,6 +264,13 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		}
 		if strings.HasPrefix(strings.TrimSpace(line), "|") && tableItemRow(line) {
 			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
+		}
+		if tagRun {
+			_, _, isField := matchField(line)
+			_, isNear := fieldPrefix(line)
+			if _, _, _, ok := matchItem(line); ok || itemLikeLine(line) || isField || isNear {
+				return nil, nil, fail("SS_ITEM_MALFORMED", "Roadmap item or field directly after an HTML tag line; renderers may show it as raw HTML.", lineNo)
+			}
 		}
 		if id, title, status, ok := matchItem(line); ok {
 			flush()
@@ -460,6 +479,12 @@ func parseIDList(value string) ([]string, bool) {
 	}
 	if strings.EqualFold(value, "none") {
 		return nil, false
+	}
+	if strings.ContainsAny(value, "<[\"`\\&") {
+		// Markup in a dependency list can hide part of the raw text from
+		// readers (a link title, comment, or attribute spanning a comma), so
+		// the list is malformed rather than split (T026 round 3 B2).
+		return nil, true
 	}
 	parts := strings.Split(value, ",")
 	out := make([]string, 0, len(parts))
@@ -1132,7 +1157,7 @@ func bareMetricLabel(line string) bool {
 	if listMarker(rest) || strings.HasPrefix(rest, ">") {
 		return false
 	}
-	rest = strings.ToLower(strings.NewReplacer("*", "", "`", "", "_", " ", "-", " ").Replace(rest))
+	rest = strings.ToLower(strings.NewReplacer("\\:", ":", "*", "", "`", "", "_", " ", "-", " ").Replace(rest))
 	rest = strings.Join(strings.Fields(rest), " ")
 	for _, label := range []string{"depends on", "spec dir", "superseded by", "dependson", "specdir", "supersededby"} {
 		if strings.HasPrefix(rest, label) {
@@ -1142,6 +1167,19 @@ func bareMetricLabel(line string) bool {
 		}
 	}
 	return false
+}
+
+// htmlTagLine reports text starting with an HTML open or close tag name,
+// such as "<span", "</div", or "<img", whether or not the tag is complete.
+func htmlTagLine(rest string) bool {
+	if len(rest) < 2 || rest[0] != '<' {
+		return false
+	}
+	i := 1
+	if rest[i] == '/' {
+		i++
+	}
+	return i < len(rest) && (rest[i] >= 'A' && rest[i] <= 'Z' || rest[i] >= 'a' && rest[i] <= 'z')
 }
 
 // metricLabelIn reports visible text containing a Depends on, Spec dir, or
@@ -1162,7 +1200,7 @@ func metricLabelIn(text string) bool {
 		text = text[:start] + " " + text[start+4+end+3:]
 	}
 	text = strings.ToLower(withoutCodeSpans(text))
-	text = strings.NewReplacer("*", "", "_", " ", "-", " ").Replace(text)
+	text = strings.NewReplacer("\\:", ":", "*", "", "_", " ", "-", " ").Replace(text)
 	text = strings.Join(strings.Fields(text), " ")
 	for _, label := range []string{"depends on", "spec dir", "superseded by", "dependson", "specdir", "supersededby"} {
 		for off := 0; ; {
