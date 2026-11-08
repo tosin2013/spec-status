@@ -139,13 +139,15 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				// block before it. It is never joined to the value, so fail
 				// visibly (T026 review B1).
 				return nil, nil, fail("SS_ITEM_MALFORMED", "A list or quote nested under a Depends on, Spec dir, or superseded-by field is not supported.", lineNo)
-			case startsBlock(line, b):
-				// A comment, quote, fence, or HTML block between the value and
-				// later indented text separates them like a blank line (review
-				// 9 D4).
-				metricBlank = true
-			case metricBlank && !listMarker(line):
+			case metricBlank:
 				return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by value continued after a blank line or another block is not supported.", lineNo)
+			case startsBlock(line, b):
+				// Closed field body (owner decision D-2026-11-08-04): under a
+				// metric field, an indented line either joins the value as
+				// paragraph text or is fatal. A comment, HTML block, fence,
+				// break, or heading renders inside the field's bullet but is
+				// never joined, at any indentation (final T026 review B-1 to B-3).
+				return nil, nil, fail("SS_ITEM_MALFORMED", "Under a Depends on, Spec dir, or superseded-by field, only indented continuation text is supported.", lineNo)
 			}
 		}
 		if cur != nil && bareMetricLabel(line) {

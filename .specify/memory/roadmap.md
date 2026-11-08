@@ -1,6 +1,14 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.2 → 1.3.3
+Bump rationale: PATCH — wording: C-10 notes the closed field body
+(D-2026-11-08-04).
+
+Specs affected: 001
+Open questions added/resolved: none
+
+Previous revision (1.3.2, 2026-11-08):
 Version change: 1.3.1 → 1.3.2
 Bump rationale: PATCH — wording: C-08 notes its amendment D-2026-11-08-03.
 
@@ -153,7 +161,8 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **C-10 — Line-level label rule (D-2026-11-08-02, 2026-11-08):** a visible
   roadmap line containing a `Depends on`, `Spec dir`, or `superseded-by` label
   with a colon must be an accepted field line under an item, otherwise the
-  report is fatal.
+  report is fatal. Closed field body (D-2026-11-08-04): an indented line under
+  such a field joins its value or is fatal.
 
 ## Planned Specs
 
@@ -313,4 +322,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08
+**Version**: 1.3.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08
