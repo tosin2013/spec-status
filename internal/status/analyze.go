@@ -1,8 +1,10 @@
 package status
 
 import (
+	"errors"
 	"path"
 	"sort"
+	"strings"
 
 	"github.com/tosin2013/spec-status/internal/safeio"
 )
@@ -309,7 +311,11 @@ func supersessionMessage(code string) string {
 	}
 }
 
-func dependencyCycles(items []rawItem, byID map[string][]int) map[int]bool {
+// dependencyCycles returns each item's strongly connected component in the
+// dependency graph. Two items share a component with more than one member
+// exactly when each can reach the other, so an edge is part of a cycle only
+// when both of its ends are in the same multi-member component.
+func dependencyCycles(items []rawItem, byID map[string][]int) cycleInfo {
 	next := make([][]int, len(items))
 	for i, it := range items {
 		if it.DepsBad {
@@ -322,40 +328,67 @@ func dependencyCycles(items []rawItem, byID map[string][]int) map[int]bool {
 			next[i] = append(next[i], byID[dep][0])
 		}
 	}
-	const white, gray, black = 0, 1, 2
-	color := make([]int, len(items))
-	inCycle := map[int]bool{}
-	var dfs func(int)
-	stack := []int{}
-	dfs = func(i int) {
-		color[i] = gray
-		stack = append(stack, i)
-		for _, n := range next[i] {
-			if color[n] == gray {
-				for k := len(stack) - 1; k >= 0; k-- {
-					inCycle[stack[k]] = true
-					if stack[k] == n {
-						break
-					}
-				}
-				continue
-			}
-			if color[n] == white {
-				dfs(n)
+	info := cycleInfo{comp: make([]int, len(items)), size: map[int]int{}}
+	index := make([]int, len(items))
+	low := make([]int, len(items))
+	onStack := make([]bool, len(items))
+	for i := range index {
+		index[i] = -1
+	}
+	var stack []int
+	counter, comps := 0, 0
+	var strong func(int)
+	strong = func(v int) {
+		index[v], low[v] = counter, counter
+		counter++
+		stack = append(stack, v)
+		onStack[v] = true
+		for _, w := range next[v] {
+			if index[w] < 0 {
+				strong(w)
+				low[v] = min(low[v], low[w])
+			} else if onStack[w] {
+				low[v] = min(low[v], index[w])
 			}
 		}
-		stack = stack[:len(stack)-1]
-		color[i] = black
+		if low[v] == index[v] {
+			for {
+				w := stack[len(stack)-1]
+				stack = stack[:len(stack)-1]
+				onStack[w] = false
+				info.comp[w] = comps
+				info.size[comps]++
+				if w == v {
+					break
+				}
+			}
+			comps++
+		}
 	}
 	for i := range items {
-		if color[i] == white {
-			dfs(i)
+		if index[i] < 0 {
+			strong(i)
 		}
 	}
-	return inCycle
+	return info
 }
 
-func classifyDep(src int, it rawItem, dep, rel string, byID map[string][]int, items []rawItem, valid []bool, cycles map[int]bool) (Dependency, *Diagnostic) {
+type cycleInfo struct {
+	comp []int
+	size map[int]int
+}
+
+// edge reports whether the edge from src to dst lies on a dependency cycle.
+func (c cycleInfo) edge(src, dst int) bool {
+	return src != dst && c.comp[src] == c.comp[dst] && c.size[c.comp[src]] > 1
+}
+
+// member reports whether item i is on any dependency cycle.
+func (c cycleInfo) member(i int) bool {
+	return c.size[c.comp[i]] > 1
+}
+
+func classifyDep(src int, it rawItem, dep, rel string, byID map[string][]int, items []rawItem, valid []bool, cycles cycleInfo) (Dependency, *Diagnostic) {
 	d := Dependency{ID: dep, Path: rel, Line: lineOr(it.DepsLine, it.Line), State: "unfinished"}
 	base := Diagnostic{ItemID: it.ID, Path: rel, Line: d.Line}
 	switch {
@@ -372,17 +405,24 @@ func classifyDep(src int, it rawItem, dep, rel string, byID map[string][]int, it
 		base.Code, base.Severity, base.Message = "SS_DEPENDENCY_AMBIGUOUS", "error", "Dependency ID is duplicated."
 		return d, &base
 	}
-	if cycles[src] {
+	target := byID[dep][0]
+	tgt := items[target]
+	if cycles.edge(src, target) {
 		d.State = "cycle"
 		base.Code, base.Severity, base.Message = "SS_DEPENDENCY_CYCLE", "error", "Dependency cycle includes this item."
 		return d, &base
 	}
-	target := byID[dep][0]
-	tgt := items[target]
-	if valid[target] {
+	if valid[target] || tgt.HasSuper {
+		// Any supplied superseded-by line, valid or not, requires human review
+		// of its dependents (owner decision, 7 November 2026). An invalid line
+		// still leaves the target active for metrics, per D-02A.
 		d.State = "human_review"
 		d.ReplacementID = tgt.SuperID
-		base.Code, base.Severity, base.Message = "SS_DEPENDENCY_HUMAN_REVIEW", "warning", "Dependency on a superseded item requires human review."
+		msg := "Dependency on a superseded item requires human review."
+		if !valid[target] {
+			msg = "Dependency on an item with an invalid superseded-by line requires human review."
+		}
+		base.Code, base.Severity, base.Message = "SS_DEPENDENCY_HUMAN_REVIEW", "warning", msg
 		base.Related = []Ref{{Path: rel, Line: tgt.Line}}
 		return d, &base
 	}
@@ -399,6 +439,10 @@ func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads m
 	var diags []Diagnostic
 	tasks := ItemTasks{State: "not_linked"}
 	specDir, err := safeio.NormalizeRel(it.SpecDir)
+	if err == nil && (strings.Contains(it.SpecDir, ":") || strings.HasPrefix(it.SpecDir, "/") || strings.HasPrefix(it.SpecDir, "\\")) {
+		// A URL or absolute path is not a root-relative spec directory.
+		err = errUnsupportedSpecDir
+	}
 	if err != nil || safeio.Sensitive(it.SpecDir) || (err == nil && safeio.Sensitive(specDir)) {
 		tasks.State = "skipped"
 		if safeio.Sensitive(it.SpecDir) || (err == nil && safeio.Sensitive(specDir)) {
@@ -688,3 +732,5 @@ func containsAny(s, chars string) bool {
 	}
 	return false
 }
+
+var errUnsupportedSpecDir = errors.New("spec dir is not a root-relative path")

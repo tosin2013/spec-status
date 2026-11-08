@@ -119,8 +119,13 @@ func resolveRoot(cwd, explicit string) (string, string, *rootErr) {
 	}
 	for {
 		info, statErr := os.Lstat(filepath.Join(dir, ".specify"))
-		if statErr == nil && info.IsDir() && info.Mode()&os.ModeSymlink == 0 {
-			return dir, "", nil
+		if statErr == nil {
+			if info.IsDir() && info.Mode()&os.ModeSymlink == 0 {
+				return dir, "", nil
+			}
+			// A .specify that is a symlink or a file is the nearest project
+			// marker. Stop here instead of silently reporting an outer project.
+			return "", "", &rootErr{"SS_ROOT_UNAVAILABLE", "Nearest .specify is not a usable directory."}
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {
