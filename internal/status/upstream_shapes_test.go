@@ -49,3 +49,23 @@ func TestPinnedSpecKitTasksTemplateCounts(t *testing.T) {
 		t.Fatalf("pinned tasks template: %s %+v %+v", rep.Outcome, rep.Fatal, rep.Summary)
 	}
 }
+
+// Review 5 N2: a field label spelled with Cyrillic or Greek lookalike
+// letters must not slip past the metric-field rules (D-2026-11-07-09 (b)).
+func TestLetterLookalikesInMetricLabels(t *testing.T) {
+	for _, line := range []string{
+		"  - Dеpends on: 009",
+		"- Spеc dir: specs/x",
+		"  supеrsеdеd-by: 002",
+		"- Ѕpec dir: specs/x",
+	} {
+		body := base + "- Description: x\n" + line + "\n### 002 — B [status: planned]\n"
+		if code := fatalCode(t, body, nil); code != "SS_ITEM_MALFORMED" {
+			t.Fatalf("%q: %s", line, code)
+		}
+	}
+	title := "### 001 — Проект на русском [status: planned]\n- Description: Описание.\n"
+	if rep := Evaluate(Option{Root: project(t, title, nil), FailOn: "none"}); rep.Outcome != "report" || len(rep.Items) != 1 {
+		t.Fatalf("Cyrillic prose rejected: %+v", rep.Fatal)
+	}
+}

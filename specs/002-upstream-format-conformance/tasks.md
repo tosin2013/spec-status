@@ -117,9 +117,9 @@ description: "Task list for upstream-format conformance (feature 002)"
 
 ### Implementation for User Story 4
 
-- [ ] T023 [US4] Add decision D-2026-11-07-09 to the Recorded decisions table in specs/001-spec-status/decisions.md with the rule from data-model.md (blocking means a wrong result on input matching a current pin's shape inventory, or a silently misread Depends on, Spec dir, or superseded-by in any layout; other exotic input fails visibly or is a README limit), and mark D-2026-11-07-06 as superseded without deleting its text
-- [ ] T024 [US4] Write specs/002-upstream-format-conformance/reclassification.md listing every finding from acceptance reviews 1 to 7 with its review, ID, current behavior, and class under D-2026-11-07-09
-- [ ] T025 [US4] Update the Limits section of README.md so every finding classed as a limit in T024 is listed and no listed limit is now fixed or fatal
+- [X] T023 [US4] Add decision D-2026-11-07-09 to the Recorded decisions table in specs/001-spec-status/decisions.md with the rule from data-model.md (blocking means a wrong result on input matching a current pin's shape inventory, or a silently misread Depends on, Spec dir, or superseded-by in any layout; other exotic input fails visibly or is a README limit), and mark D-2026-11-07-06 as superseded without deleting its text
+- [X] T024 [US4] Write specs/002-upstream-format-conformance/reclassification.md listing every finding from acceptance reviews 1 to 7 with its review, ID, current behavior, and class under D-2026-11-07-09
+- [X] T025 [US4] Update the Limits section of README.md so every finding classed as a limit in T024 is listed and no listed limit is now fixed or fatal
 - [ ] T026 [US4] Run an independent review of feature 001 against D-2026-11-07-09 and the shape inventory, record its result as a new row in the implementation record of specs/001-spec-status/tasks.md, and if it finds zero blocking defects, move roadmap item 001 to verified in .specify/memory/roadmap.md through speckit.roadmap.write with the review cited (SC-006)
 
 **Checkpoint**: Roadmap item 001 can be closed against a finite, published bar
