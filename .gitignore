@@ -1,2 +1,10 @@
 # Claude Code local agent folder (skills, settings); may hold machine-local state.
 .claude/
+
+# Go test and build outputs; the README builds ./spec at the repository root.
+*.test
+*.out
+/spec
+
+# macOS Finder metadata.
+.DS_Store
