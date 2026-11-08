@@ -157,9 +157,22 @@ No rule (a) defect: a realistic speckit-roadmap file (sync-impact comment, group
 | N2 | roadmap-format.md §3 said block-quoted checkboxes are read; the build makes them fatal | — | — | doc fixed | §3 wording |
 | N3 | Five visible over-strict layouts (tab after `###`, bold closing after the value, lazy continuation, indented `---` under a field, continuation starting `002 — `) | no | no | over-strict | README Limits |
 
+## Final T026 review (main at dadd8fd)
+
+No rule (a) defect (a realistic speckit-roadmap file and about 45 tasks.md shapes matched pandoc GFM or failed visibly). Rule (b), one cause: a line nested under a metric field that renders inside its bullet was neither joined nor rejected.
+
+| ID | Finding | Upstream shape | Metric | Class | Where |
+|---|---|---|---|---|---|
+| B-1 | A continuation line indented 6+ columns starting with `<!--` or an HTML tag was dropped from the value | no | yes | visible (D-2026-11-08-04) | `TestClosedMetricFieldBody` |
+| B-2 | Text after a comment indented 4–5 columns under a metric field was dropped | no | yes | visible | `TestClosedMetricFieldBody` |
+| B-3 | An HTML block (and fenced code) nested under a metric field was ignored | no | yes | visible | `TestClosedMetricFieldBody` |
+| N1 | Duplicate ID in a `Depends on` list not diagnosed | no | no | limit | README Limits |
+| N2 | Markdown-link `Spec dir` reported as missing, not unsupported | no | no | limit | README Limits |
+| N3 | Trailing `###`, indented item heading, and four bullet forms fatal | no | no | over-strict | README Limits |
+
 ## Result
 
 - Upstream-shape findings: 2 (review 5 B4, review 6 D1). Both fixed and covered by fixtures.
 - Metric findings: all fixed or visible. Review 5 N2 (letter homoglyphs) was the last; while writing this table it was found to fall under D-2026-11-07-09 (b), so feature 002 extended lookalike normalization to common Cyrillic and Greek letters, with `TestLetterLookalikesInMetricLabels`.
 - Every finding classed as a limit or over-strict is listed in README Limits.
-- Open blocking after the T026 review's B1 fix and D-2026-11-08-03: **none known**. T026 did not pass at ac62214; a final narrowed review is needed before item 001 is recorded verified. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.
+- Open blocking after the closed field body (D-2026-11-08-04): **none known**. T026 did not pass at ac62214 or dadd8fd; one more narrowed review is needed before item 001 is recorded verified. A further independent review (T026) is needed to confirm it before roadmap item 001 is recorded verified.

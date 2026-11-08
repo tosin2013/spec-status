@@ -107,4 +107,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-08-03 | Owner, 8 November 2026, after the T026 review | Amends rule (b) of D-2026-11-07-09: "any layout" means any block layout. A `Depends on`, `Spec dir`, or `superseded-by` label or item heading encoded with markup (HTML entities or character references, backslash escapes, a link around the label, inline HTML inside it, invisible characters outside the normalized set, or a label split across lines) is outside rule (b) and is listed in README Limits. A list or quote nested under a metric field is fixed to fail visibly (review B1) | Decoding entities, escapes, and inline HTML before matching (rendering Markdown); recording 001 verified without a further review |
 
+## Recorded decision — closed field body, 8 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-08-04 | Owner, 8 November 2026, after the final T026 review | Under a `Depends on`, `Spec dir`, or `superseded-by` field, an indented line either joins the value as paragraph text or is fatal, so no block nested under a metric field can be silently ignored. A code block nested under a metric field is fatal | Listing nested block types one review at a time; recording 001 verified without a further review |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.
