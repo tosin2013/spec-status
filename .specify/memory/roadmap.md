@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.4 → 1.3.5
+Bump rationale: PATCH — wording: 003 notes record the 2026-11-09 recount.
+
+Changes this revision:
+  - 003 notes: recount of roadmap 1.3.4 and the upstream fixture; 1.3.4
+    snapshot added as a conformance fixture; status unchanged
+
+Specs affected: none
+Open questions added/resolved: none
+
+Previous revision (1.3.4, 2026-11-08):
 Version change: 1.3.3 → 1.3.4
 Bump rationale: PATCH — status transitions.
 
@@ -248,9 +259,13 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** Inputs approved under D-2026-11-07-08: this repository's roadmap and
   the speckit-roadmap v0.1.0 roadmap in `testdata/speckit-roadmap-upstream`. On
   2026-11-07 the implementer observed hand-count parity on both (recorded in
-  `specs/001-spec-status/tasks.md`). Not an independent review. The outcome looks
-  met; a status change awaits owner confirmation and a spec link, which C-07
-  requires from specced onward.
+  `specs/001-spec-status/tasks.md`). Not an independent review. On 2026-11-09
+  the implementer recounted this repository's roadmap at 1.3.4 (8 items, 6
+  active, 2/6 verified, 1 blocker, 30/30 tasks in 2 files) and the upstream
+  fixture; both match. Roadmap 1.3.4 is now a hand-counted conformance fixture
+  (`testdata/conformance/this-repo-1.3.4`). The outcome looks met; a status
+  change awaits owner confirmation and a spec link, which C-07 requires from
+  specced onward. The owner-named portfolio roadmap (DC-08) is not yet named.
 
 ### 004 — Release engineering [status: needs-info]
 
@@ -336,4 +351,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.4 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08
+**Version**: 1.3.5 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-09
