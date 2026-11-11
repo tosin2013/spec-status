@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.5 → 1.3.6
+Bump rationale: PATCH — wording: 007 notes and Governed by (debrief F3).
+
+Changes this revision:
+  - 007 Governed by adds C-10; notes record that reviews 8–9, C-10 and the
+    T026 rounds were classified under 007
+
+Specs affected: none
+Open questions added/resolved: none
+
+Previous revision (1.3.5, 2026-11-09):
 Version change: 1.3.4 → 1.3.5
 Bump rationale: PATCH — wording: 003 notes record the 2026-11-09 recount.
 
@@ -295,12 +306,15 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   reclassification of review findings, README support statement.
 - **Scope (out):** Runtime network access or upstream lookups; release work.
 - **Depends on:** 001
-- **Governed by:** C-01, C-02, C-03, C-08
+- **Governed by:** C-01, C-02, C-03, C-08, C-10
 - **Spec dir:** specs/002-upstream-format-conformance
 - **Notes:** Created with /speckit-specify, /speckit-plan, and /speckit-tasks;
   implementation approved by the owner on 2026-11-07. Recorded implemented
   on 2026-11-08; recorded verified the same day when T026 completed under
-  D-2026-11-08-05.
+  D-2026-11-08-05. Reviews 8 and 9, the line-level label rule (C-10), and the
+  three T026 rounds changed 001's parser but were classified in this
+  feature's `reclassification.md`. Roadmap 1.3.4 is a hand-counted fixture
+  (`testdata/conformance/this-repo-1.3.4`).
 
 ### Future
 
@@ -351,4 +365,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.5 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-09
+**Version**: 1.3.6 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
