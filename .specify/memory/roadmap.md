@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.6 → 1.3.7
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 003 status: planned → verified (D-2026-11-11-01); Spec dir added; the portfolio
+    roadmap moved to Scope (out)
+
+Specs affected: 001
+Open questions added/resolved: none
+
+Previous revision (1.3.6, 2026-11-11):
 Version change: 1.3.5 → 1.3.6
 Bump rationale: PATCH — wording: 007 notes and Governed by (debrief F3).
 
@@ -256,17 +267,19 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ### Evidence and distribution
 
-### 003 — Real-roadmap dogfood [status: planned]
+### 003 — Real-roadmap dogfood [status: verified]
 
 - **Description:** TASK-16 / AC-24: run `spec status` on approved real Spec Kit
   roadmaps and compare against a hand count.
 - **Outcome:** Hand-count parity on at least two owner-approved roadmaps, with any
   disagreement recorded as a finding rather than adjusted away.
 - **Scope (in):** this repository's own roadmap; the speckit-roadmap upstream
-  fixture; one owner-named portfolio roadmap (DC-08).
-- **Scope (out):** certifying upstream compatibility.
+  fixture.
+- **Scope (out):** certifying upstream compatibility; a portfolio roadmap (may
+  be added later under DC-08).
 - **Depends on:** 001
 - **Governed by:** C-01
+- **Spec dir:** specs/001-spec-status
 - **Notes:** Inputs approved under D-2026-11-07-08: this repository's roadmap and
   the speckit-roadmap v0.1.0 roadmap in `testdata/speckit-roadmap-upstream`. On
   2026-11-07 the implementer observed hand-count parity on both (recorded in
@@ -274,9 +287,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   the implementer recounted this repository's roadmap at 1.3.4 (8 items, 6
   active, 2/6 verified, 1 blocker, 30/30 tasks in 2 files) and the upstream
   fixture; both match. Roadmap 1.3.4 is now a hand-counted conformance fixture
-  (`testdata/conformance/this-repo-1.3.4`). The outcome looks met; a status
-  change awaits owner confirmation and a spec link, which C-07 requires from
-  specced onward. The owner-named portfolio roadmap (DC-08) is not yet named.
+  (`testdata/conformance/this-repo-1.3.4`). The owner confirmed it done on
+  2026-11-11 ({D}); counts are the implementer's, not an independent
+  review. Links `specs/001-spec-status`, where TASK-16 and AC-24 live.
 
 ### 004 — Release engineering [status: needs-info]
 
@@ -365,4 +378,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.6 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
+**Version**: 1.3.7 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
