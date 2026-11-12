@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.4.7 → 1.5.0
+Bump rationale: MINOR — new item 012.
+
+Changes this revision:
+  - Added 012 Agent skills extension (specced, specs/005-agent-skills, v0.2.0,
+    D-2026-11-12-04)
+
+Specs affected: none yet
+Open questions added/resolved: none
+
+Previous revision (1.4.7, 2026-11-12):
 Version change: 1.4.6 → 1.4.7
 Bump rationale: PATCH — status transition.
 
@@ -510,6 +521,29 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Governed by:** C-01
 - **Notes:** Deferred from feature 003 by the owner on 2026-11-11.
 
+### 012 — Agent skills extension [status: specced]
+
+- **Description:** A Spec Kit extension (`spec-status`) whose commands render as
+  agent skills: review, explain, reconcile, unblock, verify-readiness. They read
+  `spec status` output, link to each other and to the Spec Kit and roadmap
+  commands, and help when recorded statuses disagree with tasks or evidence.
+  Review has role views: pm, developer, qa, architect. Roles may recommend
+  installed partner extensions (adrkit, Assure, Bug Triage), never required.
+- **Outcome:** An agent turns `spec status` output into correct next actions,
+  including reconciling status/task mismatches, without the CLI gaining any AI
+  or write path.
+- **Scope (in):** extension manifest and five commands, a shared output
+  reference checked against the contracts, mismatch fixtures, a release asset
+  for installation.
+- **Scope (out):** `spec companion`; changes to the `spec` binary; edits that
+  bypass Spec Kit commands or per-change approval.
+- **Depends on:** 001, 004
+- **Governed by:** C-01, C-06
+- **Spec dir:** specs/005-agent-skills
+- **Notes:** Owner choices of 2026-11-12 (D-2026-11-12-04). Targets v0.2.0.
+  Specced the same day. Role views (D-2026-11-12-05) and partner
+  extensions (D-2026-11-12-06) added the same day.
+
 ### Future
 
 ### 005 — Phase-two write-back [status: deferred]
@@ -563,4 +597,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.4.7 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
+**Version**: 1.5.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
