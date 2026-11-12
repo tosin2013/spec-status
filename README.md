@@ -3,22 +3,17 @@
 [![ci](https://github.com/tosin2013/spec-status/actions/workflows/ci.yml/badge.svg)](https://github.com/tosin2013/spec-status/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**See where your [Spec Kit](https://github.com/github/spec-kit) roadmap stands, in one command.**
+**See where a Spec Kit roadmap stands, in one command.**
 
-`spec status` reads the roadmap you already keep in `.specify/memory/roadmap.md` and the `tasks.md` files it links to. It reports:
+`spec status` is for a developer, a reviewer, or a CI job that already has a [speckit-roadmap](https://github.com/srobroek/speckit-roadmap) v0.1.0 file at `.specify/memory/roadmap.md`. It prints the recorded statuses, checkbox counts, dependency blockers, and broken links those files contain. The same facts are available as one JSON document (schema 1.0).
 
-- each item's recorded status (`planned`, `in-progress`, `verified`, and so on);
-- task checkbox progress, per item and overall;
-- dependency blockers, for example an item waiting on something that isn't verified yet;
-- supersession history, and broken spec links or task references.
+It does **not**:
 
-You get a short, readable panel in your terminal, or one versioned JSON document for scripts and CI. It is read-only and offline, and its output for the same files is always identical.
+- use AI, the network, Git, or a subprocess, and it does not write files;
+- read arbitrary Markdown, a product plan, or a Spec Kit tree that has no supported roadmap;
+- treat a checked task or a recorded `verified` label as proof the code is correct.
 
-- **Developers:** see what's done, what's next, and what's blocked, without opening every spec.
-- **Reviewers:** catch structural problems such as missing specs, unfinished dependencies and broken links.
-- **CI:** fail a build only when a finding reaches the severity you choose.
-
-It reports what the files *record*. It does not decide whether code is correct, and a roadmap item marked `verified` is a label someone wrote, not an independent review.
+A file name does not prove the bytes match that template. A missing roadmap stops with `SS_ROADMAP_UNAVAILABLE`. A layout the reader will not guess, such as an item-like table, stops with `SS_LAYOUT_UNSUPPORTED`. A file that is present but has no supported item headings currently prints zero items and exits 0. That covers both a truly empty supported roadmap and a file that is not the template. This release does not tell those two apart, and it has no roadmap-free inventory mode.
 
 ## Contents
 
@@ -35,21 +30,46 @@ It reports what the files *record*. It does not decide whether code is correct, 
 
 ## Quick start
 
-From any directory inside a Spec Kit project (one that has a `.specify` folder):
+Install the `v0.1.0` release binary. You do not need Go, a git checkout, or root. This block is Linux x86-64. The other archives are under [Install](#install). Only the linux/amd64 archive was executed for this release. The others are cross-compiled and were not run.
 
 ```sh
-spec status                 # human-readable report
-spec status --json          # one JSON document for scripts
-spec status --explain       # add the reason and file:line behind each row
+V=0.1.0
+OS_ARCH=linux_amd64
+base=https://github.com/tosin2013/spec-status/releases/download/v$V
+curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
+curl -fLO "$base/spec_${V}_checksums.txt"
+sha256sum -c --ignore-missing "spec_${V}_checksums.txt"
+tar -xzf "spec_${V}_${OS_ARCH}.tar.gz"
+mkdir -p "$HOME/.local/bin"
+mv "spec_${V}_${OS_ARCH}/spec" "$HOME/.local/bin/"
 ```
 
-Don't have `spec` yet? See [Install](#install), or try it from a clone:
+Put `$HOME/.local/bin` on your `PATH`. From a project whose roadmap is the supported template:
 
 ```sh
-git clone https://github.com/tosin2013/spec-status && cd spec-status
-CGO_ENABLED=0 go build -o spec ./cmd/spec        # needs Go 1.26+
-./spec status --root testdata/example-roadmap
+spec status
+spec status --json
+spec status --color=never --explain
+spec status --color=never --human-review --explain
 ```
+
+`--json` is one document on stdout. Human text is the panel. Exit `0` means no finding reached the default `error` threshold. It does not mean the work is finished. Exit `1` means a finding did. Exit `2` means the command, the root, or the roadmap could not be evaluated.
+
+If you have Go 1.26 or newer and would rather build it yourself:
+
+```sh
+CGO_ENABLED=0 go install github.com/tosin2013/spec-status/cmd/spec@v0.1.0
+```
+
+That binary reports `label: module build`, not `label: release build`. A checkout build is in [Build from source](#build-from-source).
+
+### When the first run looks wrong
+
+| What you see | What it means now |
+|---|---|
+| `SS_ROADMAP_UNAVAILABLE`, exit 2 | `.specify/memory/roadmap.md` is missing, or `--roadmap` names a file that is not there. Spec Kit without the roadmap extension looks like this. Inventory mode is not in this release. |
+| `SS_LAYOUT_UNSUPPORTED`, exit 2 | The file has an item-like layout this reader will not guess, such as a table whose first cell is a three-digit id. The JSON names the file and line. The project can still be a valid Spec Kit tree. |
+| A panel with `items 0` and exit 0 | The file was read and contained no supported item headings. An empty supported roadmap and an unrecognized document currently look the same. |
 
 ## Example
 
@@ -160,7 +180,7 @@ Fail the build when the roadmap has an error-level finding, such as a dependency
 
 ```yaml
 # GitHub Actions steps, after actions/setup-go with Go 1.26+
-- run: go install github.com/tosin2013/spec-status/cmd/spec@v<version>   # once a release exists
+- run: go install github.com/tosin2013/spec-status/cmd/spec@v0.1.0
 - run: spec status --color=never --fail-on error
 ```
 
@@ -180,20 +200,21 @@ spec status --json | jq '.summary | {active_items, verified_active_items, blocke
 
 ## Install
 
-> **No release has been published yet.** The first release will be `v0.1.0`. Until then, [build from source](#build-from-source).
+Release `v0.1.0` is published on [GitHub Releases](https://github.com/tosin2013/spec-status/releases/tag/v0.1.0). Each archive has a SHA-256 line in `spec_0.1.0_checksums.txt`. The checksum shows the bytes match the file that was uploaded. It does not prove who published it, and the binaries are not signed.
 
-Releases are published on [GitHub Releases](https://github.com/tosin2013/spec-status/releases), with one archive per supported platform and a SHA-256 checksum file. A platform counts as supported for a release once that release's smoke tests have passed on it.
-
-| Platform | Archive |
+| Archive | How v0.1.0 was produced |
 |---|---|
-| Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` |
-| macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` |
+| `spec_0.1.0_linux_amd64.tar.gz` | Built and executed on linux/amd64 |
+| `spec_0.1.0_linux_arm64.tar.gz` | Cross-compiled on linux/amd64. Not executed |
+| `spec_0.1.0_darwin_amd64.tar.gz` | Cross-compiled on linux/amd64. Not executed |
+| `spec_0.1.0_darwin_arm64.tar.gz` | Cross-compiled on linux/amd64. Not executed |
+| `spec_0.1.0_windows_amd64.zip` | Cross-compiled on linux/amd64. Not executed. The program inside is `spec.exe` |
 
-You need neither root nor Go. Replace `<version>` with the release version without the `v`, for example `0.1.0`:
+You need neither root nor Go. Pick `OS_ARCH` from the table (`linux_amd64`, `linux_arm64`, `darwin_amd64`, or `darwin_arm64`). Windows is the zip in the table, not this tar command.
 
 ```sh
-V=<version>
-OS_ARCH=linux_amd64          # or darwin_arm64
+V=0.1.0
+OS_ARCH=linux_amd64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
 curl -fLO "$base/spec_${V}_checksums.txt"
@@ -207,8 +228,9 @@ Make sure `~/.local/bin`, or whichever directory you chose, is on your `PATH`. T
 
 - **Upgrade or roll back:** repeat the same steps with another version. Published releases stay downloadable, and their files are never replaced; a fix ships as a new version.
 - **macOS:** the binaries are not signed or notarized. Files downloaded with `curl` run directly. If you download with a browser, macOS quarantines the file and blocks the first run. Clear it for that one file with `xattr -d com.apple.quarantine ~/.local/bin/spec`. Don't disable Gatekeeper.
-- **Other platforms** (for example Windows or linux/arm64) have no release archive. Building from source or using `go install` may work there, but it is untested and unsupported.
-- **With Go 1.26 or newer:** `go install github.com/tosin2013/spec-status/cmd/spec@v<version>`. Your own toolchain builds this binary from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
+- **Windows:** download `spec_0.1.0_windows_amd64.zip`, check it against the same checksum file, and run `spec.exe`. That archive was not executed here.
+- **linux/arm64, darwin/amd64, and darwin/arm64** archives are published and were not executed for v0.1.0. A platform is not a tested target until a binary for it has been run.
+- **With Go 1.26 or newer:** `go install github.com/tosin2013/spec-status/cmd/spec@v0.1.0`. Your own toolchain builds this binary from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
 - **Compatibility before 1.0:** a minor version (0.x.0) may change command flags, exit codes or the JSON schema, and the release notes list every such change. Patch versions (0.x.y) don't break compatibility. The JSON schema has its own version, currently 1.0.
 
 Maintainers: the release steps are in [RELEASING.md](RELEASING.md).

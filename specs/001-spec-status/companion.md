@@ -1,6 +1,6 @@
 # Companion prompt mode — draft proposal
 
-**Draft proposal. Not implemented. Not an approved command.** On 7 November 2026 the owner authorized drafting this mode in a voice request. This documentation commit and pull request record that draft. A later clarification in the same authorization names illustrative external consumers. None of that approves implementation, a flag, an envelope version, or permission to send repository context to a model.
+**Draft proposal. Not implemented. Not an approved command. `spec companion` is not in the v0.1.0 binary.** On 7 November 2026 the owner authorized drafting this mode in a voice request. This documentation commit and pull request record that draft. A later clarification in the same authorization names illustrative external consumers. None of that approves implementation, a flag, an envelope version, or permission to send repository context to a model.
 
 `spec status` stays the read-only report it is now. This proposal does not change its JSON payload, its exits, or its refusal to launch a model.
 
