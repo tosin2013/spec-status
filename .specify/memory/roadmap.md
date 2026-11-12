@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.5.1 → 1.5.2
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 012 status: implemented → verified (v0.2.0 published; archive install checked)
+
+Specs affected: 005-agent-skills
+Open questions added/resolved: none
+
+Previous revision (1.5.1, 2026-11-12):
 Version change: 1.5.0 → 1.5.1
 Bump rationale: PATCH — status transition.
 
@@ -531,7 +541,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Governed by:** C-01
 - **Notes:** Deferred from feature 003 by the owner on 2026-11-11.
 
-### 012 — Agent skills extension [status: implemented]
+### 012 — Agent skills extension [status: verified]
 
 - **Description:** A Spec Kit extension (`spec-status`) whose commands render as
   agent skills: review, explain, reconcile, unblock, verify-readiness. They read
@@ -555,8 +565,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   Specced the same day. Role views (D-2026-11-12-05) and partner
   extensions (D-2026-11-12-06; arch-governance replaced adrkit, D-2026-11-12-07)
   added the same day. Implemented on 2026-11-12 (feature 005; implementation
-  record in specs/001-spec-status/tasks.md). Recorded `verified` after v0.2.0
-  ships and installs from its archive.
+  record in specs/001-spec-status/tasks.md). v0.2.0 published 2026-11-12;
+  recorded verified the same day after installing from the release archive.
+  Submitted to the Spec Kit community catalog (github/spec-kit#5413).
 
 ### Future
 
@@ -611,4 +622,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.5.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
+**Version**: 1.5.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
