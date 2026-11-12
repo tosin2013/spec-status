@@ -124,11 +124,11 @@ The [shape inventory](specs/002-upstream-format-conformance/contracts/shape-inve
 
 ## Limits
 
-Inferred quarters are not calculated. The sensitive-name filter and symlink checks are candidate safeguards, not a certification that every secret or mount escape is caught. This build was executed on Linux amd64 and Darwin arm64, by the implementer, on one machine each. On Darwin the post-open path check that Linux performs through `/proc/self/fd` is skipped; reads there rely on `O_NOFOLLOW`, the symlink-component check, and the device check. No operating system is a supported release target, and nothing is signed.
+Inferred quarters are not calculated. The sensitive-name filter and symlink checks are approved safeguards (D-2026-11-11-02), not a certification that every secret or mount escape is caught. This build was executed on Linux amd64 and Darwin arm64, by the implementer, on one machine each. On Darwin the post-open path check that Linux performs through `/proc/self/fd` is skipped; reads there rely on `O_NOFOLLOW`, the symlink-component check, and the device check. No operating system is a supported release target yet. The approved v1 targets are linux/amd64 and darwin/arm64, once each is proven on a real runner; release archives will carry SHA-256 checksums only and will not be signed (D-2026-11-11-02).
 
 On this Linux amd64 host, nine runs of a 100-item, 10,000-task fixture had a median of about 3.9 ms. That is one development machine, not a performance promise and not an independent measurement.
 
-There is no package-manager install, release workflow, or file-updating command. No license is selected.
+There is no package-manager install, release workflow, or file-updating command. Licensed under [Apache-2.0](LICENSE); report vulnerabilities as described in [SECURITY.md](SECURITY.md).
 
 Known limits. Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input outside the [supported shapes](specs/002-upstream-format-conformance/contracts/shape-inventory.md) is non-blocking when it fails visibly or is listed here; the classification of every review finding is in [reclassification.md](specs/002-upstream-format-conformance/reclassification.md).
 
