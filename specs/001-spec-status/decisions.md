@@ -119,4 +119,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-08-05 | Owner, 8 November 2026, after the third T026 review round | Amends SC-006 of feature 002. Roadmap items 001 and 007 are recorded `verified` on the evidence of three independent T026 review rounds (at ac62214, dadd8fd, and 4574c13) and the fixes for every blocking finding they reported, although no single round returned zero blocking defects. Rule (a) was clean in all three rounds. The residual risk, that further contrived rule (b) layouts exist, is stated in README Limits. The reviews were separate AI agent sessions, not human reviewers, and none checked GitHub's own renderer | Running a fourth review before recording verified; leaving 001 at implemented |
 
+## Recorded decision — dogfood complete, 11 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-11-01 | Owner, 11 November 2026 | Roadmap item 003 (TASK-16 dogfood part / AC-24) is done and recorded `verified` on the implementer's hand-count parity with both approved inputs: this repository's roadmap (2026-11-07 and again at 1.3.4 on 2026-11-09) and the speckit-roadmap v0.1.0 roadmap. 003 links `specs/001-spec-status`, where TASK-16 and AC-24 are defined. The owner-named portfolio roadmap is out of 003's scope; it can be added later under DC-08 | Waiting for a portfolio roadmap; an independent recount |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.
