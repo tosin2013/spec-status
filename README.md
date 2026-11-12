@@ -287,10 +287,10 @@ RULES
 
 Releases are published on [GitHub Releases](https://github.com/tosin2013/spec-status/releases) by the [release workflow](.github/workflows/release.yml). Each release has one archive per supported platform and a SHA-256 checksum file. Every archive is smoke-tested on its own platform before the owner publishes the release.
 
-| Platform | Archive |
-|---|---|
-| Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` |
-| macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` |
+| Platform | Archive | Supported since |
+|---|---|---|
+| Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` | v0.1.2 ([smoke test](https://github.com/tosin2013/spec-status/actions/runs/43160883770/job/130992118717)) |
+| macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` | v0.1.2 ([smoke test](https://github.com/tosin2013/spec-status/actions/runs/43160883770/job/130992118760)) |
 
 The first release is `v0.1.2`. Version `v0.1.0` was published directly rather than through the release workflow, with untested archives that included unsupported platforms. It was withdrawn and should not be used (decision D-2026-11-12-02). The `v0.1.1` tag was built by the workflow but never published, because the agent prompt and the `v0.1.0` retraction landed right after it (D-2026-11-12-03).
 
@@ -395,7 +395,7 @@ The short version:
 
 - `spec` reads a narrow, pinned format, not general Markdown. Anything it can't read reliably stops the report with an error or is listed below.
 - `verified` means the roadmap says so. It is not an independent review, and exit 0 does not mean the work is done.
-- No release is published yet, so no platform is supported yet. The planned release targets are linux/amd64 and darwin/arm64, with SHA-256 checksums and no signing (decision D-2026-11-11-02).
+- Only linux/amd64 and darwin/arm64 are supported, each since v0.1.2 after its release smoke test. Releases carry SHA-256 checksums and are not signed or notarized (decision D-2026-11-11-02).
 - The sensitive-file filter and symlink checks are safeguards, not a guarantee that every secret or mount escape is caught.
 - Performance: on one Linux amd64 development machine, nine runs over a 100-item, 10,000-task fixture had a median of about 3.9 ms. That is not a performance promise.
 - A roadmap with no item headings, empty or narrative, reports zero items with exit 0 and no warning. Telling an empty roadmap from an unrecognized file is planned future work.

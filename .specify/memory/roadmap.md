@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.4.6 → 1.4.7
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 004 status: implemented → verified (v0.1.2 published; post-publish checks)
+
+Specs affected: 004-release-engineering
+Open questions added/resolved: none
+
+Previous revision (1.4.6, 2026-11-12):
 Version change: 1.4.5 → 1.4.6
 Bump rationale: PATCH — wording.
 
@@ -424,7 +434,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   no new modules. Branch protection was offered and remains an owner setting.
   CI runs are CI evidence, not an independent review.
 
-### 004 — Release engineering [status: implemented]
+### 004 — Release engineering [status: verified]
 
 - **Description:** TASK-17–21: support matrix, pinned toolchain,
   test-before-publish tag workflow, archives and checksums, runtime smoke on each
@@ -449,8 +459,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   v0.1.0 was published directly by the Cursor integration at the owner's
   request, outside the workflow, then withdrawn (D-2026-11-12-02). The first release is
   v0.1.2; the v0.1.1 tag was drafted but not published (D-2026-11-12-03). Release
-  protections are enabled. Recorded `verified` after the owner publishes v0.1.2
-  and the install check passes on both platforms.
+  protections are enabled. v0.1.2 published 2026-11-12; recorded verified the
+  same day after clean installs on both platforms, the go install and
+  retraction checks (implementation record in specs/001-spec-status/tasks.md).
 
 ### 007 — Upstream-format conformance [status: verified]
 
@@ -552,4 +563,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.4.6 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
+**Version**: 1.4.7 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
