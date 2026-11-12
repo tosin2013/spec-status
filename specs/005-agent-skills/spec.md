@@ -15,6 +15,8 @@
 - **Writes:** read-only by default. A change is proposed and applied only through Spec Kit commands, after the user approves each change.
 - **The `spec` binary does not change.**
 
+Owner decision D-2026-11-12-05 (same day): personas (project manager, developer, QA, architect) are **views of the review skill**, chosen with an argument. They are not separate skills, so the rules and routing exist in one place.
+
 ## Context
 
 `spec status` reports what a roadmap and its task files record. People and agents then have to work out what to do next. That is hardest when the record disagrees with itself, for example:
@@ -124,6 +126,23 @@ As a developer about to record an item `verified`, the verify-readiness skill li
    - the spec, plan and tasks exist.
 2. **Given** those checks pass, **When** verify-readiness finishes, **Then** it says the record is consistent. It also says that independent evidence (the debrief, tests, review) is still the user's call and that a label is not proof. It suggests `/speckit.roadmap.debrief`, then `/speckit.roadmap.write` to record the status if the user agrees.
 
+### User Story 6 - See the review through my role (Priority: P2)
+
+As a project manager, developer, QA engineer or architect, I run the review skill with my role, for example `review as qa`. The summary leads with what my role cares about and recommends the follow-ups my role needs first. The facts are identical for every role.
+
+**Why this priority**: Different roles act on different parts of the same report. A role view gets each person to their next action faster. P2 because the default review already covers everything.
+
+**Independent Test**: On one fixture roadmap, run review once with no role and once with each of the four roles. Every run reports the same facts (counts, blockers, diagnostics). Only the order of sections and the first recommended follow-ups differ, and they match the role's definition.
+
+**Acceptance Scenarios**:
+
+1. **Given** the role `pm`, **When** review runs, **Then** it leads with progress (recorded verified, checked tasks), active blockers and what is ready to start. Its first recommendation is unblock when there are blockers.
+2. **Given** the role `developer`, **When** review runs, **Then** it leads with items that are ready to start, unchecked tasks, and missing spec, plan or tasks files. Its first recommendations are reconcile and the Spec Kit commands that create or finish work (`/speckit-tasks`, `/speckit-implement`).
+3. **Given** the role `qa`, **When** review runs, **Then** it leads with items recorded `implemented` or `verified`, and flags each whose evidence is incomplete: unchecked tasks, unverified dependencies, error diagnostics. Its first recommendations are verify-readiness, `/speckit.roadmap.debrief` and `/speckit-analyze`.
+4. **Given** the role `architect`, **When** review runs, **Then** it leads with dependency chains, supersession and human-review dependencies, cycles, and the governing constraints named on each item. Its first recommendations are unblock, explain and `/speckit.roadmap.sync`.
+5. **Given** no role, or a role that is not defined, **When** review runs, **Then** it uses the default view. For an undefined role it lists the available roles.
+6. **Given** any role, **When** review runs, **Then** the counts, findings and file:line citations are identical to the default view. A role never hides a finding; it only reorders and prioritizes.
+
 ### Edge Cases
 
 - **No roadmap, or zero items:** a missing roadmap exits 2, and the skills report it and stop. Zero items with exit 0 may mean an empty roadmap or an unrecognized file. The skills say they can't tell which (README Limits).
@@ -163,6 +182,9 @@ As a developer about to record an item `verified`, the verify-readiness skill li
 - **FR-012**: explain MUST cover every diagnostic code in `specs/001-spec-status/diagnostics.md`, with severity, meaning, typical cause, and fixing command.
 - **FR-013**: unblock MUST order blockers by dependency, earliest first, and handle human-review, missing, ambiguous, self and cyclic dependencies as in User Story 4.
 - **FR-014**: verify-readiness MUST run the checks in User Story 5 and MUST NOT record any status itself.
+- **FR-021**: review MUST accept an optional role: `pm`, `developer`, `qa` or `architect`. The default view is used when no role is given. Roles MUST be defined in one shared file in the extension. Each role entry names: which summary sections come first, which follow-ups are recommended first, and any role-specific checks (User Story 6).
+- **FR-022**: A role MUST NOT change or hide any fact or finding. It may only reorder sections and prioritize follow-ups. A repository test MUST fail if the role file names a follow-up outside the allowed set (FR-008) or a section that review does not produce.
+- **FR-023**: The two sample prompts (`specs/001-spec-status/examples/prompts/project-manager.txt` and `software-engineer.txt`) MUST be replaced by the `pm` and `developer` role definitions. The sample files point to the extension instead.
 
 **Reference and tests**
 - **FR-015**: The extension MUST include one shared reference of the output vocabulary:
@@ -189,6 +211,7 @@ As a developer about to record an item `verified`, the verify-readiness skill li
 - **Extension**: the installable package. It has a manifest, five commands, the shared reference, and a README.
 - **Command (skill)**: one agent instruction file with a goal, constraints, steps, and named follow-ups.
 - **Output reference**: the vocabulary the commands interpret, kept in step with the contracts by a test.
+- **Role**: a named view of review (`pm`, `developer`, `qa`, `architect`). It sets section order, first follow-ups and role-specific checks, and never changes facts.
 - **Mismatch**: a disagreement between an item's recorded status and its tasks, files or dependencies. It has a kind, the item, file:line evidence, a proposed correction, and the applying command.
 - **Proposal**: one change awaiting approval. Its states are proposed, applied (through a Spec Kit command), and confirmed (`spec status` re-run shows it resolved) or unconfirmed.
 
@@ -202,6 +225,7 @@ As a developer about to record an item `verified`, the verify-readiness skill li
 - **SC-004**: In fixture runs, no command changes a file without approval: zero unapproved changes.
 - **SC-005**: Installing the extension into a fresh Spec Kit project yields exactly the five skills, in under a minute.
 - **SC-006**: The `spec` binary's JSON and text output on the example and conformance fixtures is byte-identical before and after this feature.
+- **SC-008**: On a fixture roadmap, the default view and all four role views report identical counts and findings. Only the order and first recommendations differ, matching each role's definition, and the role test passes.
 - **SC-007**: A user new to the project finds the next action for every finding in a review in one step, either from the review summary or its named follow-up.
 
 ## Assumptions
@@ -216,5 +240,6 @@ As a developer about to record an item `verified`, the verify-readiness skill li
 
 - Any change to the `spec` binary, including new diagnostics, a "mismatch" output, `spec companion`, or write-back.
 - Automatically applying changes, or applying changes outside Spec Kit commands.
+- Separate persona skills. Roles are views of review (D-2026-11-12-05); thin per-role skills can be added later without changing the logic.
 - Install, CI-setup and issue-filing skills. `docs/agent-prompt.md` already covers them; possible later.
 - Publishing the extension to a Spec Kit catalog, which needs a separate decision.

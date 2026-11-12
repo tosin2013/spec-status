@@ -179,4 +179,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-12-04 | Owner, 12 November 2026 | Roadmap item 012, targeting v0.2.0. **Packaging:** a Spec Kit extension (id `spec-status`, tracked in this repository), installed with Spec Kit's extension mechanism. Its commands render as agent skills. **First set:** review (entry point), explain, reconcile (status vs tasks and evidence mismatches), unblock, verify-readiness. They link to each other and to the Spec Kit and roadmap commands. **Writes:** read-only by default. A change is proposed and applied only through Spec Kit commands (for example `/speckit.roadmap.write`) after the user approves each change (Art. VIII, C-06). **Timing:** specify now; implement after v0.1.2 is closed out. The `spec` binary does not change | Plain skill files outside Spec Kit; strictly read-only skills; including install, CI-setup and issue-reporting skills in the first set; deferring the spec |
 
+## Recorded decision — role views in the review skill, 12 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-12-05 | Owner, 12 November 2026 | Personas for feature 005 are views of `speckit.spec-status.review`, selected with an argument: `pm`, `developer`, `qa`, `architect`. They are defined in one shared, tested file. A role reorders sections and prioritizes follow-ups, and never changes or hides facts. The two sample prompts become the `pm` and `developer` definitions. Still five skills | Four full persona skills (duplicated rules and routing); thin per-role wrapper skills in v0.2.0; leaving personas out of v0.2.0 |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.

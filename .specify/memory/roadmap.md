@@ -527,6 +527,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   agent skills: review, explain, reconcile, unblock, verify-readiness. They read
   `spec status` output, link to each other and to the Spec Kit and roadmap
   commands, and help when recorded statuses disagree with tasks or evidence.
+  Review has role views: pm, developer, qa, architect.
 - **Outcome:** An agent turns `spec status` output into correct next actions,
   including reconciling status/task mismatches, without the CLI gaining any AI
   or write path.
@@ -539,7 +540,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Governed by:** C-01, C-06
 - **Spec dir:** specs/005-agent-skills
 - **Notes:** Owner choices of 2026-11-12 (D-2026-11-12-04). Targets v0.2.0.
-  Specced the same day.
+  Specced the same day. Role views added the same day (D-2026-11-12-05).
 
 ### Future
 
