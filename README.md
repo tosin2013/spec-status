@@ -1,14 +1,59 @@
 # Spec Status
 
-Spec Status gives a glanceable reading of a Spec Kit roadmap: recorded statuses, task checkboxes, dependency blockers, and broken references. It reads the roadmap you already have and prints those facts as text or JSON.
+[![ci](https://github.com/tosin2013/spec-status/actions/workflows/ci.yml/badge.svg)](https://github.com/tosin2013/spec-status/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-It helps a developer see where the work stands, a reviewer spot structural blockers, and a script fail only when a finding reaches a chosen severity. It does not decide whether the code is correct, and a recorded `verified` label is not an independent review.
+**See where your [Spec Kit](https://github.com/github/spec-kit) roadmap stands, in one command.**
+
+`spec status` reads the roadmap you already keep in `.specify/memory/roadmap.md` and the `tasks.md` files it links to. It reports:
+
+- each item's recorded status (`planned`, `in-progress`, `verified`, and so on);
+- task checkbox progress, per item and overall;
+- dependency blockers, for example an item waiting on something that isn't verified yet;
+- supersession history, and broken spec links or task references.
+
+You get a short, readable panel in your terminal, or one versioned JSON document for scripts and CI. It is read-only and offline, and its output for the same files is always identical.
+
+- **Developers:** see what's done, what's next, and what's blocked, without opening every spec.
+- **Reviewers:** catch structural problems such as missing specs, unfinished dependencies and broken links.
+- **CI:** fail a build only when a finding reaches the severity you choose.
+
+It reports what the files *record*. It does not decide whether code is correct, and a roadmap item marked `verified` is a label someone wrote, not an independent review.
+
+## Contents
+
+- [Quick start](#quick-start)
+- [Example](#example)
+- [Using it](#using-it)
+- [Install](#install)
+- [What it reads](#what-it-reads)
+- [What it never does](#what-it-never-does)
+- [Build from source](#build-from-source)
+- [Project documents](#project-documents)
+- [Contributing, security and license](#contributing-security-and-license)
+- [Limits](#limits)
+
+## Quick start
+
+From any directory inside a Spec Kit project (one that has a `.specify` folder):
+
+```sh
+spec status                 # human-readable report
+spec status --json          # one JSON document for scripts
+spec status --explain       # add the reason and file:line behind each row
+```
+
+Don't have `spec` yet? See [Install](#install), or try it from a clone:
+
+```sh
+git clone https://github.com/tosin2013/spec-status && cd spec-status
+CGO_ENABLED=0 go build -o spec ./cmd/spec        # needs Go 1.26+
+./spec status --root testdata/example-roadmap
+```
 
 ## Example
 
-This report was produced by the development build against `testdata/example-roadmap`. It is illustrative fixture output, not a released product. Exit 0 means there was no error-level finding. The warning is still there: item 003 depends on superseded item 001, and the tool does not retarget that dependency.
-
-This is the plain report from `spec status --color=never --root testdata/example-roadmap` on the development build. A terminal, or `--color=always`, uses the same words with restrained color. Color is not the only distinction: `historical`, `active`, `recorded verified`, and `human review` are written out. `verified` here means the roadmap recorded that word. It is not an independent review.
+This is `spec status --color=never --root testdata/example-roadmap`, run on the small example roadmap in this repository. In a terminal the same words appear with restrained color; color is never the only signal.
 
 ```
 ╭──────────────────────────────────────────────────────────────────────────────╮
@@ -37,11 +82,49 @@ warning SS_DEPENDENCY_HUMAN_REVIEW
   human review.
 ```
 
-## Filters
+How to read it:
 
-Filters are a human-text view. The summary panel above stays the full roadmap, diagnostics stay visible, and `--json` still prints the unfiltered schema 1.0 document. A view that matches nothing says so and is not fatal by itself.
+- **recorded verified 1/2:** of the two active items, one is recorded `verified`. Item 001 was replaced by 002, so it is history and doesn't count.
+- **checked tasks 1/2:** checkboxes ticked across the linked `tasks.md` files.
+- **active blockers 1:** item 003 depends on 001, which was superseded. `spec` does not quietly redirect that dependency to 002. It asks for **human review** instead.
+- **diagnostics:** each finding has a severity, a stable code, and the file and line it came from.
+- The exit code is 0, because no finding reached the default `error` threshold. The warning is still shown.
 
-This is `spec status --color=never --root testdata/example-roadmap --human-review --explain` on the same fixture:
+## Using it
+
+### Commands and common flags
+
+| Command | What it does |
+|---|---|
+| `spec status` | Report on the nearest project root (the closest parent directory with `.specify`) |
+| `spec status --root DIR` | Report on a specific project |
+| `spec status --roadmap FILE` | Use another roadmap file inside the root |
+| `spec status --json` | Print one JSON document (schema 1.0) instead of text |
+| `spec status --fail-on LEVEL` | Exit 1 when a finding reaches `info`, `warning`, `error` (default) or `none` |
+| `spec status --explain` | Add the mechanical reason and file:line behind each row |
+| `spec version` | Show the version, commit, Go version, target, and how the binary was built |
+| `spec completion bash` | Print a shell completion script (zsh, fish and powershell too) |
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | No finding reached the `--fail-on` threshold. This does **not** mean the work is done. |
+| `1` | A finding reached the threshold. |
+| `2` | The command, the project root, or the roadmap could not be read or evaluated. `--fail-on none` never hides this. |
+
+### Filters
+
+Filters narrow the item rows in the text report. The summary panel always describes the whole roadmap. Diagnostics stay visible, and `--json` output never changes.
+
+| Flag | Shows |
+|---|---|
+| `--status TOKEN` | Items whose raw status matches exactly (repeat the flag to allow several) |
+| `--blocked` | Items with an unsatisfied dependency, including historical ones |
+| `--human-review` | Items with a dependency on a superseded item |
+| `--active` / `--historical` | Current items, or superseded and deferred history |
+
+Flags combine with AND. This is `--human-review --explain` on the same example:
 
 ```
 ╭──────────────────────────────────────────────────────────────────────────────╮
@@ -71,18 +154,42 @@ warning SS_DEPENDENCY_HUMAN_REVIEW
   human review.
 ```
 
-`--status` matches the raw status exactly, including an unknown token. Repeat it with a different token to match any of those tokens. `--blocked`, `--human-review`, `--active`, and `--historical` combine with AND. `--blocked` includes a historical item with an unsatisfied dependency; that is separate from the active-blockers count. `--explain` adds a mechanical reason and a file:line only when the parse retained that location.
+### In CI
+
+Fail the build when the roadmap has an error-level finding, such as a dependency on a missing item or a broken required reference:
+
+```yaml
+# GitHub Actions steps, after actions/setup-go with Go 1.26+
+- run: go install github.com/tosin2013/spec-status/cmd/spec@v<version>   # once a release exists
+- run: spec status --color=never --fail-on error
+```
+
+This repository runs exactly that check on its own roadmap in every pull request. Use `--fail-on warning` to be stricter.
+
+### In scripts
+
+`--json` prints one document with a stable, versioned schema (`schema_version` `"1.0"`). The JSON is identical whichever filters or color settings you use. The fields are documented in the [JSON contract](specs/001-spec-status/json-contract.md).
+
+```sh
+spec status --json | jq '.summary | {active_items, verified_active_items, blocked_count}'
+```
+
+### Color and width
+
+`--color=auto` (the default) uses color only when output is a terminal, `NO_COLOR` is unset, and `TERM` isn't `dumb`. `--color=always` and `--color=never` force it either way. JSON, errors, `spec version` and completion scripts are never colored. Width comes from `COLUMNS`, otherwise 80; `spec` never queries the terminal.
 
 ## Install
 
-There is no published release yet. When there is one, it will be on [GitHub Releases](https://github.com/tosin2013/spec-status/releases) with one archive per supported platform and a SHA-256 checksum file. Until a release's smoke tests pass on a platform, that platform is chosen but not yet proven (decision D-2026-11-11-02).
+> **No release has been published yet.** The first release will be `v0.1.0`. Until then, [build from source](#build-from-source).
+
+Releases are published on [GitHub Releases](https://github.com/tosin2013/spec-status/releases), with one archive per supported platform and a SHA-256 checksum file. A platform counts as supported for a release once that release's smoke tests have passed on it.
 
 | Platform | Archive |
 |---|---|
 | Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` |
 | macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` |
 
-No root and no Go are needed. Replace `<version>` with the release version without the `v`, for example `0.1.0`:
+You need neither root nor Go. Replace `<version>` with the release version without the `v`, for example `0.1.0`:
 
 ```sh
 V=<version>
@@ -96,126 +203,172 @@ mkdir -p ~/.local/bin && mv "spec_${V}_${OS_ARCH}/spec" ~/.local/bin/
 spec version                                                   # label: release build
 ```
 
-Put `~/.local/bin`, or any directory you own, on your `PATH`. The checksum file verifies that the archive matches what the release workflow built; it does not prove who published it, and the binaries are not signed.
+Make sure `~/.local/bin`, or whichever directory you chose, is on your `PATH`. The checksum shows the archive matches what the release workflow built. It does not prove who published it, and the binaries are not signed.
 
-**Upgrade or roll back** by repeating the same steps with another version. Every published release stays downloadable, and its files are never replaced: a fix ships as a new version.
+- **Upgrade or roll back:** repeat the same steps with another version. Published releases stay downloadable, and their files are never replaced; a fix ships as a new version.
+- **macOS:** the binaries are not signed or notarized. Files downloaded with `curl` run directly. If you download with a browser, macOS quarantines the file and blocks the first run. Clear it for that one file with `xattr -d com.apple.quarantine ~/.local/bin/spec`. Don't disable Gatekeeper.
+- **Other platforms** (for example Windows or linux/arm64) have no release archive. Building from source or using `go install` may work there, but it is untested and unsupported.
+- **With Go 1.26 or newer:** `go install github.com/tosin2013/spec-status/cmd/spec@v<version>`. Your own toolchain builds this binary from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
+- **Compatibility before 1.0:** a minor version (0.x.0) may change command flags, exit codes or the JSON schema, and the release notes list every such change. Patch versions (0.x.y) don't break compatibility. The JSON schema has its own version, currently 1.0.
 
-**macOS:** binaries are not signed or notarized. `curl` downloads run directly. If you download an archive with a web browser, macOS quarantines it and blocks the first run. Clear the flag for that one file with `xattr -d com.apple.quarantine ~/.local/bin/spec`. Do not disable Gatekeeper.
+Maintainers: the release steps are in [RELEASING.md](RELEASING.md).
 
-**Other platforms**, such as Windows or linux/arm64, have no release archive. Building from source or `go install` may work there, but it is untested and unsupported.
+## What it reads
 
-**With Go** (1.26 or newer): `go install github.com/tosin2013/spec-status/cmd/spec@v<version>`. That binary is built by your own toolchain from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
+- **The roadmap** at `.specify/memory/roadmap.md`, in the shape written by the [speckit-roadmap](https://github.com/srobroek/speckit-roadmap) extension (v0.1.0). Items are headings like `### 001 — Title [status: planned]`, followed by fields such as `- **Depends on:** 002`, `- **Spec dir:** specs/001-name`, and `- superseded-by: 003`.
+- **Task files**: the `tasks.md` in each item's spec directory, in the shape produced by [github/spec-kit](https://github.com/github/spec-kit) v1.2.0. `spec.md` and `plan.md` are only checked for existence.
 
-**Compatibility before 1.0:** before v1.0.0, a minor version (0.x.0) may change command flags, exit codes or the JSON schema, and the release notes list every such change. Patch versions (0.x.y) do not break compatibility. The JSON schema is versioned separately (currently 1.0).
+The project root is the directory with `.specify`. `--root` sets it; otherwise `spec` uses the nearest ancestor of the current directory.
 
-Release steps for the maintainer are in [RELEASING.md](RELEASING.md).
+`spec` reads a deliberately narrow format. It doesn't guess at layouts it can't read reliably: they stop the report with an error, or are listed under [Limits](#limits). The exact shapes are in the [shape inventory](specs/002-upstream-format-conformance/contracts/shape-inventory.md), checked by hand-counted fixtures in `testdata/conformance/`. A newer upstream version is only adopted after the drift check in `internal/conformance` shows no unresolved change (see `testdata/upstream/README.md`).
 
-## Build and run from source
+Unknown status words are kept exactly as written, with a warning. Checked tasks, recorded `implemented`, and recorded `verified` are always kept separate.
 
-Building needs Go 1.26 or newer (decision D-2026-11-11-05). Before that change, these commands were run in this workspace on Linux amd64 with Go 1.22.2 and on Darwin arm64 with Go 1.24.3; after it, the implementer ran the tests on Darwin arm64 with Go 1.26.11.
+## What it never does
 
-Continuous integration ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs `go vet`, the tests, and `govulncheck` on every pull request and push to `main`, on linux/amd64 and darwin/arm64 with the newest Go 1.26 patch and the current stable Go. A hygiene job checks formatting, `go.mod`/`go.sum` tidiness and integrity, runs `spec status --fail-on error` on this repository's roadmap, and compiles for windows/amd64 and linux/arm64. Those two builds are compile checks only, not support. Pull requests also get a dependency review. CI is not a release workflow, and its passing runs are not release evidence. Dependabot proposes dependency updates under the rule in [CONTRIBUTING.md](CONTRIBUTING.md).
+While it runs, `spec`:
 
-Commands:
+- never writes, creates or deletes files, and keeps no cache;
+- never uses the network, Git, subprocesses, telemetry or AI;
+- never reads outside the project root, follows symlinks, or opens sensitive files such as `.env`, `.ssh/`, `*.pem` or `*.key`;
+- never infers dates, estimates or quarters;
+- never treats a superseded item's successor as satisfying a dependency.
 
-```
+It is a single static binary built with `CGO_ENABLED=0`. Roadmap parsing and file access use only the Go standard library. The only other dependencies are [Cobra](https://github.com/spf13/cobra), for commands and flags, and [Lip Gloss](https://github.com/charmbracelet/lipgloss), for terminal layout and color, both approved by the owner.
+
+## Build from source
+
+You need Go 1.26 or newer.
+
+```sh
 CGO_ENABLED=0 go test ./...
 CGO_ENABLED=0 go build -o spec ./cmd/spec
 ./spec status --color=never --root testdata/example-roadmap
-./spec status --color=always --root testdata/example-roadmap
 ./spec status --root testdata/example-roadmap --json
 ./spec status --color=never --root testdata/example-roadmap --human-review --explain
-./spec status --color=never --root testdata/example-roadmap --status planned --blocked
 ./spec --help
-./spec --version
 ```
 
-Building from source requires Go. No release binary is published. An eventual installed release is intended to run without Go; that install path does not exist yet.
+A binary built from a source checkout reports itself as a `development build`.
 
-The Go module is `github.com/tosin2013/spec-status`. The command is `spec status`.
+Every pull request and push to `main` runs [CI](.github/workflows/ci.yml):
+- `go vet`, the tests and `govulncheck`, on linux/amd64 and darwin/arm64, with the newest Go 1.26 patch and the current stable Go;
+- a hygiene job: formatting, `go.mod`/`go.sum` tidiness and integrity, `spec status --fail-on error` on this repository's own roadmap, and compile-only builds for windows/amd64 and linux/arm64;
+- on pull requests, a dependency review.
 
-`--root` is the project directory that contains `.specify`. If you omit it, `spec` uses the nearest ancestor of the current directory that contains `.specify`. The roadmap is `.specify/memory/roadmap.md` unless `--roadmap` names another file inside that root.
+CI passes are not release evidence. Releases add their own smoke tests (see [RELEASING.md](RELEASING.md)). Dependabot proposes dependency updates, which merge under the rule in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- `0` means no finding reached the threshold. It does not mean the work is done.
-- `1` means a finding reached the threshold. The default threshold is `error`.
-- `2` means the command, the selected root, or the roadmap could not be evaluated.
+## Project documents
 
-`--fail-on` accepts `info`, `warning`, `error`, or `none`. Findings stay visible at every threshold. `none` does not hide a fatal read.
-
-## What this build does
-
-The development build reads a narrow heading-and-bullet roadmap shape, including the bold field labels (`- **Depends on:** 002.`) that the speckit-roadmap extension writes. Unknown status words stay as written. Checkbox progress, recorded `implemented`, and recorded `verified` stay separate. Superseded items remain in the history. A dependency on a superseded item stays on that item and is marked for human review.
-
-Text and JSON are two views of one result. Human-text filters and `--explain` select or annotate item rows only; they do not change the summary, the findings, or the JSON bytes. Commands, help, and flags use Cobra. Human text uses Lip Gloss for headings, columns, the summary panel, and restrained status color. The owner approved those two dependencies and no others. Roadmap parsing and file reads stay in the Go standard library. The program is built with `CGO_ENABLED=0`. While it runs it does not use the network, Git, a subprocess, or write files.
-
-`--color=auto` is the default: color only when stdout is a terminal, `NO_COLOR` is unset, and `TERM` is not `dumb`. `--color=always` and `--color=never` are explicit. JSON, fatal text, version, and completion stay plain. Width comes from `COLUMNS` when that value is usable, otherwise 80. The program does not query the terminal and does not open `/dev/tty`.
-
-`spec completion bash` prints a script to stdout and does not install it. The process does not create or append `BASH_COMP_DEBUG_FILE`. The script is shell text; if you source it later, the shell may append to that variable. Spec itself does not.
-
-Choices that were still open in PROFILE-R1 are used here as reversible implementation defaults, not as owner approvals. The list is in [decisions](specs/001-spec-status/decisions.md).
-
-## Supported input
-
-The roadmap and tasks shapes this build is checked against come from pinned upstream versions:
-
-- [github/spec-kit](https://github.com/github/spec-kit) v1.2.0 (commit `4ca46a07`), for `tasks.md` (`spec.md` and `plan.md` are only checked for existence)
-- [srobroek/speckit-roadmap](https://github.com/srobroek/speckit-roadmap) v0.1.0, for `.specify/memory/roadmap.md`
-
-The [shape inventory](specs/002-upstream-format-conformance/contracts/shape-inventory.md) lists every construct those templates produce and how it is read. Hand-counted fixtures in `testdata/conformance/` cover each one, including real files produced by the upstream commands. Other versions are not claimed. A newer upstream release is adopted only after the drift check in `internal/conformance` reports no unresolved shape change (see `testdata/upstream/README.md`). Markdown outside these shapes either fails visibly or is listed under Limits. A file name does not prove a version match. The [two-mode direction](specs/001-spec-status/two-mode-direction.md) records a later distinction between an empty supported roadmap and an unrecognized file. This build does not implement that distinction, and a missing roadmap is still a fatal read.
-
-## Limits
-
-Inferred quarters are not calculated. The sensitive-name filter and symlink checks are approved safeguards (D-2026-11-11-02), not a certification that every secret or mount escape is caught. This build was executed on Linux amd64 and Darwin arm64, by the implementer, on one machine each. On Darwin the post-open path check that Linux performs through `/proc/self/fd` is skipped; reads there rely on `O_NOFOLLOW`, the symlink-component check, and the device check. No operating system is a supported release target yet. The approved v1 targets are linux/amd64 and darwin/arm64, once each is proven on a real runner; release archives will carry SHA-256 checksums only and will not be signed (D-2026-11-11-02).
-
-On this Linux amd64 host, nine runs of a 100-item, 10,000-task fixture had a median of about 3.9 ms. That is one development machine, not a performance promise and not an independent measurement.
-
-There is no package-manager install, release workflow, or file-updating command. Licensed under [Apache-2.0](LICENSE); report vulnerabilities as described in [SECURITY.md](SECURITY.md). See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
-
-Known limits. Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input outside the [supported shapes](specs/002-upstream-format-conformance/contracts/shape-inventory.md) is non-blocking when it fails visibly or is listed here; the classification of every review finding is in [reclassification.md](specs/002-upstream-format-conformance/reclassification.md).
-
-- Only the documented dialect is read. Under an item heading, every line must be a recognized or descriptive field, indented continuation, a blank line, a fence, a comment, or a thematic break; anything else is fatal. Outside items, prose is not checked. Anywhere outside fences, comments, and code spans, a line containing a `Depends on:`, `Spec dir:`, or `superseded-by:` label that is not an accepted field line under an item is fatal.
-- Tasks files are free text in a narrow dialect. Only recognized checkboxes in ordinary lists count. Layouts whose count would depend on block-quote, list-nesting, or raw HTML rules are fatal; the cases are listed in roadmap-format.md §3. Only inline links with a simple local path are checked; other link forms are reported as unsupported, not checked.
-- A readable roadmap with no item headings, whether empty or written as narrative prose, reports zero items with exit 0 and no diagnostic. This build cannot tell an empty supported roadmap from an unrecognized file; making that distinction is future work and is not implemented.
-- Reads are not an atomic snapshot. A change that keeps the same size and modification time may go undetected.
-- On Darwin there is no `/proc/self/fd` check after open, so a parent directory swapped between the checks and the open is not detected.
-- The sensitive-name matcher is incomplete by design (for example, `id_rsa` is not matched).
-- A hard link inside the root that points at a file outside it cannot be told apart from an ordinary file, so it is read. Symlinks are rejected.
-- Labels and item headings are matched in the source text, not as rendered (D-2026-11-08-03). A `Depends on`, `Spec dir`, or `superseded-by` label written with an HTML entity or character reference (`Depends&nbsp;on:`, `superseded&#8209;by:`), a backslash escape (`superseded\-by:`), a link around it, inline HTML inside it, an invisible character outside the normalized set, or split across two lines is not recognized; under a nested bullet, in a descriptive value, or in prose outside items, its value is ignored without a diagnostic. An item heading written with entities (`### 00&#50; — B &#91;status: planned]`) is not recognized and the item is not counted.
-- A repeated ID in one `Depends on` list (`002, 002`) is listed twice without a diagnostic; the blocked count still counts the item once. A `Spec dir` written as a Markdown link is kept as raw text and reported as a missing directory, not as unsupported syntax.
-- Item 001 is recorded `verified` by owner decision D-2026-11-08-05, after three independent review rounds by separate AI agent sessions. Each round found new contrived layouts that hid a `Depends on`, `Spec dir`, or `superseded-by` value, and each was fixed, but no round came back with zero findings. Further layouts of that kind may exist. No human review and no check against GitHub's own renderer was done.
-- In tasks files, a line that starts with an HTML tag after a setext heading, after indented code, or with `>` inside an attribute is not recognized as starting a raw HTML block, so checkboxes that renderers show as raw text may be counted.
-- Lookalike normalization covers Unicode spaces, dashes, invisible characters, and common Cyrillic and Greek letters that look like Latin ones. Other homoglyphs in a field label are not recognized.
-- Open non-blocking defects from review: human text omits `status_counts`, `invalid_supersession_items`, and per-item task attribution, and does not mark an invalid supersession; a FIFO or directory where a tasks file is expected is reported as absent; an over-long or empty `Spec dir` is reported as unsafe; `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`; an absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected; `--json=false` with an invalid flag still emits a JSON error; an empty `--root` or `--roadmap` value falls back to the default; a spec directory rejected as unsafe shows tasks as `not_linked` and is not counted in `files_skipped`.
-- Visible over-strictness (rejected although a renderer accepts it): a fence or comment indented one to three columns whose content is less indented; a `<details>` block inside a task item closed by an indented `</details>` with the next task directly after it (it passes with a blank line); a spurious `SS_REFERENCE_UNSUPPORTED` warning for a reference definition after a fence that follows a task; `- **Superseded by:** 002` (capitalized, with a space) is fatal rather than read as `superseded-by`; a template placeholder left in a field, such as `- **Spec dir:** _set once the spec exists_`, is reported as an error; prose that contains one of those labels with a colon, such as `- Notes: rollout depends on: vendor approval` or a table cell `Depends on: 002`, is fatal; under a metric field, any indented line that is not plain continuation text (a list, quote, comment, HTML block, or code block) is fatal, even after a blank line; `###` followed by a tab before an item ID; `- **Depends on: 001**` with the bold closing after the value; a lazy column-0 continuation of a field line; an indented `---` under a descriptive field, which ends the item so later fields are reported as outside an item; a trailing `###` closing sequence on an item heading, or an item heading indented one to three spaces; the field bullet forms `-` followed by a tab, ` - ` with a leading space, `__label:__`, and `1. **label:**`; a continuation line that starts like an item ID (`002 — `); outside items, an item heading or field after a line that starts with an HTML tag, without a blank line between them, even where renderers would show the heading; `  2. 003` on a line under a `Depends on` field; a `Depends on` note containing a comma (`002 (blocked, waiting)`) or any of `<`, `[`, `"`, a backtick, `\`, `&`, which is reported as malformed.
-
-## Draft proposals
-
-These are not commands in this build. On 7 November 2026 the owner authorized writing them down. That did not approve implementation or the open choices.
-
-- [Timing and evidence](specs/001-spec-status/timing-evidence.md) keeps inferred quarters omitted. Optional recorded dates are a proposal, not a forecast.
-- [Companion prompts](specs/001-spec-status/companion.md) sketches an opt-in prompt file and a local evidence envelope. The core would still not embed a model.
-- [Project manager sample](specs/001-spec-status/examples/prompts/project-manager.txt) and [software engineer sample](specs/001-spec-status/examples/prompts/software-engineer.txt) are editable proposed texts, not embedded prompts and not write-back.
-
-A harness, in that companion draft, means an external tool. Claude Code, Grok Bot, Muse, and OpenCode are illustrative consumers only. They are not verified integrations. If one of them is allowed to run the CLI, it can show the human status text on a supported terminal and can read the JSON. That is not an automatic graphic and not a model inside `spec`.
-
-## Specification
-
-`README.md` stays at the repository root. The constitution is `.specify/memory/constitution.md`. Feature `001-spec-status` documents are under `specs/001-spec-status/`.
+This project is built with [Spec Kit](https://github.com/github/spec-kit) and tracks its own work in [its roadmap](.specify/memory/roadmap.md), which `spec status` reads in CI.
 
 | Document | Purpose |
 |---|---|
-| [Constitution](.specify/memory/constitution.md) | Non-negotiable principles and scope governance |
-| [Feature specification](specs/001-spec-status/spec.md) | User outcomes, functional requirements and edge cases |
-| [Decisions](specs/001-spec-status/decisions.md) | Settled boundaries, unapproved profile, and the defaults this build uses |
-| [Roadmap format](specs/001-spec-status/roadmap-format.md) | Candidate narrow grammar and optional supersession extension |
-| [CLI](specs/001-spec-status/cli-contract.md), [JSON](specs/001-spec-status/json-contract.md), [diagnostics](specs/001-spec-status/diagnostics.md) | Candidate versioned machine and human contracts |
-| [Technical plan](specs/001-spec-status/plan.md) | Proposed architecture and safety design |
-| [Acceptance strategy](specs/001-spec-status/acceptance.md) | Required fixtures and evidence |
-| [Ordered tasks](specs/001-spec-status/tasks.md) | Backlog and the current implementation record |
-| [Build/release/distribution](specs/001-spec-status/build-release.md) | Future release gates |
-| [Phase two](specs/001-spec-status/phase2.md) | Future write-back, not in this build |
-| [Timing draft](specs/001-spec-status/timing-evidence.md), [companion draft](specs/001-spec-status/companion.md) | Draft proposals only, not implemented |
-| [Two-mode direction](specs/001-spec-status/two-mode-direction.md) | Owner direction for a later roadmap mode and a separate inventory mode. Not implemented |
-| [Requirements/traceability](specs/001-spec-status/traceability.md) | Where each baseline requirement is recorded |
+| [Constitution](.specify/memory/constitution.md) | The project's non-negotiable principles |
+| [Roadmap](.specify/memory/roadmap.md) | Planned, current and finished work |
+| [Feature specification](specs/001-spec-status/spec.md) | User outcomes, requirements and edge cases |
+| [Decisions](specs/001-spec-status/decisions.md) | Every owner decision, with its date and alternatives |
+| [Roadmap format](specs/001-spec-status/roadmap-format.md) | The exact grammar that is read |
+| [CLI](specs/001-spec-status/cli-contract.md), [JSON](specs/001-spec-status/json-contract.md), [diagnostics](specs/001-spec-status/diagnostics.md) | The versioned command, output and finding contracts |
+| [Upstream conformance](specs/002-upstream-format-conformance/) | Pinned upstream formats, shape inventory, drift check |
+| [Dependency automation](specs/003-dependency-updates/), [Release engineering](specs/004-release-engineering/) | CI, Dependabot, and the release workflow |
+| [Build and release requirements](specs/001-spec-status/build-release.md) | Release gates and distribution rules |
+| [Tasks and implementation record](specs/001-spec-status/tasks.md) | What was built, with evidence |
+| [Two-mode direction](specs/001-spec-status/two-mode-direction.md) | A planned roadmap-free inventory mode. Not implemented |
+| [Timing](specs/001-spec-status/timing-evidence.md), [companion](specs/001-spec-status/companion.md), [phase two](specs/001-spec-status/phase2.md) | Draft proposals only. Not implemented |
 
-The original input-format prose is not completely recovered verbatim. This repository is a working development build of that interpretation, not an upstream compatibility certification.
+## Contributing, security and license
+
+- **Contributing:** see [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests use the [issue forms](https://github.com/tosin2013/spec-status/issues/new/choose).
+- **Security:** report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
+- **Conduct:** [Code of Conduct](CODE_OF_CONDUCT.md).
+- **License:** [Apache-2.0](LICENSE).
+
+## Limits
+
+The short version:
+
+- `spec` reads a narrow, pinned format, not general Markdown. Anything it can't read reliably stops the report with an error or is listed below.
+- `verified` means the roadmap says so. It is not an independent review, and exit 0 does not mean the work is done.
+- No release is published yet, so no platform is supported yet. The planned release targets are linux/amd64 and darwin/arm64, with SHA-256 checksums and no signing (decision D-2026-11-11-02).
+- The sensitive-file filter and symlink checks are safeguards, not a guarantee that every secret or mount escape is caught.
+- Performance: on one Linux amd64 development machine, nine runs over a 100-item, 10,000-task fixture had a median of about 3.9 ms. That is not a performance promise.
+- A roadmap with no item headings, empty or narrative, reports zero items with exit 0 and no warning. Telling an empty roadmap from an unrecognized file is planned future work.
+
+### Detailed known limits
+
+Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input outside the [supported shapes](specs/002-upstream-format-conformance/contracts/shape-inventory.md) is non-blocking if it fails visibly or is listed here. Every review finding's classification is in [reclassification.md](specs/002-upstream-format-conformance/reclassification.md).
+
+- Only the documented dialect is read. Under an item heading, every line must be one of these:
+  - a recognized or descriptive field;
+  - indented continuation;
+  - a blank line;
+  - a fence;
+  - a comment;
+  - a thematic break.
+
+  Anything else stops the report with an error. Outside items, prose is not checked. However, anywhere outside fences, comments and code spans, a line with a `Depends on:`, `Spec dir:` or `superseded-by:` label that isn't an accepted field line under an item stops the report with an error.
+- Task files are free text in a narrow dialect:
+  - Only recognized checkboxes in ordinary lists count.
+  - Layouts whose count would depend on block-quote, list-nesting or raw HTML rules stop the report with an error. The cases are in roadmap-format.md §3.
+  - Only inline links with a simple local path are checked. Other link forms are reported as unsupported, not checked. Link-like text inside inline code is ignored.
+- Reads are not an atomic snapshot. A change that keeps the same size and modification time may go undetected.
+- On Darwin there is no `/proc/self/fd` check after a file is opened, so a parent directory swapped between the checks and the open is not detected. Reads there rely on `O_NOFOLLOW`, the symlink-component check and the device check.
+- The sensitive-name matcher is incomplete by design. For example, `id_rsa` is not matched.
+- A hard link inside the root that points at a file outside it can't be told apart from an ordinary file, so it is read. Symlinks are rejected.
+- Labels and item headings are matched in the source text, not as rendered (D-2026-11-08-03).
+  - A `Depends on`, `Spec dir` or `superseded-by` label goes unrecognized when it is written in any of these ways:
+    - with an HTML entity or character reference (`Depends&nbsp;on:`, `superseded&#8209;by:`);
+    - with a backslash escape (`superseded\-by:`);
+    - wrapped in a link, or with inline HTML inside it;
+    - with an invisible character outside the normalized set;
+    - split across two lines.
+  - Where such a label appears under a nested bullet, in a descriptive value, or in prose outside items, its value is ignored without a diagnostic.
+  - An item heading written with entities (`### 00&#50; — B &#91;status: planned]`) is not recognized, and the item is not counted.
+- A repeated ID in one `Depends on` list (`002, 002`) is listed twice without a diagnostic; the blocked count still counts the item once. A `Spec dir` written as a Markdown link is kept as raw text and reported as a missing directory, not as unsupported syntax.
+- Item 001 is recorded `verified` under owner decision D-2026-11-08-05, after three review rounds by separate AI agent sessions.
+  - Each round found new contrived layouts that hid a `Depends on`, `Spec dir` or `superseded-by` value, and each one was fixed.
+  - No round came back with zero findings, so further layouts of that kind may exist.
+  - No human review was done, and nothing was checked against GitHub's own renderer.
+- In task files, a line that starts with an HTML tag is not treated as the start of a raw HTML block in these cases:
+  - after a setext heading;
+  - after indented code;
+  - when there is a `>` inside an attribute.
+
+  So checkboxes that renderers show as raw text may be counted.
+- Lookalike normalization covers Unicode spaces, dashes, invisible characters, and common Cyrillic and Greek letters that look like Latin ones. Other homoglyphs in a field label are not recognized.
+- Open non-blocking defects from review:
+  - Human text omits `status_counts`, `invalid_supersession_items` and per-item task attribution, and doesn't mark an invalid supersession.
+  - A FIFO or directory where a tasks file is expected is reported as absent.
+  - An over-long or empty `Spec dir` is reported as unsafe.
+  - `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`.
+  - An absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected.
+  - `--json=false` with an invalid flag still emits a JSON error.
+  - An empty `--root` or `--roadmap` value falls back to the default.
+  - A spec directory rejected as unsafe shows tasks as `not_linked` and isn't counted in `files_skipped`.
+- Visible over-strictness: input a renderer would accept, but `spec` rejects.
+  - **Fences, comments and HTML:**
+    - a fence or comment indented one to three columns whose content is less indented;
+    - a `<details>` block inside a task item, closed by an indented `</details>`, with the next task directly after it (it passes with a blank line);
+    - outside items, an item heading or field directly after a line that starts with an HTML tag, with no blank line between them, even where renderers would show the heading.
+  - **Spurious warning:** an `SS_REFERENCE_UNSUPPORTED` warning for a reference definition after a fence that follows a task.
+  - **Field labels and values reported as errors:**
+    - `- **Superseded by:** 002` (capitalized, with a space) stops the report instead of being read as `superseded-by`;
+    - a template placeholder left in a field, such as `- **Spec dir:** _set once the spec exists_`, is reported as an error;
+    - `- **Depends on: 001**`, with the bold closing after the value;
+    - a `Depends on` note containing a comma (`002 (blocked, waiting)`) or any of `<`, `[`, `"`, a backtick, `\` or `&` is reported as malformed.
+  - **Prose containing a field label:** prose with one of those labels followed by a colon stops the report, for example `- Notes: rollout depends on: vendor approval` or a table cell `Depends on: 002`.
+  - **Indented lines:**
+    - under a metric field, any indented line that isn't plain continuation text (a list, quote, comment, HTML block or code block), even after a blank line;
+    - an indented `---` under a descriptive field, which ends the item, so later fields are reported as outside an item;
+    - `  2. 003` on a line under a `Depends on` field.
+  - **Item headings:**
+    - `###` followed by a tab before an item ID;
+    - a trailing `###` closing sequence;
+    - an item heading indented one to three spaces.
+  - **Field bullets and continuations:**
+    - the field bullet forms `-` followed by a tab, ` - ` with a leading space, `__label:__` and `1. **label:**`;
+    - a lazy continuation of a field line at column 0;
+    - a continuation line that starts like an item ID (`002 — `).
+
+The original input-format prose was not fully recovered word for word. This is a working implementation of that interpretation, not a certification of upstream compatibility.
