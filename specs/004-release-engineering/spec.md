@@ -136,7 +136,7 @@ As a user or reviewer, each release states its version, tagged commit, the Go ve
 **Build identity (product change)**
 - **FR-009**: `spec version` MUST distinguish three kinds of build:
   - **Release build** (stamped by the release workflow): version, commit, Go version, target, and the label "release build".
-  - **Module build** (no stamp, but Go build information carries a module version, as from `go install …@vX.Y.Z`): that version, the VCS revision if Go recorded one, Go version, target, and a label saying it was built from the module version, not a release archive.
+  - **Module build** (no stamp, but Go build information records a downloaded module version with its checksum, as from `go install …@vX.Y.Z`): that version, `commit: unknown` (module-mode builds carry no VCS stamp), Go version, target, and a label saying it was built from the module version, not a release archive. A build from a source checkout is a development build even though Go stamps a VCS-derived version; only a downloaded, checksum-verified module counts as a module build (research R3).
   - **Development build** (neither): the current output, unchanged.
 - **FR-010**: The human status panel heading and `--help` MUST drop "development build" wording for release builds and keep it for development builds. Module builds MUST say "module build", not "release".
 - **FR-011**: JSON output MUST be byte-identical across build kinds for the same input. Exit codes and diagnostics MUST be unchanged.
