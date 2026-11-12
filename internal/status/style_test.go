@@ -125,3 +125,23 @@ func sampleReport() Report {
 func utf8Valid(s string) bool {
 	return strings.ToValidUTF8(s, "") == s
 }
+
+// Build label in the panel heading (feature 004, contracts/build-identity.md).
+func TestPanelHeadingFollowsBuildLabel(t *testing.T) {
+	rep := sampleReport()
+	def := Text(rep, View{Width: 80})
+	dev := Text(rep, View{Width: 80, Build: "development build"})
+	rel := Text(rep, View{Width: 80, Build: "release 0.1.0"})
+	if def != dev {
+		t.Fatalf("empty Build must render as development build:\n%s\n%s", def, dev)
+	}
+	if !strings.Contains(def, "Spec Status  development build") {
+		t.Fatalf("default heading changed:\n%s", def)
+	}
+	if !strings.Contains(rel, "Spec Status  release 0.1.0") || strings.Contains(rel, "development build") {
+		t.Fatalf("release heading:\n%s", rel)
+	}
+	if strings.Replace(rel, "release 0.1.0    ", "development build", 1) != def {
+		t.Fatalf("only the heading label may differ:\n%s\n%s", rel, def)
+	}
+}

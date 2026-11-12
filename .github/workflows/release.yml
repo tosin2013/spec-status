@@ -1,0 +1,223 @@
+# Release workflow (feature 004, specs/004-release-engineering).
+# Contracts: contracts/release-workflow.md and contracts/release-assets.md.
+#
+# The owner pushes a tag vX.Y.Z or vX.Y.Z-rc.N on a commit of main. This
+# workflow verifies the tag, runs the same checks as CI, builds the two
+# supported archives once, smoke-tests each downloaded archive on its own
+# platform, and creates a DRAFT GitHub Release. It never publishes, never
+# edits an existing release, and never pushes commits or tags. Only the
+# owner publishes (decision D-2026-11-11-06).
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Tag is SemVer vX.Y.Z or vX.Y.Z-rc.N
+        id: tag
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          re='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.(0|[1-9][0-9]*))?$'
+          [[ "$TAG" =~ $re ]] || { echo "::error::tag '$TAG' is not vX.Y.Z or vX.Y.Z-rc.N"; exit 1; }
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-rc.* ]]; then echo "prerelease=true" >> "$GITHUB_OUTPUT"; else echo "prerelease=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Tagged commit is on main
+        shell: bash
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::$GITHUB_SHA is not reachable from origin/main"; exit 1; }
+
+      - name: No release exists for this tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::a release for $TAG already exists; ship a new version instead"; exit 1
+          fi
+
+  ci:
+    name: ci
+    needs: verify
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: build archives
+    needs: [verify, ci]
+    runs-on: ubuntu-latest
+    outputs:
+      go_version: ${{ steps.build.outputs.go_version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          check-latest: true
+
+      - name: Build, package and checksum
+        id: build
+        shell: bash
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          M=github.com/tosin2013/spec-status/internal/cli
+          go version
+          echo "go_version=$(go version)" >> "$GITHUB_OUTPUT"
+          mkdir -p dist
+          for target in linux/amd64 darwin/arm64; do
+            os="${target%/*}"; arch="${target#*/}"
+            name="spec_${VERSION}_${os}_${arch}"
+            mkdir -p "dist/$name"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath \
+              -ldflags "-s -w -X $M.Version=$VERSION -X $M.Commit=$GITHUB_SHA -X $M.Kind=release" \
+              -o "dist/$name/spec" ./cmd/spec
+            chmod 0755 "dist/$name/spec"
+            cp LICENSE README.md "dist/$name/"
+            tar -C dist -czf "dist/$name.tar.gz" "$name"
+            rm -rf "dist/$name"
+          done
+          (cd dist && sha256sum spec_"${VERSION}"_*.tar.gz | sort -k2 > "spec_${VERSION}_checksums.txt" && cat "spec_${VERSION}_checksums.txt")
+          ls -l dist
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-files
+          path: dist/
+          if-no-files-found: error
+
+  smoke:
+    name: smoke (${{ matrix.os }})
+    needs: [verify, build]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-files
+          path: dist
+
+      - name: Smoke-test this platform's archive
+        shell: bash
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          case "$(uname -s) $(uname -m)" in
+            "Linux x86_64")  os=linux;  arch=amd64; sum="sha256sum" ;;
+            "Darwin arm64")  os=darwin; arch=arm64; sum="shasum -a 256" ;;
+            *) echo "::error::unexpected runner platform $(uname -s) $(uname -m)"; exit 1 ;;
+          esac
+          name="spec_${VERSION}_${os}_${arch}"
+          cd dist
+          check="$($sum -c --ignore-missing "spec_${VERSION}_checksums.txt")"; echo "$check"
+          grep -qx "$name.tar.gz: OK" <<<"$check" || { echo "::error::checksum for $name.tar.gz did not verify"; exit 1; }
+          tar -xzf "$name.tar.gz"
+          listing="$(tar -tzf "$name.tar.gz" | sed 's#/$##' | sort | tr '\n' ' ')"
+          want="$name $name/LICENSE $name/README.md $name/spec "
+          [ "$listing" = "$want" ] || { echo "::error::archive contents: '$listing', want '$want'"; exit 1; }
+          bin="$PWD/$name/spec"
+          cd "$GITHUB_WORKSPACE"
+
+          v="$("$bin" version)"; echo "$v"
+          grep -qx "spec $VERSION" <<<"$v"
+          grep -qx "commit: $GITHUB_SHA" <<<"$v"
+          grep -qx "target: $os/$arch" <<<"$v"
+          grep -qx "label: release build" <<<"$v"
+
+          h="$("$bin" --help)"
+          grep -qF "This is release $VERSION." <<<"$h"
+          if grep -q "development build" <<<"$h"; then echo "::error::help still says development build"; exit 1; fi
+
+          set +e
+          "$bin" status --color=never --root testdata/example-roadmap; text_exit=$?
+          "$bin" status --json --root testdata/example-roadmap > status.json; json_exit=$?
+          "$bin" status --root /nonexistent >/dev/null 2>&1; fatal_exit=$?
+          set -e
+          echo "exits: text=$text_exit json=$json_exit fatal=$fatal_exit"
+          [ "$text_exit" = "$json_exit" ] || { echo "::error::text and JSON exit codes differ"; exit 1; }
+          [ "$text_exit" -le 1 ] || { echo "::error::status on the example roadmap was fatal"; exit 1; }
+          [ "$fatal_exit" = 2 ] || { echo "::error::missing root did not exit 2"; exit 1; }
+          python3 -c 'import json,sys; d=json.load(open("status.json")); assert d["schema_version"]=="1.0", d["schema_version"]; print("json ok")'
+
+  release:
+    name: create draft release
+    needs: [verify, build, smoke]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-files
+          path: dist
+
+      - name: Create draft release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          PRERELEASE: ${{ needs.verify.outputs.prerelease }}
+          GO_VERSION: ${{ needs.build.outputs.go_version }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::a release for $TAG already exists"; exit 1
+          fi
+          jobs="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --paginate --jq '.jobs[] | "\(.name)\t\(.html_url)"')"
+          linux_url="$(awk -F'\t' '$1=="smoke (ubuntu-latest)"{print $2}' <<<"$jobs")"
+          darwin_url="$(awk -F'\t' '$1=="smoke (macos-latest)"{print $2}' <<<"$jobs")"
+          heading="## spec $VERSION"
+          extra=()
+          if [ "$PRERELEASE" = "true" ]; then heading="$heading (release candidate)"; extra=(--prerelease); fi
+          {
+            echo "$heading"
+            echo
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Built with: $GO_VERSION, \`CGO_ENABLED=0\`, \`-trimpath\`"
+            echo "- Archives:"
+            echo "  - \`spec_${VERSION}_linux_amd64.tar.gz\`: smoke-tested on linux/amd64 ($linux_url)"
+            echo "  - \`spec_${VERSION}_darwin_arm64.tar.gz\`: smoke-tested on darwin/arm64 ($darwin_url)"
+            echo "- Checksums: \`spec_${VERSION}_checksums.txt\` (SHA-256). Verify before use, as described in the README install section."
+            echo
+            echo "**Compatibility (pre-1.0):** before v1.0.0, a minor version may change CLI flags, exit codes or the JSON schema. Any such change is listed in these notes. Patch versions do not break compatibility. JSON schema: 1.0."
+            echo
+            echo "**Not provided:** signed or notarized binaries, provenance attestations, reproducible-build guarantees, or archives for other platforms. Other platforms may build from source but are untested. Known limits: [README Limits](https://github.com/$GITHUB_REPOSITORY#limits)."
+          } > notes.md
+          cat notes.md
+          gh release create "$TAG" \
+            "dist/spec_${VERSION}_linux_amd64.tar.gz" \
+            "dist/spec_${VERSION}_darwin_arm64.tar.gz" \
+            "dist/spec_${VERSION}_checksums.txt" \
+            --repo "$GITHUB_REPOSITORY" --draft --verify-tag --title "$TAG" \
+            --generate-notes --notes-file notes.md "${extra[@]}"
