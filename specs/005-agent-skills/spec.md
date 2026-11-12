@@ -17,6 +17,8 @@
 
 Owner decision D-2026-11-12-05 (same day): personas (project manager, developer, QA, architect) are **views of the review skill**, chosen with an argument. They are not separate skills, so the rules and routing exist in one place.
 
+Owner decision D-2026-11-12-06 (same day): roles may recommend **partner Spec Kit extensions** when the project has them installed. Candidates are adrkit (ADRs) for architect, Assure (QA) for qa, and Bug Triage Workflow for developer. Partners are detected, never required or installed by this extension.
+
 ## Context
 
 `spec status` reports what a roadmap and its task files record. People and agents then have to work out what to do next. That is hardest when the record disagrees with itself, for example:
@@ -143,6 +145,25 @@ As a project manager, developer, QA engineer or architect, I run the review skil
 5. **Given** no role, or a role that is not defined, **When** review runs, **Then** it uses the default view. For an undefined role it lists the available roles.
 6. **Given** any role, **When** review runs, **Then** the counts, findings and file:line citations are identical to the default view. A role never hides a finding; it only reorders and prioritizes.
 
+### User Story 7 - Use the other extensions I already have (Priority: P3)
+
+As a user who has installed other Spec Kit extensions for ADRs, QA or bug triage, the role views recommend those extensions' commands where they help. As a user who hasn't, I'm told once which extension would help and how to install it.
+
+**Why this priority**: It connects the review to tools the user already trusts, without making this extension depend on them. P3 because the five skills work fully without partners.
+
+**Independent Test**: In two copies of the same fixture project, one with a partner extension installed (for example Bug Triage, `specify extension add bug`) and one without, run `review as developer`. With the partner installed, its real command (as registered in the project) appears among the first recommendations. Without it, one install hint appears. The facts reported are identical in both.
+
+**Acceptance Scenarios**:
+
+1. **Given** a project, **When** review runs with a role, **Then** it reads which extensions and commands are installed from the project's extension registry, and uses only command names found there.
+2. **Given** an installed partner listed for the role, **When** review recommends follow-ups, **Then** the partner's command appears beside the spec-status and Spec Kit follow-ups, with one line saying what it adds:
+   - **architect with adrkit:** check plans against governing decisions, or draft an ADR when a dependency or supersession change is really an architecture decision.
+   - **qa with Assure:** test-readiness and the QA test manual as evidence before an item is recorded `verified`.
+   - **developer with Bug Triage:** when a checked task's work is reported broken.
+3. **Given** a listed partner that is not installed, **When** review runs with that role, **Then** it mentions the partner once with its install command. For an extension from the community catalog, it adds that the extension is not vetted by Spec Kit and should be reviewed before installing. It never installs anything.
+4. **Given** any partner command, **When** it would change files, **Then** it is only proposed and runs only after the user approves (FR-007).
+5. **Given** a project with no partners installed, **When** any skill runs, **Then** it works fully, and nothing is reported as an error.
+
 ### Edge Cases
 
 - **No roadmap, or zero items:** a missing roadmap exits 2, and the skills report it and stop. Zero items with exit 0 may mean an empty roadmap or an unrecognized file. The skills say they can't tell which (README Limits).
@@ -152,6 +173,8 @@ As a project manager, developer, QA engineer or architect, I run the review skil
 - **An older or newer `spec` with a different JSON schema version:** the skills check `schema_version` and warn if it isn't `1.0`.
 - **Two items share one spec dir:** tasks are counted once per file. Reconcile must not report the shared file as a mismatch for each item.
 - **Superseded items:** they are history. Reconcile doesn't ask them to match their tasks.
+- **A partner extension renames or removes a command:** the role uses only commands present in the registry. A stale entry in the role file is skipped, never invoked by guessing.
+- **The extension registry is missing or unreadable:** roles behave as if no partners are installed and say so once.
 
 ## Requirements *(mandatory)*
 
@@ -184,6 +207,10 @@ As a project manager, developer, QA engineer or architect, I run the review skil
 - **FR-014**: verify-readiness MUST run the checks in User Story 5 and MUST NOT record any status itself.
 - **FR-021**: review MUST accept an optional role: `pm`, `developer`, `qa` or `architect`. The default view is used when no role is given. Roles MUST be defined in one shared file in the extension. Each role entry names: which summary sections come first, which follow-ups are recommended first, and any role-specific checks (User Story 6).
 - **FR-022**: A role MUST NOT change or hide any fact or finding. It may only reorder sections and prioritize follow-ups. A repository test MUST fail if the role file names a follow-up outside the allowed set (FR-008) or a section that review does not produce.
+- **FR-024**: review MUST detect installed extensions and their commands from the project's Spec Kit extension registry. It MUST recommend a partner command only if that exact command is registered.
+- **FR-025**: The shared role file MUST list optional partners per role. Each entry gives the partner's extension id, the catalog it comes from, its install command, what it adds for that role, and the commands to recommend when installed. The first entries are: architect → adrkit; qa → Assure; developer → Bug Triage Workflow. Exact command names MUST be confirmed from each extension's own repository during planning.
+- **FR-026**: This extension MUST NOT declare any partner as required, install one, or run one without approval. For a community-catalog partner, the install hint MUST say it is not vetted by Spec Kit.
+- **FR-027**: The link test (FR-016) MUST treat partner commands separately. It checks that each partner entry is well formed and that partner commands appear only in a role's partner list. Core and spec-status follow-ups stay strictly checked.
 - **FR-023**: The two sample prompts (`specs/001-spec-status/examples/prompts/project-manager.txt` and `software-engineer.txt`) MUST be replaced by the `pm` and `developer` role definitions. The sample files point to the extension instead.
 
 **Reference and tests**
@@ -211,6 +238,7 @@ As a project manager, developer, QA engineer or architect, I run the review skil
 - **Extension**: the installable package. It has a manifest, five commands, the shared reference, and a README.
 - **Command (skill)**: one agent instruction file with a goal, constraints, steps, and named follow-ups.
 - **Output reference**: the vocabulary the commands interpret, kept in step with the contracts by a test.
+- **Partner extension**: another installed Spec Kit extension that a role can recommend, detected from the project's registry and never required.
 - **Role**: a named view of review (`pm`, `developer`, `qa`, `architect`). It sets section order, first follow-ups and role-specific checks, and never changes facts.
 - **Mismatch**: a disagreement between an item's recorded status and its tasks, files or dependencies. It has a kind, the item, file:line evidence, a proposed correction, and the applying command.
 - **Proposal**: one change awaiting approval. Its states are proposed, applied (through a Spec Kit command), and confirmed (`spec status` re-run shows it resolved) or unconfirmed.
@@ -226,6 +254,7 @@ As a project manager, developer, QA engineer or architect, I run the review skil
 - **SC-005**: Installing the extension into a fresh Spec Kit project yields exactly the five skills, in under a minute.
 - **SC-006**: The `spec` binary's JSON and text output on the example and conformance fixtures is byte-identical before and after this feature.
 - **SC-008**: On a fixture roadmap, the default view and all four role views report identical counts and findings. Only the order and first recommendations differ, matching each role's definition, and the role test passes.
+- **SC-009**: In fixture projects with and without a partner installed, the role view recommends the partner's registered command only when it is installed, and gives exactly one install hint when it is not. The reported facts are identical.
 - **SC-007**: A user new to the project finds the next action for every finding in a review in one step, either from the review summary or its named follow-up.
 
 ## Assumptions
@@ -234,6 +263,7 @@ As a project manager, developer, QA engineer or architect, I run the review skil
 - The roadmap extension is usually installed alongside. Where it isn't, roadmap changes are shown for the user to make by hand.
 - Commands are text instructions for an agent. Their behavior is checked by structure tests and fixture runs, not by executing an agent in CI.
 - Spec Kit 1.2.0's extension format (manifest plus command files, as in `.specify/extensions/roadmap/`) is the target. A future Spec Kit format change is handled like an upstream drift.
+- Partner extensions keep their own release cycles and command names. The role file records the versions checked during planning; a later change is handled like an upstream drift.
 - This is a minor release (v0.2.0) under the pre-1.0 policy, because it adds a release asset and a new installable component.
 
 ## Out of Scope
@@ -243,3 +273,4 @@ As a project manager, developer, QA engineer or architect, I run the review skil
 - Separate persona skills. Roles are views of review (D-2026-11-12-05); thin per-role skills can be added later without changing the logic.
 - Install, CI-setup and issue-filing skills. `docs/agent-prompt.md` already covers them; possible later.
 - Publishing the extension to a Spec Kit catalog, which needs a separate decision.
+- Installing, configuring or vetting partner extensions on the user's behalf, and partners beyond the first three.
