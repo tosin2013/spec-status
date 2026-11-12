@@ -102,8 +102,8 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 ### Edge Cases
 
 - **A vulnerability with no fixed version yet**: the alert stays open; no proposal is opened. The owner decides whether a workaround or a README limit is needed. The scan fails only if the vulnerable code is reachable.
-- **A vulnerability in the language toolchain or standard library**: the scan reports it, but no module proposal can fix it; moving the toolchain is 004's work (the toolchain version is open). The check's result is recorded rather than suppressed.
-- **A proposal that also changes the minimum language version in `go.mod`**: treated like a new dependency for review purposes; it needs an owner decision because the toolchain version is undecided.
+- **A vulnerability in the language toolchain or standard library**: the scan reports it, and no module proposal can fix it. If a patch release of the tested line fixes it, the next run picks that patch up automatically. If only a newer line fixes it, or the minimum line has left support, the owner decides on raising the minimum (D-2026-11-11-04). The result is recorded, never suppressed.
+- **A proposal that also changes the minimum language version in `go.mod`**: it needs an owner decision, like a new dependency (D-2026-11-11-04).
 - **A grouped proposal where one module breaks the tests**: the check fails; the owner can ask for the group to be split or close it. Nothing merges on a failing check.
 - **Automated proposals from forks or with workflow edits**: the check runs with read-only repository permissions and no secrets, so a proposal cannot publish or write anything.
 - **Advisory database or scan service unreachable**: the scan job fails visibly, it does not pass silently.
@@ -126,6 +126,7 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 - **FR-011**: SECURITY.md MUST gain a dependency-vulnerability section meeting User Story 5's acceptance scenarios.
 - **FR-012**: The `spec` binary's behavior, output, exit codes, JSON bytes, imports, and dependency set MUST be unchanged by this feature; all existing tests, including the dependency-allowlist test, MUST pass.
 - **FR-013**: No document MAY claim a security audit, supply-chain certification, signed or attested artifacts, reproducible builds, or a supported platform as a result of this feature (constitution Art. VII).
+- **FR-015**: `go.mod` MUST declare `go 1.26.0`, the oldest supported Go release line (D-2026-11-11-05, added during planning). The check MUST test the newest patch of that line and the current stable release, and MUST fail if `go.mod`'s minimum and the tested minimum line differ.
 - **FR-014**: The README and the release document (`specs/001-spec-status/build-release.md`) MUST state accurately that a test check exists on pull requests and `main`, that it is not a release workflow, and which platforms it runs on.
 
 ### Key Entities
@@ -150,7 +151,7 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 
 - GitHub is the only repository home (D-2026-11-11-03), so the update service and check are GitHub's own (Dependabot and GitHub Actions); the owner chose them on 11 November 2026.
 - Hosted runners exist for linux/amd64 and darwin/arm64. Running the tests there is evidence for this check only; it is not the "proven on a real runner" release evidence that DC-07 requires for advertising a platform, which 004 defines.
-- The check uses the language version declared in `go.mod`; choosing a newer, supported toolchain is 004's decision and is out of scope here.
+- During planning, the scan showed that the declared `go 1.22` (no longer supported) fails on reachable standard-library advisories. The x/sys security fix also needs Go ≥1.25. The owner therefore set the minimum to Go 1.26 in this feature (D-2026-11-11-05). Feature 004 still chooses the exact toolchain patch used to build release archives.
 - The known-vulnerability scan is Go's official scanner (`govulncheck`), chosen by the owner; it runs only in the check, never in the binary.
 - The constitution needs no amendment: Art. II restricts which modules may be imported, and the merge rule keeps new modules behind an owner decision. Version changes of approved modules are not new dependencies.
 - Code review by Doomer or other tools is separate from this feature and not required by the merge rule.
@@ -158,7 +159,7 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 ## Out of Scope
 
 - Release, tag, archive, checksum, and publication workflows (roadmap item 004).
-- Selecting or upgrading the toolchain version (004).
+- The exact toolchain patch used for release builds (004). The minimum Go version is in scope (FR-015).
 - Signing, attestations, or provenance (excluded from v1 by D-2026-11-11-02).
 - Automatic merging of any proposal.
 - Coverage thresholds, linters beyond the language's own static analysis, and fuzzing in the check.
