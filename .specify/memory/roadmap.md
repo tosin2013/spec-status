@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.4.4 → 1.4.5
+Bump rationale: PATCH — wording.
+
+Changes this revision:
+  - 004 notes: v0.1.0 withdrawn, first release is v0.1.1, protections (D-2026-11-12-02)
+
+Specs affected: 004-release-engineering
+Open questions added/resolved: none
+
+Previous revision (1.4.4, 2026-11-12):
 Version change: 1.4.3 → 1.4.4
 Bump rationale: PATCH — status transition.
 
@@ -426,8 +436,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   2026-11-11 (D-2026-11-11-06). Implemented in PR #33. Release candidate
   v0.1.0-rc.1 (2026-11-12, https://github.com/tosin2013/spec-status/actions/runs/43157383315) passed every job, with
   smoke tests on both platforms; the draft has 3 assets with verified checksums.
-  Recorded `verified` after the owner publishes v0.1.0 and the install check
-  passes on both platforms.
+  v0.1.0 was published directly by the Cursor integration at the owner's
+  request, outside the workflow, then withdrawn (D-2026-11-12-02). The first release is
+  v0.1.1. Release protections are enabled. Recorded `verified` after the owner
+  publishes v0.1.1 and the install check passes on both platforms.
 
 ### 007 — Upstream-format conformance [status: verified]
 
@@ -529,4 +541,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.4.4 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
+**Version**: 1.4.5 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12

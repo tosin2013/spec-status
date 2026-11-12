@@ -30,11 +30,11 @@ A file name does not prove the bytes match that template. A missing roadmap stop
 
 ## Quick start
 
-Install the `v0.1.0` release binary. You do not need Go, a git checkout, or root. This block is Linux x86-64. The other archives are under [Install](#install). Only the linux/amd64 archive was executed for this release. The others are cross-compiled and were not run.
+Install a release binary. You do not need Go, a git checkout, or root. The first release is `v0.1.1`; check [Releases](https://github.com/tosin2013/spec-status/releases) for the latest. This block is Linux x86-64; macOS on Apple silicon uses `darwin_arm64` and `shasum -a 256 -c`. See [Install](#install) for details.
 
 ```sh
-V=0.1.0
-OS_ARCH=linux_amd64
+V=0.1.1
+OS_ARCH=linux_amd64          # or darwin_arm64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
 curl -fLO "$base/spec_${V}_checksums.txt"
@@ -58,7 +58,7 @@ spec status --color=never --human-review --explain
 If you have Go 1.26 or newer and would rather build it yourself:
 
 ```sh
-CGO_ENABLED=0 go install github.com/tosin2013/spec-status/cmd/spec@v0.1.0
+CGO_ENABLED=0 go install github.com/tosin2013/spec-status/cmd/spec@v0.1.1
 ```
 
 That binary reports `label: module build`, not `label: release build`. A checkout build is in [Build from source](#build-from-source).
@@ -180,7 +180,7 @@ Fail the build when the roadmap has an error-level finding, such as a dependency
 
 ```yaml
 # GitHub Actions steps, after actions/setup-go with Go 1.26+
-- run: go install github.com/tosin2013/spec-status/cmd/spec@v0.1.0
+- run: go install github.com/tosin2013/spec-status/cmd/spec@v0.1.1
 - run: spec status --color=never --fail-on error
 ```
 
@@ -200,21 +200,20 @@ spec status --json | jq '.summary | {active_items, verified_active_items, blocke
 
 ## Install
 
-Release `v0.1.0` is published on [GitHub Releases](https://github.com/tosin2013/spec-status/releases/tag/v0.1.0). Each archive has a SHA-256 line in `spec_0.1.0_checksums.txt`. The checksum shows the bytes match the file that was uploaded. It does not prove who published it, and the binaries are not signed.
+Releases are published on [GitHub Releases](https://github.com/tosin2013/spec-status/releases) by the [release workflow](.github/workflows/release.yml). Each release has one archive per supported platform and a SHA-256 checksum file. Every archive is smoke-tested on its own platform before the owner publishes the release.
 
-| Archive | How v0.1.0 was produced |
+| Platform | Archive |
 |---|---|
-| `spec_0.1.0_linux_amd64.tar.gz` | Built and executed on linux/amd64 |
-| `spec_0.1.0_linux_arm64.tar.gz` | Cross-compiled on linux/amd64. Not executed |
-| `spec_0.1.0_darwin_amd64.tar.gz` | Cross-compiled on linux/amd64. Not executed |
-| `spec_0.1.0_darwin_arm64.tar.gz` | Cross-compiled on linux/amd64. Not executed |
-| `spec_0.1.0_windows_amd64.zip` | Cross-compiled on linux/amd64. Not executed. The program inside is `spec.exe` |
+| Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` |
+| macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` |
 
-You need neither root nor Go. Pick `OS_ARCH` from the table (`linux_amd64`, `linux_arm64`, `darwin_amd64`, or `darwin_arm64`). Windows is the zip in the table, not this tar command.
+The first release is `v0.1.1`. Version `v0.1.0` was published directly rather than through the release workflow, with untested archives that included unsupported platforms. It was withdrawn and should not be used (decision D-2026-11-12-02).
+
+You need neither root nor Go. Replace the version as needed:
 
 ```sh
-V=0.1.0
-OS_ARCH=linux_amd64
+V=0.1.1
+OS_ARCH=linux_amd64          # or darwin_arm64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
 curl -fLO "$base/spec_${V}_checksums.txt"
@@ -228,9 +227,8 @@ Make sure `~/.local/bin`, or whichever directory you chose, is on your `PATH`. T
 
 - **Upgrade or roll back:** repeat the same steps with another version. Published releases stay downloadable, and their files are never replaced; a fix ships as a new version.
 - **macOS:** the binaries are not signed or notarized. Files downloaded with `curl` run directly. If you download with a browser, macOS quarantines the file and blocks the first run. Clear it for that one file with `xattr -d com.apple.quarantine ~/.local/bin/spec`. Don't disable Gatekeeper.
-- **Windows:** download `spec_0.1.0_windows_amd64.zip`, check it against the same checksum file, and run `spec.exe`. That archive was not executed here.
-- **linux/arm64, darwin/amd64, and darwin/arm64** archives are published and were not executed for v0.1.0. A platform is not a tested target until a binary for it has been run.
-- **With Go 1.26 or newer:** `go install github.com/tosin2013/spec-status/cmd/spec@v0.1.0`. Your own toolchain builds this binary from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
+- **Other platforms** (for example Windows, linux/arm64 or Intel Macs) have no release archive. Building from source or using `go install` may work there, but it is untested and unsupported.
+- **With Go 1.26 or newer:** `go install github.com/tosin2013/spec-status/cmd/spec@v0.1.1`. Your own toolchain builds this binary from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
 - **Compatibility before 1.0:** a minor version (0.x.0) may change command flags, exit codes or the JSON schema, and the release notes list every such change. Patch versions (0.x.y) don't break compatibility. The JSON schema has its own version, currently 1.0.
 
 Maintainers: the release steps are in [RELEASING.md](RELEASING.md).
