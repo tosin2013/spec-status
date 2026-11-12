@@ -31,10 +31,10 @@ A file name does not prove the bytes match that template. A missing roadmap stop
 
 ## Quick start
 
-Install a release binary. You do not need Go, a git checkout, or root. The first release is `v0.1.1`; check [Releases](https://github.com/tosin2013/spec-status/releases) for the latest. This block is Linux x86-64; macOS on Apple silicon uses `darwin_arm64` and `shasum -a 256 -c`. See [Install](#install) for details.
+Install a release binary. You do not need Go, a git checkout, or root. The first release is `v0.1.2`; check [Releases](https://github.com/tosin2013/spec-status/releases) for the latest. This block is Linux x86-64; macOS on Apple silicon uses `darwin_arm64` and `shasum -a 256 -c`. See [Install](#install) for details.
 
 ```sh
-V=0.1.1
+V=0.1.2
 OS_ARCH=linux_amd64          # or darwin_arm64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
@@ -59,7 +59,7 @@ spec status --color=never --human-review --explain
 If you have Go 1.26 or newer and would rather build it yourself:
 
 ```sh
-CGO_ENABLED=0 go install github.com/tosin2013/spec-status/cmd/spec@v0.1.1
+CGO_ENABLED=0 go install github.com/tosin2013/spec-status/cmd/spec@v0.1.2
 ```
 
 That binary reports `label: module build`, not `label: release build`. A checkout build is in [Build from source](#build-from-source).
@@ -181,7 +181,7 @@ Fail the build when the roadmap has an error-level finding, such as a dependency
 
 ```yaml
 # GitHub Actions steps, after actions/setup-go with Go 1.26+
-- run: go install github.com/tosin2013/spec-status/cmd/spec@v0.1.1
+- run: go install github.com/tosin2013/spec-status/cmd/spec@v0.1.2
 - run: spec status --color=never --fail-on error
 ```
 
@@ -292,12 +292,12 @@ Releases are published on [GitHub Releases](https://github.com/tosin2013/spec-st
 | Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` |
 | macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` |
 
-The first release is `v0.1.1`. Version `v0.1.0` was published directly rather than through the release workflow, with untested archives that included unsupported platforms. It was withdrawn and should not be used (decision D-2026-11-12-02).
+The first release is `v0.1.2`. Version `v0.1.0` was published directly rather than through the release workflow, with untested archives that included unsupported platforms. It was withdrawn and should not be used (decision D-2026-11-12-02). The `v0.1.1` tag was built by the workflow but never published, because the agent prompt and the `v0.1.0` retraction landed right after it (D-2026-11-12-03).
 
 You need neither root nor Go. Replace the version as needed:
 
 ```sh
-V=0.1.1
+V=0.1.2
 OS_ARCH=linux_amd64          # or darwin_arm64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
@@ -313,7 +313,7 @@ Make sure `~/.local/bin`, or whichever directory you chose, is on your `PATH`. T
 - **Upgrade or roll back:** repeat the same steps with another version. Published releases stay downloadable, and their files are never replaced; a fix ships as a new version.
 - **macOS:** the binaries are not signed or notarized. Files downloaded with `curl` run directly. If you download with a browser, macOS quarantines the file and blocks the first run. Clear it for that one file with `xattr -d com.apple.quarantine ~/.local/bin/spec`. Don't disable Gatekeeper.
 - **Other platforms** (for example Windows, linux/arm64 or Intel Macs) have no release archive. Building from source or using `go install` may work there, but it is untested and unsupported.
-- **With Go 1.26 or newer:** `go install github.com/tosin2013/spec-status/cmd/spec@v0.1.1`. Your own toolchain builds this binary from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
+- **With Go 1.26 or newer:** `go install github.com/tosin2013/spec-status/cmd/spec@v0.1.2`. Your own toolchain builds this binary from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
 - **Compatibility before 1.0:** a minor version (0.x.0) may change command flags, exit codes or the JSON schema, and the release notes list every such change. Patch versions (0.x.y) don't break compatibility. The JSON schema has its own version, currently 1.0.
 
 Maintainers: the release steps are in [RELEASING.md](RELEASING.md).
