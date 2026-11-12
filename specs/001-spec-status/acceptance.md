@@ -1,6 +1,6 @@
 # Acceptance and test strategy — documentation-stage plan
 
-**Product tests have been run by the implementer; they are not independent verification.** The cases below are PROFILE-R1 acceptance cases; the decisions they waited on were approved as built (DC-03: D-2026-11-07-03; DC-01, DC-02, DC-04–DC-08: D-2026-11-11-02), except DC-08's mirror expectations and release-engineering choices, which remain open. Documentation checks alone cannot establish parser correctness, safe reads, runtime behavior or release readiness. “Pass” is not recorded anywhere in this test plan.
+**Product tests have been run by the implementer; they are not independent verification.** The cases below are PROFILE-R1 acceptance cases; the decisions they waited on were approved as built (DC-03: D-2026-11-07-03; DC-01, DC-02, DC-04–DC-08: D-2026-11-11-02), DC-08 hosting: D-2026-11-11-03), except release-engineering choices, which remain open. Documentation checks alone cannot establish parser correctness, safe reads, runtime behavior or release readiness. “Pass” is not recorded anywhere in this test plan.
 
 ## Test levels and evidence
 
