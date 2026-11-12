@@ -17,7 +17,7 @@ Phase 0 for [spec.md](spec.md). Each item records the decision, the reason, and 
 ## R3. Licenses and attribution
 
 - **Decision**: Copy Spec Kit templates with its MIT license (`Copyright GitHub, Inc.`, from the package's `licenses/LICENSE`), and speckit-roadmap templates with its Apache-2.0 license, each with a NOTICE naming the source, pin, and copied files.
-- **Rationale**: Both licenses allow copying with attribution; this matches how `testdata/speckit-roadmap-upstream` is already handled. It also keeps public docs from implying a license for this project, which remains unselected (DC-08).
+- **Rationale**: Both licenses allow copying with attribution; this matches how `testdata/speckit-roadmap-upstream` is already handled. It also kept public docs from implying a license for this project, which was unselected at the time (DC-08); the owner later chose Apache-2.0 (D-2026-11-11-02).
 - **Alternatives considered**: Referencing templates by URL only (the tests would then need the network or a cache, which constitution Article II forbids at runtime and makes tests non-hermetic).
 
 ## R4. Where the drift check lives

@@ -6,7 +6,7 @@ Sequence is a proposal, not a delivery commitment. “Parallel” below means lo
 
 ## Implementation record — 7 November 2026
 
-Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01–08. The development CLI uses those documents as reversible defaults, recorded in decisions.md.
+Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01–08. The development CLI used those documents as reversible defaults, recorded in decisions.md. On 11 November 2026 the owner approved PROFILE-R1 as built and closed DC-01–DC-08, except DC-08's mirror or Bitbucket expectations (D-2026-11-11-02); changing those defaults now needs a recorded decision.
 
 | Area | State | Evidence |
 |---|---|---|
@@ -34,11 +34,14 @@ Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01
 | In-repo unit, integration, and adversarial filesystem tests | Executed by the implementer | `CGO_ENABLED=0 go test ./...` on Linux amd64, Go 1.22.2, and on Darwin arm64, Go 1.24.3. Darwin needed a per-OS termios ioctl (`TIOCGETA`) and now runs the FIFO test. Not an independent review and not a support claim. |
 | Spec Kit scaffolding and roadmap extension | Development tooling only | `.specify/templates`, `scripts`, `workflows`, and `extensions/roadmap` (speckit-roadmap v0.1.0, manifest script names renamed to pass specify-cli 1.2.0 validation). The `spec` CLI does not read or require them. `.claude/` is ignored. |
 | Cold-start sample | Measured by the implementer on one host | Nine runs of 100 items and 10,000 tasks, median about 3.9 ms. Not a support claim. |
-| TASK-17–21 release, tags, signing, support matrix | Not started | No workflow, tag, or published binary. |
+| Contract approval (Gate 0, TASK-01–06) | Owner-approved as built | DC-03 on 7 November 2026 (D-2026-11-07-03); DC-08 dogfood inputs (D-2026-11-07-08); the rest of DC-01, DC-02, DC-04–DC-07 and DC-08's license, security route and support window on 11 November 2026 (D-2026-11-11-02), after implementation. Open: DC-08 mirror or Bitbucket expectations. TASK-05's independent toolchain and security review has not been done. Approval is not independent verification. |
+| TASK-17–21 release, tags, signing, support matrix | TASK-17 decisions partly recorded; release work not started | D-2026-11-11-02 chose linux/amd64 and darwin/arm64 as v1 targets (each advertised only after a real runner proves it), checksum-only GitHub Release archives with no signing in v1, Apache-2.0, GitHub private vulnerability reporting, and latest-release-only best-effort support. Toolchain version, runners, pins, workflow and mirror expectations are open. No workflow, tag, or published binary. |
 | TASK-22–23 phase-two writes and deferred products | Not started | No write command. |
 | Real approved roadmaps (AC-24) | Hand-count parity observed by the implementer | Inputs approved under D-2026-11-07-08. This repository's roadmap: 6 items, 4 active, 0/4 recorded verified, 2 active blockers, 1 task file with 0 checkboxes. speckit-roadmap v0.1.0: 7 items, 6 active, 4/6 recorded verified, 2 active blockers, 43/43 checked tasks in 4 files. Both match `spec status` text and JSON. Counted by the implementer on 7 November 2026; not an independent review. Recounted on 9 November 2026 at roadmap 1.3.4: 8 items, 6 active, 2/6 recorded verified, 1 active blocker, 30/30 checked tasks in 2 files; the upstream fixture is unchanged. Both still match. Roadmap 1.3.4 is frozen as the hand-counted fixture `testdata/conformance/this-repo-1.3.4`. The owner confirmed the dogfood done on 11 November 2026 (D-2026-11-11-01). |
 
 ## Gate 0 — approve the contract before coding
+
+Recorded after implementation had begun: DC-03 on 7 November 2026 (D-2026-11-07-03), the DC-08 dogfood inputs (D-2026-11-07-08), and the remaining DC-01–DC-08 choices on 11 November 2026 (D-2026-11-11-02), all approved as built. DC-08's mirror or Bitbucket expectations remain open.
 
 | ID | Depends on | Future work / completion evidence | Acceptance mapping |
 |---|---|---|---|
@@ -61,7 +64,7 @@ Owner authorized starting the software. That did not approve PROFILE-R1 or DC-01
 | TASK-12 | TASK-09, TASK-11 | Implement dependency direct-blocker/cycle/human-review/contradiction results using original references and approved scope/count rules. | AC-08, AC-11–12 |
 | TASK-13 | TASK-10–12 | Implement raw/active/verified/task metrics and coverage; invalid/empty/weighted/shared-file cases explicit. | AC-03, AC-09–12 |
 | TASK-14 | TASK-04, TASK-13 | Implement common result rendering, text/JSON schema, canonical order/rounding/redaction and threshold exits/fatal envelopes; no independent AI mode. | AC-17–19 |
-| TASK-15 | TASK-08, TASK-14 | End-to-end safety/no-side-effect and compatibility fixtures across candidate targets; bounded fuzz/adversarial cases, document residual limits. | AC-01–19 |
+| TASK-15 | TASK-08, TASK-14 | End-to-end safety/no-side-effect and compatibility fixtures across the chosen v1 targets (D-2026-11-11-02); bounded fuzz/adversarial cases, document residual limits. | AC-01–19 |
 | TASK-16 | TASK-15 | Run disclosed cold-start benchmark and approved two-roadmap hand-count dogfood; record observed outcomes and limitations rather than target claims. | AC-20, AC-24 |
 
 TASK-10 and TASK-11 may be independent after parser/safety APIs stabilize; they must reconverge before metrics/rendering. All graph work remains bounded; no “quick” bypass of safe reads to unblock development.

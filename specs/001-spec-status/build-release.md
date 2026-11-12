@@ -1,10 +1,10 @@
 # Build, release and distribution requirements
 
-**Release requirements remain a draft.** A development CLI and implementer-run tests now exist in the repository. No workflow, tag, release, published binary, artifact manifest, or supported-platform claim exists. Candidate support and identity details are PROFILE-R1 proposals under DC-05–08, not owner-ratified release settings.
+**Release requirements remain a draft.** A development CLI and implementer-run tests now exist in the repository. No workflow, tag, release, published binary, artifact manifest, or supported-platform claim exists. On 11 November 2026 the owner chose the v1 targets, checksum-only integrity, the Apache-2.0 license, the security reporting route and the support window (DC-07, DC-08, D-2026-11-11-02). The Go toolchain version, CI runners, the release workflow and DC-08's mirror expectations remain open.
 
 ## Identity and compatibility
 
-Retained requirements: CLI SemVer tags `vX.Y.Z`; supported roadmap input v0.1.1 is independent, not lockstep; JSON schema is versioned independently (candidate 1.0). Version output identifies CLI version, tagged commit, exact Go version and target platform; untagged/development builds plainly dev. Describe CLI/JSON breaking-change policy, roadmap dialect/extension/limitations and platform coverage for each release.
+Retained requirements: CLI SemVer tags `vX.Y.Z`; supported roadmap input v0.1.1 is independent, not lockstep; JSON schema is versioned independently (1.0, D-2026-11-11-02). Version output identifies CLI version, tagged commit, exact Go version and target platform; untagged/development builds plainly dev. Describe CLI/JSON breaking-change policy, roadmap dialect/extension/limitations and platform coverage for each release.
 
 Candidate metadata policy should record tag, commit, Go/GOOS/GOARCH and build settings; controlled trimpath/VCS stamping and reproducibility limits are proposed refinements to approve. An installed version label alone is not proof of origin. Signed provenance/attestations require separate implementation and verification, not aspirational README language.
 
@@ -21,21 +21,21 @@ Candidate metadata policy should record tag, commit, Go/GOOS/GOARCH and build se
 
 This is a desired workflow contract, not executable CI configuration or authorization to run publication. Installation and status never invoke GitHub Actions, Git, the extension or an agent.
 
-## Platform alternatives — unresolved
+## Platform targets — chosen 11 November 2026 (D-2026-11-11-02)
 
-| Candidate | Status / decision tradeoff |
+| Option | Status / decision tradeoff |
 |---|---|
-| Linux/macOS/Windows × amd64/arm64 | Original six-target aspiration, not a support promise or test result |
-| linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64 | Earlier five-target suggestion; not tested/approved |
-| linux/amd64 + darwin/arm64 | Recommended small initial PROFILE-R1 only after actual runner/startup evidence; Windows not advertised supported |
+| Linux/macOS/Windows × amd64/arm64 | Original six-target aspiration; not chosen for v1 |
+| linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64 | Earlier five-target suggestion; not chosen for v1 (linux/arm64 and Windows rejected as v1 targets, D-2026-11-11-02) |
+| linux/amd64 + darwin/arm64 | Chosen v1 targets (D-2026-11-11-02). Each is advertised only after a real runner proves it; neither is proven yet. Windows not advertised supported |
 
-Owner chooses supported OS minimums, test coverage, security/support window, static-linking exceptions and macOS signing/quarantine caveats. A compatibility note must clearly say untested/unavailable, not imply “works on Windows.” Requirements for all advertised targets remain the same regardless of chosen count. No OS/architecture is claimed supported in the current README.
+Support window: only the latest release is supported, best effort, with no response-time promise (DC-08, D-2026-11-11-02). The owner still chooses supported OS minimums, test coverage, static-linking exceptions and macOS signing/quarantine caveats. A compatibility note must clearly say untested/unavailable, not imply “works on Windows.” Requirements for all advertised targets remain the same regardless of chosen count. No OS/architecture is claimed supported in the current README.
 
 ## Integrity versus identity
 
 - SHA-256 verifies asset consistency relative to the manifest received. If manifest and binary are maliciously replaced together, this alone does not authenticate the publisher.
 - Tag/commit/version checks improve traceability but do not automatically establish independently verified publisher identity or code correctness.
-- PROFILE-R1 recommends truthful unsigned-checksum-only initial policy, with limitations prominently stated; owner may instead require signing/attestation as a pre-release gate. No choice has been made here.
+- The owner chose truthful unsigned checksum-only integrity for v1, with limitations prominently stated; signing and attestations are not part of v1 (DC-07, D-2026-11-11-02). Adding them later is a separate owner decision.
 - Do not claim signed binaries, trusted provenance, bit-reproducible builds, supply-chain certification or a security audit unless the exact mechanism is implemented and validated. Repeated-build byte comparison and external verification, if adopted, need their own evidence.
 
 ## End-user distribution requirements (future documentation, not current install commands)
@@ -48,6 +48,6 @@ First stable tag follows explicitly owner-approved tested RC. Archive contents, 
 
 ## Public availability gates
 
-Public documentation targets [tosin2013/spec-status](https://github.com/tosin2013/spec-status); repository establishment occurred separately from this package. Public code/release readiness still requires explicit license selection, confirmed release configuration, security disclosure route, support window, fixture privacy review and owner publication approval. A public repository is not itself a license grant. Host-independent build/runtime and optional fork/Bitbucket expectations remain DC-08 proposals, not implemented mirrors or extra release channels.
+Public documentation targets [tosin2013/spec-status](https://github.com/tosin2013/spec-status); repository establishment occurred separately from this package. The license is Apache-2.0 (`LICENSE`); security reports go through GitHub private vulnerability reporting (`SECURITY.md`); only the latest release is supported, best effort (DC-08, D-2026-11-11-02). Release readiness still requires confirmed release configuration, fixture privacy review and owner publication approval. Host-independent build/runtime and optional fork/Bitbucket expectations remain open under DC-08; there are no mirrors or extra release channels.
 
 Performance (<100 ms cold median on disclosed fixture) and build effort are not measured today. Neither a one-day aspiration nor an earlier unvalidated planning range is a release schedule. See acceptance AC-20–24 and future TASK-17–21; all are unstarted.

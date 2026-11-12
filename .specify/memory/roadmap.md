@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.7 → 1.3.8
+Bump rationale: PATCH — wording: 002 notes record D-2026-11-11-02.
+
+Changes this revision:
+  - 002 notes: DC-01–DC-08 decisions recorded; status unchanged until the
+    contracts are reconciled
+
+Specs affected: none
+Open questions added/resolved: none
+
+Previous revision (1.3.7, 2026-11-11):
 Version change: 1.3.6 → 1.3.7
 Bump rationale: PATCH — status transition.
 
@@ -243,9 +254,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Depends on:** none
 - **Governed by:** C-01, C-03, C-05
 - **Notes:** Approved on 2026-11-07: one DC-01 refinement (speckit-roadmap field
-  spelling), all of DC-03 (C-07), and the DC-08 dogfood inputs. Still open: the
-  rest of DC-01, DC-02, DC-04–DC-07, and DC-08's license, security route and
-  support window.
+  spelling), all of DC-03 (C-07), and the DC-08 dogfood inputs. Approved on
+  2026-11-11 (D-2026-11-11-02): the rest of DC-01, DC-02, DC-04–DC-06 as built;
+  DC-07 linux/amd64 and darwin/arm64 with checksum-only archives; DC-08
+  Apache-2.0, GitHub private vulnerability reporting, latest release only.
+  Still open: DC-08 mirror expectations, and reconciling the contracts with
+  these decisions.
 
 ### 008 — Two-mode roadmap and feature inventory [status: needs-info]
 
@@ -378,4 +392,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.7 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
+**Version**: 1.3.8 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
