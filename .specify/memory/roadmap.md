@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.9 → 1.4.0
+Bump rationale: MINOR — new item 009.
+
+Changes this revision:
+  - Added 009 Dependency update automation (specced, specs/003-dependency-updates)
+  - 004: depends on 009; notes updated for the DC-07/DC-08 decisions
+
+Specs affected: 003-dependency-updates (new)
+Open questions added/resolved: none
+
+Previous revision (1.3.9, 2026-11-11):
 Version change: 1.3.8 → 1.3.9
 Bump rationale: PATCH — status transition.
 
@@ -320,6 +331,27 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   2026-11-11 ({D}); counts are the implementer's, not an independent
   review. Links `specs/001-spec-status`, where TASK-16 and AC-24 live.
 
+### 009 — Dependency update automation [status: specced]
+
+- **Description:** Dependabot for Go modules and workflow components (security
+  fixes on advisory, one weekly grouped minor/patch proposal, majors separate),
+  a pull-request and main check (tests on linux/amd64 and darwin/arm64, go vet,
+  govulncheck), a merge rule under the dependency allowlist, and a SECURITY.md
+  dependency section.
+- **Outcome:** Every pull request is tested before merge, vulnerable dependencies
+  are reported and fix proposals arrive tested, and automated updates cannot
+  add third-party modules without a recorded owner decision.
+- **Scope (in):** update configuration, test check, merge rule (D-2026-11-11-04),
+  SECURITY.md, CONTRIBUTING.md, README and build-release.md wording.
+- **Scope (out):** release, tag and publication workflows; toolchain selection;
+  signing; automatic merging.
+- **Depends on:** 002
+- **Governed by:** C-01, C-06
+- **Spec dir:** specs/003-dependency-updates
+- **Notes:** Owner choices of 2026-11-11. Dependabot alerts and automatic
+  security fixes were enabled in repository settings the same day. No change
+  to the `spec` binary.
+
 ### 004 — Release engineering [status: needs-info]
 
 - **Description:** TASK-17–21: support matrix, pinned toolchain,
@@ -331,10 +363,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   disclosure choices.
 - **Scope (out):** signing or provenance unless separately approved; package
   managers.
-- **Depends on:** 002, 003
+- **Depends on:** 002, 003, 009
 - **Governed by:** C-06
-- **Notes:** Blocked on DC-07 (targets, runners, identity policy) and on a license
-  choice; no license is selected today.
+- **Notes:** DC-07 and DC-08 are decided (D-2026-11-11-02, D-2026-11-11-03):
+  linux/amd64 and darwin/arm64, checksum-only archives, Apache-2.0. Open: the
+  toolchain version, runner evidence and the release workflow. Reuses the test
+  check from 009.
 
 ### 007 — Upstream-format conformance [status: verified]
 
@@ -407,4 +441,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.9 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
+**Version**: 1.4.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11

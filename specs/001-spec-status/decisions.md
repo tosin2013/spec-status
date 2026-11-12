@@ -137,4 +137,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-11-03 | Owner, 11 November 2026 | Closes the last open DC-08 point. GitHub (`tosin2013/spec-status`) is the only repository home and release channel; no mirror or Bitbucket copy. The repository adds `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1, enforcement contact tosin.akinosho@gmail.com) | A Bitbucket or other mirror; extra release channels |
 
+## Recorded decision — dependency update policy, 11 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-11-04 | Owner, 11 November 2026 | Dependency proposals (feature 003, roadmap item 009): a proposal that only changes versions of modules already in `go.mod` may merge after the CI check passes and the owner approves the pull request. A proposal that adds any module not already in `go.mod` (direct or indirect) or changes the minimum Go version must not merge until an owner decision naming the change is recorded here. Updates: Dependabot security fixes on advisory plus one weekly grouped minor/patch proposal for Go modules and one for workflow components, majors separate. CI: tests on linux/amd64 and darwin/arm64, go vet, govulncheck, on pull requests and `main`. Dependabot alerts and automatic security fixes enabled 11 November 2026. No constitution amendment: Art. II limits which modules are imported, and new modules stay behind this rule | A decision entry for every bump; security-only or monthly updates; tests-only CI; automatic merging |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.
