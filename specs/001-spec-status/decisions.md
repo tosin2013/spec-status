@@ -173,4 +173,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-12-03 | Owner, 12 November 2026 | The `v0.1.1` tag (`a2c5dd2`, the merge of PR #39) was built, smoke-tested and drafted by the release workflow (run 43159089291), but it came before PR #40, which added the AI-agent prompt (README, release notes) and `retract v0.1.0` in `go.mod`. The `spec` code is identical. The unpublished `v0.1.1` draft is deleted, and its tag stays and is never reused. The first published release is `v0.1.2`, tagged by the owner on `main` after this record merges | Publishing v0.1.1 with the prompt added to its notes by hand; publishing v0.1.1 as is |
 
+## Recorded decision — agent skills extension, 12 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-12-04 | Owner, 12 November 2026 | Roadmap item 012, targeting v0.2.0. **Packaging:** a Spec Kit extension (id `spec-status`, tracked in this repository), installed with Spec Kit's extension mechanism. Its commands render as agent skills. **First set:** review (entry point), explain, reconcile (status vs tasks and evidence mismatches), unblock, verify-readiness. They link to each other and to the Spec Kit and roadmap commands. **Writes:** read-only by default. A change is proposed and applied only through Spec Kit commands (for example `/speckit.roadmap.write`) after the user approves each change (Art. VIII, C-06). **Timing:** specify now; implement after v0.1.2 is closed out. The `spec` binary does not change | Plain skill files outside Spec Kit; strictly read-only skills; including install, CI-setup and issue-reporting skills in the first set; deferring the spec |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.
