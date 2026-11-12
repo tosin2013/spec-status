@@ -35,7 +35,7 @@ func sectionBody(text, heading string) string {
 	lines := strings.Split(text, "\n")
 	start := -1
 	for i, l := range lines {
-		if strings.TrimSpace(l) == "## "+heading {
+		if h, ok := level2Heading(l); ok && h == heading {
 			start = i + 1
 			break
 		}
@@ -45,12 +45,22 @@ func sectionBody(text, heading string) string {
 	}
 	var out []string
 	for _, l := range lines[start:] {
-		if strings.HasPrefix(l, "## ") {
+		if _, ok := level2Heading(l); ok {
 			break
 		}
 		out = append(out, l)
 	}
 	return strings.Join(out, "\n")
+}
+
+// level2Heading reports whether line is a Markdown "## " heading, which may be
+// indented by up to three spaces, and returns its text.
+func level2Heading(line string) (string, bool) {
+	trimmed := strings.TrimLeft(line, " ")
+	if len(line)-len(trimmed) > 3 || !strings.HasPrefix(trimmed, "## ") {
+		return "", false
+	}
+	return strings.TrimSpace(strings.TrimPrefix(trimmed, "## ")), true
 }
 
 // splitRow splits a Markdown table row into trimmed cells.
