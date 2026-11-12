@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.4.3 → 1.4.4
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 004 status: specced → implemented (PR #33; v0.1.0-rc.1 run passed)
+
+Specs affected: 004-release-engineering
+Open questions added/resolved: none
+
+Previous revision (1.4.3, 2026-11-12):
 Version change: 1.4.2 → 1.4.3
 Bump rationale: PATCH — status transition and wording (roadmap sync 2026-11-12).
 
@@ -394,7 +404,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   no new modules. Branch protection was offered and remains an owner setting.
   CI runs are CI evidence, not an independent review.
 
-### 004 — Release engineering [status: specced]
+### 004 — Release engineering [status: implemented]
 
 - **Description:** TASK-17–21: support matrix, pinned toolchain,
   test-before-publish tag workflow, archives and checksums, runtime smoke on each
@@ -413,7 +423,11 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** DC-07 and DC-08 are decided (D-2026-11-11-02, D-2026-11-11-03):
   linux/amd64 and darwin/arm64, checksum-only archives, Apache-2.0. Minimum Go
   1.26 (D-2026-11-11-05). Release flow, v0.1.0 and channels chosen on
-  2026-11-11 (D-2026-11-11-06). Specced the same day; implementation waits for 009's CI.
+  2026-11-11 (D-2026-11-11-06). Implemented in PR #33. Release candidate
+  v0.1.0-rc.1 (2026-11-12, https://github.com/tosin2013/spec-status/actions/runs/43157383315) passed every job, with
+  smoke tests on both platforms; the draft has 3 assets with verified checksums.
+  Recorded `verified` after the owner publishes v0.1.0 and the install check
+  passes on both platforms.
 
 ### 007 — Upstream-format conformance [status: verified]
 
@@ -515,4 +529,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.4.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
+**Version**: 1.4.4 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
