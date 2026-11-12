@@ -2,6 +2,10 @@ module github.com/tosin2013/spec-status
 
 go 1.26.0
 
+// v0.1.0 was published outside the release workflow and withdrawn
+// (decision D-2026-11-12-02). Use v0.1.1 or later.
+retract v0.1.0
+
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/muesli/termenv v0.16.0
