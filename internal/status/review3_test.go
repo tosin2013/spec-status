@@ -36,10 +36,22 @@ func TestUncheckableTaskLinksAreReported(t *testing.T) { // D4
 			byLine[d.Line] = true
 		}
 	}
-	for _, line := range []int{1, 2, 4} {
+	for _, line := range []int{2, 4} {
 		if !byLine[line] {
 			t.Fatalf("line %d link not reported: %v", line, diagCodesAll(rep))
 		}
+	}
+	// Line 1's label holds a code span. Since code spans are stripped before
+	// links are read (D-2026-11-12-01), it is a normal link to parser.md and is
+	// checked: the missing target is an error, not an unsupported reference.
+	line1Missing := false
+	for _, d := range rep.Diagnostics {
+		if d.Line == 1 && d.Code == "SS_TASK_TARGET_MISSING" && d.Severity == "error" {
+			line1Missing = true
+		}
+	}
+	if !line1Missing || byLine[1] {
+		t.Fatalf("line 1 should be a checked link with a missing target: %v", diagCodesAll(rep))
 	}
 	plain := "- [x] Uses [brackets] as text and [x] marks\n"
 	rep = Evaluate(Option{Root: project(t, oneSpec, map[string]string{"specs/a/tasks.md": plain}), FailOn: "none"})
