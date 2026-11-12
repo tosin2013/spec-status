@@ -1,6 +1,6 @@
 module github.com/tosin2013/spec-status
 
-go 1.22
+go 1.26.0
 
 require (
 	github.com/charmbracelet/lipgloss v1.1.0

@@ -1,0 +1,120 @@
+# Tests, static analysis and vulnerability scanning for pull requests and main.
+# Feature 003 (specs/003-dependency-updates); contract: contracts/ci-workflow.md.
+# This is not a release workflow: it builds no archives, creates no tags and
+# publishes nothing. Passing runs are CI evidence, not release evidence.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, go ${{ matrix.go }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go: ['1.26.x', 'stable']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
+
+      - name: Assert platform
+        shell: bash
+        run: |
+          got="$(go env GOOS GOARCH | tr '\n' ' ' | sed 's/ $//')"
+          case "${{ matrix.os }}" in
+            ubuntu-latest) want="linux amd64" ;;
+            macos-latest)  want="darwin arm64" ;;
+            *)             want="unknown" ;;
+          esac
+          echo "runner ${{ matrix.os }}: $got (want $want); $(go version)"
+          [ "$got" = "$want" ] || { echo "::error::expected $want, got $got"; exit 1; }
+
+      - name: Assert go.mod minimum is Go 1.26
+        shell: bash
+        run: |
+          grep -E '^go 1\.26(\.|$)' go.mod || { echo "::error::go.mod minimum is not 1.26; update the CI matrix and record a decision (D-2026-11-11-04)"; exit 1; }
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        env:
+          CGO_ENABLED: '0'
+        run: go test ./...
+
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+
+  hygiene:
+    name: hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.26.x'
+          check-latest: true
+
+      - name: gofmt
+        shell: bash
+        run: |
+          out="$(gofmt -l .)"
+          [ -z "$out" ] || { echo "::error::files not gofmt-formatted:"; echo "$out"; exit 1; }
+
+      - name: go mod tidy
+        run: go mod tidy -diff
+
+      - name: go mod verify
+        run: go mod verify
+
+      - name: spec status on this repository's roadmap
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          go build -o spec ./cmd/spec
+          ./spec status --color=never --fail-on error
+
+      - name: build windows/amd64 (compile check only, not supported)
+        env:
+          CGO_ENABLED: '0'
+          GOOS: windows
+          GOARCH: amd64
+        run: go build ./...
+
+      - name: build linux/arm64 (compile check only, not supported)
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: arm64
+        run: go build ./...
+
+  dependency-review:
+    name: dependency-review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: low

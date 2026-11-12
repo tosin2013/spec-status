@@ -20,7 +20,7 @@ Feature 003 · roadmap item 009 · 2026-11-11. Facts were checked on this date w
 
 - **Decision**: a matrix with `go-version: ['1.26.x', 'stable']` in `actions/setup-go`, plus one step that fails if `go.mod`'s `go` line does not start with `go 1.26`.
 - **Rationale**:
-  - `1.26.x` resolves to the newest 1.26 patch, so the minimum line is tested with its fixes.
+  - `1.26.x` with `check-latest: true` resolves to the newest 1.26 patch, so the minimum line is tested with its fixes. Without `check-latest`, setup-go uses a matching version already cached on the runner: the first CI run (2026-11-11, run 43150866228) used go1.26.10 when go1.26.11 was current. `check-latest` was added after that run.
   - `stable` follows the newest release with no manual edits.
   - Using `go-version-file: go.mod` instead would read `1.26.0` as an exact version and install an unpatched toolchain.
   - The consistency step keeps the hard-coded `1.26.x` honest when the minimum moves, which needs a decision under D-2026-11-11-04.

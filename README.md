@@ -75,7 +75,11 @@ warning SS_DEPENDENCY_HUMAN_REVIEW
 
 ## Build and run from source
 
-These commands were run in this workspace on Linux amd64 with Go 1.22.2. The tests, build, and the plain and colored status reports were also run on Darwin arm64 with Go 1.24.3:
+Building needs Go 1.26 or newer (decision D-2026-11-11-05). Before that change, these commands were run in this workspace on Linux amd64 with Go 1.22.2 and on Darwin arm64 with Go 1.24.3; after it, the implementer ran the tests on Darwin arm64 with Go 1.26.11.
+
+Continuous integration ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs `go vet`, the tests, and `govulncheck` on every pull request and push to `main`, on linux/amd64 and darwin/arm64 with the newest Go 1.26 patch and the current stable Go. A hygiene job checks formatting, `go.mod`/`go.sum` tidiness and integrity, runs `spec status --fail-on error` on this repository's roadmap, and compiles for windows/amd64 and linux/arm64. Those two builds are compile checks only, not support. Pull requests also get a dependency review. CI is not a release workflow, and its passing runs are not release evidence. Dependabot proposes dependency updates under the rule in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Commands:
 
 ```
 CGO_ENABLED=0 go test ./...

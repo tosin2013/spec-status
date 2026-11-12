@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.4.1 → 1.4.2
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 009 status: specced → implemented (PR #29; CI runs and seeded-fault
+    runs recorded in specs/001-spec-status/tasks.md)
+
+Specs affected: 003-dependency-updates
+Open questions added/resolved: none
+
+Previous revision (1.4.1, 2026-11-11):
 Version change: 1.4.0 → 1.4.1
 Bump rationale: PATCH — status transition and wording.
 
@@ -344,7 +355,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   2026-11-11 ({D}); counts are the implementer's, not an independent
   review. Links `specs/001-spec-status`, where TASK-16 and AC-24 live.
 
-### 009 — Dependency update automation [status: specced]
+### 009 — Dependency update automation [status: implemented]
 
 - **Description:** Dependabot for Go modules and workflow components (security
   fixes on advisory, one weekly grouped minor/patch proposal, majors separate),
@@ -363,7 +374,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Spec dir:** specs/003-dependency-updates
 - **Notes:** Owner choices of 2026-11-11. Dependabot alerts and automatic
   security fixes were enabled in repository settings the same day. No change
-  to the `spec` binary.
+  to the `spec` binary. Implemented in PR #29 (Go 1.26 minimum,
+  D-2026-11-11-05; CodeQL configured). All CI checks pass, and seeded faults
+  failed exactly the expected jobs (implementation record in
+  `specs/001-spec-status/tasks.md`). Recorded implemented, not verified.
 
 ### 004 — Release engineering [status: specced]
 
@@ -482,4 +496,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.4.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
+**Version**: 1.4.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11

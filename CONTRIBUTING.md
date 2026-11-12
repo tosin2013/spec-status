@@ -23,7 +23,7 @@ public issue.
 
 ## Build and test
 
-Always build with `CGO_ENABLED=0`.
+Building needs Go 1.26 or newer (D-2026-11-11-05). Always build with `CGO_ENABLED=0`.
 
 ```sh
 CGO_ENABLED=0 go test ./...
@@ -60,6 +60,23 @@ These come from `.specify/memory/constitution.md` and are enforced by tests.
   regenerate one from `spec` output; count the input yourself and say so in its
   `counted_by` field.
 - Add a test that fails before your change and passes after it.
+
+## Dependency updates
+
+Dependabot proposes Go module and GitHub Actions updates: security fixes as soon as an advisory is published, and one grouped minor/patch proposal per ecosystem each week. Major updates arrive as separate proposals. Every proposal runs CI.
+
+The merge rule (decision D-2026-11-11-04) compares a proposal's `go.mod` with `main`:
+
+| Proposal | Outcome |
+|---|---|
+| Only versions of modules already in `go.mod` change, the `go` line is unchanged, and CI passes | **Merge after review:** the owner approves the pull request |
+| Any module path is added, direct or `// indirect` | **Decision needed:** record a decision naming each new module in `specs/001-spec-status/decisions.md` before merging |
+| The `go` line is raised | **Decision needed** |
+| CI fails | **Do not merge** |
+
+Removing a module needs no decision. A GitHub Actions update is merge after review once CI passes, because actions are not part of the binary. The `dependency-review` check on each pull request lists the modules it adds or changes.
+
+The minimum Go version is 1.26 (D-2026-11-11-05). CI tests the newest 1.26 patch and the current stable release.
 
 ## Pull requests
 
