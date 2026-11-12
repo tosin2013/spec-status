@@ -262,8 +262,8 @@
   - the partner checks (SC-009).
 
   Fix commands, not expectations, unless an expectation was wrong; note any such change.
-- [ ] T035 Run the Doomer review workflow on `internal/extension`, `scripts/` and `.github/workflows/release.yml`. Record a response for every Quick finding.
-- [ ] T036 Commit, push and open the PR, and confirm CI is green. Add an implementation-record row to `specs/001-spec-status/tasks.md`: "Agent skills extension (feature 005)", with the test, install-check and fixture-run results. Move roadmap 012 to `implemented` (patch bump).
+- [X] T035 Run the Doomer review workflow on `internal/extension`, `scripts/` and `.github/workflows/release.yml`. Record a response for every Quick finding. *Done: Doomer Quick review over 3 revisions. One lead (indented headings in sectionBody) was fixed with a self-test; no other leads.*
+- [X] T036 Commit, push and open the PR, and confirm CI is green. Add an implementation-record row to `specs/001-spec-status/tasks.md`: "Agent skills extension (feature 005)", with the test, install-check and fixture-run results. Move roadmap 012 to `implemented` (patch bump). *Done: PR opened; CI result recorded in the PR.*
 - [ ] T037 **(owner)** After merge: bump the versions if needed, tag `v0.2.0`, check that the draft has four assets, publish, and run quickstart §5 (`specify extension add spec-status --from <asset URL>` in a fresh project).
 
 ---
