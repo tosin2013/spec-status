@@ -1,0 +1,23 @@
+# Dependency update proposals. Feature 003; contract: specs/003-dependency-updates/contracts/dependabot.md.
+# Security updates are a repository setting (enabled 2026-11-11) and are not grouped.
+# Merge rule: CONTRIBUTING.md "Dependency updates" (D-2026-11-11-04).
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      go-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
