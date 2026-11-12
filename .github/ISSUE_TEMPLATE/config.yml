@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/tosin2013/spec-status/security/advisories/new
+    about: Report vulnerabilities privately, not in a public issue. See SECURITY.md.
+  - name: Contributing guide
+    url: https://github.com/tosin2013/spec-status/blob/main/CONTRIBUTING.md
+    about: How to build, test, and propose changes, and the dependency merge rule.

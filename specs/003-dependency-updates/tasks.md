@@ -176,7 +176,7 @@ All paths are relative to the repository root. New files go under `.github/`. Pr
   2. Misformat a file: only `hygiene` fails.
   3. Break a roadmap field: only `hygiene` fails, showing the diagnostic.
 - [X] T025 Update `.specify/memory/roadmap.md`: 009 becomes `implemented`, and its notes cite the PR and run URLs. Item 004's notes say that the CI check exists and the minimum Go version is decided. Bump the patch version with a sync note.
-- [ ] T026 Offer the owner the optional branch-protection step (quickstart §4), which requires the CI checks before merging to `main`. Do not apply it without explicit approval.
+- [X] T026 Offer the owner the optional branch-protection step (quickstart §4), which requires the CI checks before merging to `main`. Do not apply it without explicit approval. *Offered 2026-11-11 and 2026-11-12; not applied, and it stays an owner setting (D-2026-11-12-01).*
 
 ---
 

@@ -1,0 +1,49 @@
+name: Feature request
+description: Suggest new behavior, a new input shape, or an output change.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        `spec status` is deliberately narrow. It is read-only, offline, deterministic, and reads only pinned upstream Spec Kit shapes. It never infers quarters or dates. A change to a contract (flags, exit codes, JSON schema, diagnostics, supported input) needs a recorded owner decision, so describe the problem first, not only the solution.
+
+        The current plan is in the [roadmap](https://github.com/tosin2013/spec-status/blob/main/.specify/memory/roadmap.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What would you like spec status to do? Include example input and output if you can.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Roadmap or tasks input (new shape or field)
+        - Human text output
+        - JSON output
+        - Diagnostics or exit codes
+        - Installation or releases
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: roadmap
+    attributes:
+      label: Related roadmap item
+      description: For example, 008 (two-mode roadmap and feature inventory), or "none".
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      options:
+        - label: This does not need network access, writes, subprocesses, or telemetry at runtime.
+        - label: This does not ask spec status to infer dates, estimates, or quarters.
