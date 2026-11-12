@@ -10,24 +10,30 @@ You are helping me review this repository's Spec Kit roadmap with spec-status
 (https://github.com/tosin2013/spec-status), a read-only CLI.
 
 STEP 1 - INSTALL (ask me before running any install command)
-- If `spec version` already works and its label is "release build" or
-  "module build", skip to step 2.
+- If `spec version` already works and its "label:" line starts with
+  "release build" or "module build", show me its version and ask whether to
+  upgrade; otherwise skip to step 2.
 - Platform: Linux x86-64 -> linux_amd64. macOS Apple silicon -> darwin_arm64.
   Anything else has no release archive: stop and tell me. If I have Go 1.26+,
   offer: go install github.com/tosin2013/spec-status/cmd/spec@latest
 - Latest version (without the leading v):
   V=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/tosin2013/spec-status/releases/latest | sed 's#.*/tag/v##')
-- Download spec_${V}_<platform>.tar.gz and spec_${V}_checksums.txt from
+- Work in a new empty temporary directory (cd "$(mktemp -d)"). Download
+  spec_${V}_<platform>.tar.gz and spec_${V}_checksums.txt into it from
   https://github.com/tosin2013/spec-status/releases/download/v${V}/
-- Verify: sha256sum -c --ignore-missing spec_${V}_checksums.txt
-  (macOS: shasum -a 256 -c --ignore-missing spec_${V}_checksums.txt).
-  If verification fails, stop and tell me. Do not run the binary.
+  using curl -fLO (fail on HTTP errors).
+- Verify in that directory:
+    sha256sum -c --ignore-missing spec_${V}_checksums.txt
+    (macOS: shasum -a 256 -c --ignore-missing spec_${V}_checksums.txt)
+  It must exit 0 AND print "spec_${V}_<platform>.tar.gz: OK". If not, stop
+  and tell me. Do not run the binary.
 - Extract, then move spec into ~/.local/bin (create it if needed). No sudo.
   Tell me if ~/.local/bin is not on my PATH.
 - Run `spec version` and show me the output.
 
 STEP 2 - REVIEW THE ROADMAP
-- From the repository root, run:
+- Go back to the repository root (where you started, not the temporary
+  directory) and run:
     spec status --json
     spec status --color=never --explain
 - Exit 2 means the roadmap could not be read (for example
