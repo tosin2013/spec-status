@@ -415,7 +415,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Outcome:** The README sample cannot drift from real output unnoticed.
 - **Scope (in):** the human-text and JSON samples in README.md.
 - **Scope (out):** other documentation checks.
-- **Depends on:** 001
+- **Depends on:** 999
 - **Governed by:** C-01
 - **Notes:** Deferred from feature 003 by the owner on 2026-11-11.
 
