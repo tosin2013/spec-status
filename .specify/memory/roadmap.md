@@ -1,6 +1,18 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.4.2 → 1.4.3
+Bump rationale: PATCH — status transition and wording (roadmap sync 2026-11-12).
+
+Changes this revision:
+  - 009 status: implemented → verified (D-2026-11-12-01)
+  - Q3, Q4 marked resolved (D-2026-11-11-02, D-2026-11-11-03)
+  - Q5 deferred past v0.1.0 (D-2026-11-12-01)
+
+Specs affected: 003-dependency-updates
+Open questions added/resolved: Q3, Q4 resolved; Q5 deferred
+
+Previous revision (1.4.2, 2026-11-11):
 Version change: 1.4.1 → 1.4.2
 Bump rationale: PATCH — status transition.
 
@@ -355,7 +367,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   2026-11-11 ({D}); counts are the implementer's, not an independent
   review. Links `specs/001-spec-status`, where TASK-16 and AC-24 live.
 
-### 009 — Dependency update automation [status: implemented]
+### 009 — Dependency update automation [status: verified]
 
 - **Description:** Dependabot for Go modules and workflow components (security
   fixes on advisory, one weekly grouped minor/patch proposal, majors separate),
@@ -377,7 +389,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   to the `spec` binary. Implemented in PR #29 (Go 1.26 minimum,
   D-2026-11-11-05; CodeQL configured). All CI checks pass, and seeded faults
   failed exactly the expected jobs (implementation record in
-  `specs/001-spec-status/tasks.md`). Recorded implemented, not verified.
+  `specs/001-spec-status/tasks.md`). Recorded verified on 2026-11-12 (D-2026-11-12-01):
+  Dependabot's first real proposal (PR #31) passed CI and the merge rule with
+  no new modules. Branch protection was offered and remains an owner setting.
+  CI runs are CI evidence, not an independent review.
 
 ### 004 — Release engineering [status: specced]
 
@@ -476,12 +491,16 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   (DC-08)?~~ Resolved 2026-11-07: this repository and speckit-roadmap v0.1.0.
 - ~~**Q2 —** Which lifecycle-file matrix and blocked-count policy should be
   ratified (DC-03)?~~ Resolved 2026-11-07: see C-07.
-- **Q3 —** Initial targets: linux/amd64 + darwin/arm64 only, and on which runners
-  (DC-07)?
-- **Q4 —** License, security disclosure route, and support window (DC-08 / 004).
+- ~~**Q3 —** Initial targets: linux/amd64 + darwin/arm64 only, and on which
+  runners (DC-07)?~~ Resolved 2026-11-11 (D-2026-11-11-02): linux/amd64 and
+  darwin/arm64, each advertised after a real runner proves it.
+- ~~**Q4 —** License, security disclosure route, and support window (DC-08 /
+  004).~~ Resolved 2026-11-11 (D-2026-11-11-02, D-2026-11-11-03): Apache-2.0,
+  GitHub private vulnerability reporting, latest release only.
 - **Q5 —** Should the speckit-roadmap annotated dependency style
   (`003-brief (verified)`) gain any further support, or stay a visible
-  SS_DEPENDENCY_MALFORMED finding?
+  SS_DEPENDENCY_MALFORMED finding? Deferred past v0.1.0 on 2026-11-12 (D-2026-11-12-01);
+  the visible finding stays.
 
 - **Q6 —** For 008: command names and flags, default mode, how a template
   version is identified, feature-folder and checkbox rules, inventory JSON
@@ -496,4 +515,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.4.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
+**Version**: 1.4.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
