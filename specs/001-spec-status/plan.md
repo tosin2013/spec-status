@@ -1,19 +1,19 @@
-# Technical plan — proposed architecture, no implementation
+# Technical plan — architecture design record
 
-**Draft PROFILE-R1.** This file remains the design record. A development implementation now exists beside it and uses these proposals as reversible defaults, not as owner approval. This file contains no executable code.
+**PROFILE-R1.** This file remains the design record. A development implementation exists beside it; the owner approved its PROFILE-R1 choices as built (DC-03: D-2026-11-07-03; the rest of DC-01–DC-08 except DC-08's mirror expectations: D-2026-11-11-02). This file contains no executable code.
 
 ## Architecture and processing boundaries
 
 Propose a small Go standard-library application with logically separate responsibilities, not necessarily a mandated directory tree:
 
-1. **Invocation/configuration:** parse commands and flags with the owner-approved Cobra dependency; establish whether JSON is requested early enough to format invocation errors without mixing Cobra usage text into the JSON envelope; explicit flags over documented defaults, no configuration file in candidate profile. Validate root and threshold without executing anything. Parsing and filesystem code stay outside Cobra.
+1. **Invocation/configuration:** parse commands and flags with the owner-approved Cobra dependency; establish whether JSON is requested early enough to format invocation errors without mixing Cobra usage text into the JSON envelope; explicit flags over documented defaults, no configuration file (DC-04, D-2026-11-11-02). Validate root and threshold without executing anything. Parsing and filesystem code stay outside Cobra.
 2. **Root-confined input boundary:** sole component permitted to inspect filesystem state. Normalize proposed path bases, enforce root/symlink/mount/regular-file and sensitive-name policy before reads, account every byte/file/path/work budget. Return stable categorized errors and source metadata, not raw secret contents or platform exception text.
 3. **Narrow parser:** stream bounded UTF-8 lines/fence state into roadmap occurrences and explicitly linked supported documents. Separate raw strings/source spans from parsed values; no arbitrary Markdown library, AI or semantic parser. Reject unsupported item-like structures that make inventory unreliable. Preserve duplicate occurrences and unknown statuses.
 4. **Graph and structural validation:** build unique-ID lookup plus ambiguity index. Validate dependency and supersession graphs independently with bounded, non-recursive cycle analysis. Record direct links/cycle membership and supersession validity without rewriting input or relationships.
 5. **Progress/result model:** compute active eligibility, raw counts, recorded-verified fraction and unique-file checkbox aggregation. Build blockers/human-review states, file-stage/reference findings and coverage. Use integer counts and deterministic rounding; do not derive dates/effort from order.
-6. **Renderers and exit policy:** one immutable in-memory result to text and candidate JSON 1.0, diagnostics sorted path/line/code plus documented tie-break. Human text may use the owner-approved Lip Gloss dependency for layout, restrained color, and the static summary panel. Human-text filters and `--explain` select or annotate item rows only; the summary, diagnostics, exits, and JSON payload stay on the full result. JSON stays unstyled and keeps raw field text. Threshold only controls exit 0/1, never finding visibility; fatal exit 2 precedes threshold. No output file, cache, spinner, or hidden runtime process. A later roadmap-free inventory, recorded in [two-mode-direction.md](two-mode-direction.md), is a separate mode. It is not implemented, and it must not run as a fallback when a selected roadmap is rejected.
+6. **Renderers and exit policy:** one immutable in-memory result to text and JSON schema 1.0, diagnostics sorted path/line/code plus documented tie-break. Human text may use the owner-approved Lip Gloss dependency for layout, restrained color, and the static summary panel. Human-text filters and `--explain` select or annotate item rows only; the summary, diagnostics, exits, and JSON payload stay on the full result. JSON stays unstyled and keeps raw field text. Threshold only controls exit 0/1, never finding visibility; fatal exit 2 precedes threshold. No output file, cache, spinner, or hidden runtime process. A later roadmap-free inventory, recorded in [two-mode-direction.md](two-mode-direction.md), is a separate mode. It is not implemented, and it must not run as a fallback when a selected roadmap is rejected.
 
-This division makes no API/module-path promises and does not choose a repository layout or license. Documentation for this draft is placed at `.specify/memory/constitution.md` and under `specs/001-spec-status/`. Those directories record the draft and leave the repository root clear for future program code. Go package layout, module path, and license remain unchosen.
+This division makes no API/module-path promises and does not itself choose a repository layout. Documentation for this draft is placed at `.specify/memory/constitution.md` and under `specs/001-spec-status/`. Those directories record the draft and leave the repository root clear for future program code. Go package layout and module path are set by the implementation, not by this plan. The license is Apache-2.0 (D-2026-11-11-02).
 
 ## Core data model — design only
 
@@ -23,7 +23,7 @@ A replacement record separates supplied raw value, parsed ID, validity, invalid 
 
 Task data links counts to source file and coverage; per-item reuse is visible, aggregate unique-file scope explicit. Source absence, excluded unsafe evidence and zero tasks are not interchangeable. Safe source paths are selected-root-relative; unresolved source may be null, not guessed from a private machine path.
 
-Candidate `complete` means structurally interpretable report under declared read scope, not complete project truth or complete evidence verification. Fatal required input makes summary null; optional skips remain visible as findings and coverage. No claim of an atomic repository snapshot.
+`complete` means structurally interpretable report under declared read scope, not complete project truth or complete evidence verification. Fatal required input makes summary null; optional skips remain visible as findings and coverage. No claim of an atomic repository snapshot.
 
 ## Safety design choices that must be settled
 
@@ -49,4 +49,4 @@ The conservative profile trades tolerance for trustworthy reporting: malformed i
 
 ## Delivery boundary
 
-[Tasks](tasks.md) describe future dependency order, all unstarted. [Acceptance](acceptance.md) defines observable gates. [Build/release](build-release.md) describes later controlled automation; this draft creates no workflow. First implementation needs explicit authorization after contract decisions; first stable release needs an owner-approved tested RC and owner-created tag. Package-manager channels and optional phase-two write-back cannot become accidental prerequisites for the standalone core.
+[Tasks](tasks.md) describe dependency order; its Implementation record states what is done. [Acceptance](acceptance.md) defines observable gates. [Build/release](build-release.md) describes later controlled automation; this draft creates no workflow. Implementation was authorized on 7 November 2026 and the contract decisions were recorded as built (D-2026-11-07-03, D-2026-11-11-02); first stable release needs an owner-approved tested RC and owner-created tag. Package-manager channels and optional phase-two write-back cannot become accidental prerequisites for the standalone core.

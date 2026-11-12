@@ -1,6 +1,6 @@
 # Feature specification — deterministic roadmap status
 
-**Draft feature SS-001, proposed specification version 0.1.** This file is the specification, not a release. A development CLI now implements a read-only slice; that code does not ratify the open choices below. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 is pending [DC-01–08](decisions.md); drafting does not ratify it.
+**Feature SS-001, specification version 0.1.** This file is the specification, not a release. A development CLI implements a read-only slice. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 was approved as built: DC-03 on 7 November 2026 (D-2026-11-07-03) and the rest of [DC-01–08](decisions.md) on 11 November 2026 (D-2026-11-11-02), except DC-08's mirror or Bitbucket expectations, which remain open.
 
 ## 1. Product outcome and users
 
@@ -11,7 +11,7 @@ The value is deterministic roadmap reporting, reference integrity and declared-s
 ## 2. Scope and normative language
 
 - **Retained requirement:** source PRD requirement carried forward.
-- **PROFILE-R1:** recommended, internally coherent draft behavior, not approved.
+- **PROFILE-R1:** internally coherent behavior, approved as built (D-2026-11-07-03, D-2026-11-11-02).
 - **Future/deferred:** no v1 implementation obligation.
 
 In v1 the runtime reads supported files only. No AI/network/accounts/credentials/subprocess/Git/tests/builds/extensions/writes, no cache or second state store. Development tools may test/build the product separately. Parsing and root-confined reads stay in the Go standard library. The owner-approved exceptions are Cobra for command, help, and flag handling, and Lip Gloss for human text layout and restrained color. They are not a network or telemetry stack, not Bubble Tea or another application framework, and not an independent security review. Static build target `CGO_ENABLED=0`, with disclosed exceptions rather than blanket portability claims.
@@ -36,7 +36,7 @@ Every item/reference/finding has source path/line where obtainable. Duplicate ID
 
 Report total occurrence inventory, raw per-status counts, active count, recorded-verified count/percentage, blocked count and actionable diagnostics. Valid superseded rows remain historical inventory with replacement reference and separate display.
 
-Active excludes deferred, abandoned and superseded rows; unknowns stay active/not verified. Recorded-verified percentage is active recorded-verified rows divided by active rows. Empty denominator is null/N/A, never 100%. Invalid replacement exclusions depend on DC-02; PROFILE-R1 leaves invalid rows active unless independently deferred/abandoned.
+Active excludes deferred, abandoned and superseded rows; unknowns stay active/not verified. Recorded-verified percentage is active recorded-verified rows divided by active rows. Empty denominator is null/N/A, never 100%. Under DC-02 (D-2026-11-11-02), PROFILE-R1 leaves invalid rows active unless independently deferred/abandoned.
 
 Checkbox percentage is checked recognized tasks divided by recognized tasks outside fences, separate from recorded-verified percentage. Zero tasks is null/N/A. Aggregate is weighted by tasks, never mean item percentages. PROFILE-R1 aggregates each distinct explicitly linked tasks file once and labels that scope, including files associated with inactive rows; per-item counts may reuse a shared file and must not be naively summed. Missing tasks input is visible as coverage, not “all done.” Counts imply neither effort/value/readiness nor completeness of code.
 
@@ -44,19 +44,19 @@ Checkbox percentage is checked recognized tasks divided by recognized tasks outs
 
 Optional `superseded-by` is a documented Spec Status extension, not upstream-native and not a lifecycle enum. Preserve old row/ID/raw status and direct successor reference; supersession is never completion. Text and JSON distinguish it from completed and abandoned. Validate target existence, ambiguous ID resolution, self-link, cycles and malformed/multiple references.
 
-PROFILE-R1 permits same-roadmap acyclic chains, requires the entire chain valid before an edge excludes a row and keeps every direct edge. Optional terminal-successor display never changes relationships. An invalid supplied reference is preserved and diagnosed, not accepted as a metric shortcut. Exact syntax, chains and invalid-reference effects are approval blockers, not historical claims that the source decided them.
+PROFILE-R1 permits same-roadmap acyclic chains, requires the entire chain valid before an edge excludes a row and keeps every direct edge. Optional terminal-successor display never changes relationships. An invalid supplied reference is preserved and diagnosed, not accepted as a metric shortcut. These syntax, chain and invalid-reference rules were approved as built under DC-02 and D-02A (D-2026-11-11-02); they are not historical claims that the source decided them.
 
 ### FS-05 — Dependencies and human review
 
-Default satisfaction is a recorded `verified` dependency. An implemented-or-verified alternative is proposed, not automatically included. Missing IDs, self-dependencies and dependency cycles are errors. Unfinished/deferred/abandoned references block under the selected rule. A recorded verified item with unsatisfied dependencies is a contradiction finding; do not rewrite its status or force its percentage down.
+Default satisfaction is a recorded `verified` dependency. The implemented-or-verified alternative was rejected (D-2026-11-07-03). Missing IDs, self-dependencies and dependency cycles are errors. Unfinished/deferred/abandoned references block under the selected rule. A recorded verified item with unsatisfied dependencies is a contradiction finding; do not rewrite its status or force its percentage down.
 
-Every dependency on a superseded row requires HUMAN REVIEW even with a verified successor. Keep original dependency and replacement visible. Never redirect, auto-satisfy or infer replacement scope equivalence. PROFILE-R1 warning severity, separate review count and once-per-dependent active blocked count await DC-03 approval. Per-item reasons are shown even for inactive rows; active summary scope is labelled. Cycle membership and direct blockers are reported, not dates or transitive delivery predictions.
+Every dependency on a superseded row requires HUMAN REVIEW even with a verified successor. Keep original dependency and replacement visible. Never redirect, auto-satisfy or infer replacement scope equivalence. PROFILE-R1 warning severity, separate review count and once-per-dependent active blocked count were approved under DC-03 (D-2026-11-07-03). Per-item reasons are shown even for inactive rows; active summary scope is labelled. Cycle membership and direct blockers are reported, not dates or transitive delivery predictions.
 
 Human text may also apply a view. `--status`, `--blocked`, `--human-review`, `--active`, `--historical`, and `--explain` change which item rows are printed and whether mechanical reasons are printed with them. They do not change the summary panel, the diagnostic list, the exit threshold, or the JSON document. A view that matches nothing prints a clear message and is not itself fatal. Exact rules are in the CLI contract. This view is not a dashboard and does not infer quarters.
 
 ### FS-06 — Structural findings, not semantic mismatch claims
 
-Report duplicates, unknown statuses, missing linked directories, missing stage-appropriate files/spec links, invalid dependency/replacement edges and broken explicit local task references. Planned missing spec link is informational; specced-or-later missing spec reference is a finding. Exact stage/file requirements are an open approved-matrix gate; PROFILE-R1 candidate is not a source-proven lifecycle law.
+Report duplicates, unknown statuses, missing linked directories, missing stage-appropriate files/spec links, invalid dependency/replacement edges and broken explicit local task references. Planned missing spec link is informational; specced-or-later missing spec reference is a finding. The stage/file matrix was approved under DC-03 (D-2026-11-07-03); it is not a source-proven lifecycle law.
 
 Checked task link to nonexistent file: error. Unchecked task link to nonexistent file: info, because it may name future output. Inline-code filenames and prose are not links. Never infer that code fails a spec merely because a structural artifact is missing. Findings do not grant edit permission.
 
@@ -64,11 +64,11 @@ Checked task link to nonexistent file: error. Unchecked task link to nonexistent
 
 Use one underlying result model for text and versioned JSON. Text highlights totals, progress bases, blockers, supersession and path/line diagnostics. JSON includes raw statuses, relationships, tasks, coverage, stable codes and errors with deterministic ordering. No special AI mode; a consumer's request is not action authority.
 
-Default failure threshold error; selectable info/warning/error/none. Exit 0 below threshold; exit 1 at/above; exit 2 invocation/config/required-input/fatal parse. None never suppresses fatal. Ordinary unfinished work is not a diagnostic; blocked unfinished is warning. JSON produces exactly one document including fatal failure, logs excluded from stdout. No volatile default timestamps. PROFILE-R1 clock-independent bytes, schema and rounding are draft contract choices.
+Default failure threshold error; selectable info/warning/error/none. Exit 0 below threshold; exit 1 at/above; exit 2 invocation/config/required-input/fatal parse. None never suppresses fatal. Ordinary unfinished work is not a diagnostic; blocked unfinished is warning. JSON produces exactly one document including fatal failure, logs excluded from stdout. No volatile default timestamps. PROFILE-R1 clock-independent bytes, schema 1.0 and two-decimal half-up rounding were approved as built (DC-04, D-2026-11-11-02).
 
 ### FS-08 — Safe read boundary
 
-Constrain all reads and references to selected root, reject traversal/symlink escapes and exclude sensitive credential/secret/private-key/answer-key files. Narrow supported inputs only. Bound file size/count, total bytes, paths, nesting and graph/task work; explicit limit failures, not silent truncation. PROFILE-R1 numbers and conservative symlink/mount matcher policy are unapproved candidates. A root API alone is neither secret classification nor complete mount isolation. No unsafe fallback when platform capability differs.
+Constrain all reads and references to selected root, reject traversal/symlink escapes and exclude sensitive credential/secret/private-key/answer-key files. Narrow supported inputs only. Bound file size/count, total bytes, paths, nesting and graph/task work; explicit limit failures, not silent truncation. PROFILE-R1's fixed limits and conservative symlink policy were approved as built (DC-05, DC-06, D-2026-11-11-02); the D-05A sensitive-name list is a starting point, not a certification. A root API alone is neither secret classification nor complete mount isolation. No unsafe fallback when platform capability differs.
 
 Do not open excluded file contents or emit them through diagnostics. Root-required failures are fatal; optional skipped evidence must be visible. PROFILE-R1 cannot promise an atomic multi-file snapshot; observable changes invalidate report, and residual limitations must be documented/tested.
 
@@ -80,7 +80,7 @@ Owner-approved RC precedes first stable tag. Platform matrix remains undecided; 
 
 ## 4. Scenario acceptance outline
 
-| Scenario | Expected retained outcome; exact candidate details in acceptance contract |
+| Scenario | Expected retained outcome; exact details in acceptance contract |
 |---|---|
 | Extension absent | Standalone supported-file report, no agent/extension invocation |
 | Empty supported roadmap | Zero inventory; active/task percentages null/N/A |
@@ -97,9 +97,9 @@ Owner-approved RC precedes first stable tag. Platform matrix remains undecided; 
 
 ## 5. Completion, dependencies and open issues
 
-Functional acceptance requires the detailed cases in [acceptance.md](acceptance.md); coverage mapping is [traceability.md](traceability.md). No test has been executed or implementation accepted. The <100 ms median cold-start target applies to a documented 100-item/10,000-task fixture on disclosed hardware/OS and is not a measured fact.
+Functional acceptance requires the detailed cases in [acceptance.md](acceptance.md); coverage mapping is [traceability.md](traceability.md). Tests have been executed by the implementer; they are not independent verification. The <100 ms median cold-start target applies to a documented 100-item/10,000-task fixture on disclosed hardware/OS and is not a measured fact.
 
-Before implementation: resolve DC-01–06 and affected PROFILE-R1 details, select approved real fixture inputs and separately authorize implementation. Release-specific decisions DC-07–08 must be resolved before release/support claims; license selection remains open; the repository is established separately and no repository operation is performed here. All pending choices and alternative effects must be recorded rather than turning this draft into implicit approval.
+DC-01–06 and the PROFILE-R1 details were approved as built (D-2026-11-07-03, D-2026-11-11-02), the real dogfood inputs were approved (D-2026-11-07-08), and implementation was authorized on 7 November 2026. DC-07 (v1 targets linux/amd64 and darwin/arm64, each advertised only after a real runner proves it; checksum-only GitHub Release archives) and DC-08 (Apache-2.0 license, GitHub private vulnerability reporting, latest-release-only best-effort support) were chosen on 11 November 2026 (D-2026-11-11-02). No release exists and no target is supported yet. Still open: DC-08's mirror or Bitbucket expectations, the Go toolchain version, CI runners and the release workflow. Remaining choices must be recorded rather than turned into implicit approval.
 
 ## 6. Draft proposals, not approvals
 

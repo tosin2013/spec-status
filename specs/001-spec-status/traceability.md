@@ -4,11 +4,11 @@ This public catalogue maps the reconciled PRD baseline identifiers to the specif
 
 **97 baseline entries are accounted for: 91 requirement/user/acceptance entries and six reconciliation notes.** F-05 is a later owner-approved human-text view and is not one of those 97. Presence in this table establishes documented coverage, not semantic correctness, implemented behavior, passing tests, independent verification or approval of PROFILE-R1. Exact original input-format prose was partly reconstructed from summaries; approved fixtures must resolve compatibility before implementation. No claim of complete verbatim source recovery is made.
 
-V-03 has a scoped authority update: documentation drafting is permitted now; earlier drafting hold is historical. Implementation/release still require separate authorization and relevant decision closure. DC-08 public-documentation intent is established; repository home is now tosin2013/spec-status, established separately; license and release readiness remain unresolved. T-01–03 retain complete v1 omission of inferred quarters. Retired algorithms are not tasks.
+V-03 has a scoped authority update: documentation drafting is permitted now; earlier drafting hold is historical. Implementation/release still require separate authorization and relevant decision closure. DC-08 public-documentation intent is established; repository home is now tosin2013/spec-status, established separately; the license is Apache-2.0 (D-2026-11-11-02); release readiness remains unresolved. T-01–03 retain complete v1 omission of inferred quarters. Retired algorithms are not tasks.
 
 ## Individual coverage
 
-Each row lists specification location plus a detailed contract when applicable, acceptance IDs defined in acceptance.md and task dependencies defined in tasks.md. Code/schema/grammar defaults remain proposals, as declared in decisions.md.
+Each row lists specification location plus a detailed contract when applicable, acceptance IDs defined in acceptance.md and task dependencies defined in tasks.md. Code/schema/grammar defaults were approved as built (D-2026-11-07-03, D-2026-11-11-02), as recorded in decisions.md.
 
 | Baseline ID | Preserved outcome | Specification / detailed contract | Acceptance | Future work |
 |---|---|---|---|---|
@@ -24,11 +24,11 @@ Each row lists specification location plus a detailed contract when applicable, 
 | N-02 | No arbitrary layouts, crawl, background state, dashboard or notifier | Scope; Constitution II–VI; [.specify/memory/constitution.md](../../.specify/memory/constitution.md) | AC-04–05, AC-19, AC-24–25 | TASK-01, TASK-06, TASK-15 |
 | N-03 | No effort/value/readiness/date inference | Scope; Constitution II–VI; [.specify/memory/constitution.md](../../.specify/memory/constitution.md) | AC-04–05, AC-19, AC-24–25 | TASK-01, TASK-06, TASK-15 |
 | N-04 | Build tooling distinct from runtime | Scope; Constitution II–VI; [.specify/memory/constitution.md](../../.specify/memory/constitution.md) | AC-04–05, AC-19, AC-24–25 | TASK-01, TASK-06, TASK-15 |
-| I-01 | Default/override roadmap and root discovery | FS-01–02; candidate grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
-| I-02 | Narrow v0.1.1-shaped heading/bullet input | FS-01–02; candidate grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
-| I-03 | Nine known raw statuses, unknowns preserved/warned | FS-01–02; candidate grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
-| I-04 | Fence exclusion and visible unsupported layout failure | FS-01–02; candidate grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
-| I-05 | Explicit spec-dir and supported file reads only | FS-01–02; candidate grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
+| I-01 | Default/override roadmap and root discovery | FS-01–02; PROFILE-R1 grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
+| I-02 | Narrow v0.1.1-shaped heading/bullet input | FS-01–02; PROFILE-R1 grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
+| I-03 | Nine known raw statuses, unknowns preserved/warned | FS-01–02; PROFILE-R1 grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
+| I-04 | Fence exclusion and visible unsupported layout failure | FS-01–02; PROFILE-R1 grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
+| I-05 | Explicit spec-dir and supported file reads only | FS-01–02; PROFILE-R1 grammar; [roadmap-format.md](roadmap-format.md) | AC-02, AC-04–06, AC-13 | TASK-02, TASK-08–10 |
 | H-01 | Optional separate replacement relationship preserves history | FS-04–05; history contract; [roadmap-format.md](roadmap-format.md) | AC-09–12, AC-25 | TASK-03, TASK-11–13, TASK-22 |
 | H-02 | Raw status and replacement separately in text/JSON | FS-04–05; history contract; [roadmap-format.md](roadmap-format.md) | AC-09–12, AC-25 | TASK-03, TASK-11–13, TASK-22 |
 | H-03 | Targets/self/cycles/malformed/ambiguous replacement validation | FS-04–05; history contract; [roadmap-format.md](roadmap-format.md) | AC-09–12, AC-25 | TASK-03, TASK-11–13, TASK-22 |
@@ -42,7 +42,7 @@ Each row lists specification location plus a detailed contract when applicable, 
 | F-05 | Human-text filters and explain are views; full summary, diagnostics, exits, and schema 1.0 JSON stay unfiltered | FS-05 view paragraph; [cli-contract.md](cli-contract.md); [json-contract.md](json-contract.md) | AC-26 | Implementation record, 7 November 2026 |
 | T-01 | Owner omission of all inferred quarters v1 | FS-02/Scope; T omission boundary; [cli-contract.md](cli-contract.md) | AC-19 | TASK-01, TASK-04, TASK-14–15 |
 | T-02 | No inert quarter interface/schema/test obligation | FS-02/Scope; T omission boundary; [cli-contract.md](cli-contract.md) | AC-19 | TASK-01, TASK-04, TASK-14–15 |
-| T-03 | Date flag only if justified separately, decision pending | FS-02/Scope; T omission boundary; [cli-contract.md](cli-contract.md) | AC-19 | TASK-01, TASK-04, TASK-14–15 |
+| T-03 | No date flag: `--as-of` rejected under DC-04 (D-2026-11-11-02) | FS-02/Scope; T omission boundary; [cli-contract.md](cli-contract.md) | AC-19 | TASK-01, TASK-04, TASK-14–15 |
 | D-01 | Default verified satisfaction, alternative policy uncommitted | FS-05; dependency states; [diagnostics.md](diagnostics.md) | AC-08, AC-11–12 | TASK-03, TASK-12–13 |
 | D-02 | Missing/self/cycles/direct blockers and contradictions | FS-05; dependency states; [diagnostics.md](diagnostics.md) | AC-08, AC-11–12 | TASK-03, TASK-12–13 |
 | D-03 | Human-review dependency even verified successor | FS-05; dependency states; [diagnostics.md](diagnostics.md) | AC-08, AC-11–12 | TASK-03, TASK-12–13 |
@@ -54,10 +54,10 @@ Each row lists specification location plus a detailed contract when applicable, 
 | C-01 | Working CLI and explicit root/roadmap/threshold surface | FS-07; invocation/exit contract; [cli-contract.md](cli-contract.md) | AC-01, AC-18–19 | TASK-04, TASK-14–15 |
 | C-02 | Same human/JSON facts, no AI-specific mode | FS-07; invocation/exit contract; [cli-contract.md](cli-contract.md) | AC-01, AC-18–19 | TASK-04, TASK-14–15 |
 | C-03 | Error-default thresholds and exits 0/1/2 | FS-07; invocation/exit contract; [cli-contract.md](cli-contract.md) | AC-01, AC-18–19 | TASK-04, TASK-14–15 |
-| J-01 | Versioned JSON fields and raw relationships, no quarters | FS-07; proposed schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
-| J-02 | Deterministic document order and sorted findings/rounding | FS-07; proposed schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
-| J-03 | One JSON fatal document, no stdout logs or secret text | FS-07; proposed schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
-| J-04 | Compatibility rules and parity | FS-07; proposed schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
+| J-01 | Versioned JSON fields and raw relationships, no quarters | FS-07; schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
+| J-02 | Deterministic document order and sorted findings/rounding | FS-07; schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
+| J-03 | One JSON fatal document, no stdout logs or secret text | FS-07; schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
+| J-04 | Compatibility rules and parity | FS-07; schema 1.0; [json-contract.md](json-contract.md) | AC-03, AC-17–19 | TASK-04, TASK-13–15 |
 | S-01 | Stdlib parsing and confined reads, CGO_ENABLED=0, no Go on a future installed runtime; Cobra is the owner-approved command exception | FS-08; sole I/O boundary; [plan.md](plan.md) | AC-13–16, AC-19 | TASK-05, TASK-08, TASK-15 |
 | S-02 | No runtime side effects or hidden store | FS-08; sole I/O boundary; [plan.md](plan.md) | AC-13–16, AC-19 | TASK-05, TASK-08, TASK-15 |
 | S-03 | Root confinement, traversal and symlink escape rejection | FS-08; sole I/O boundary; [plan.md](plan.md) | AC-13–16, AC-19 | TASK-05, TASK-08, TASK-15 |
@@ -111,26 +111,26 @@ Each row lists specification location plus a detailed contract when applicable, 
 | A-10 | Future downloadable no-Go assets with runtime evidence | Acceptance oracle, not results; [acceptance.md](acceptance.md) | AC-21–23 | TASK-06, TASK-15–16, TASK-19–21 |
 | A-11 | Required-check failure gates, immutable assets, RC/install evidence | Acceptance oracle, not results; [acceptance.md](acceptance.md) | AC-21–24 | TASK-06, TASK-15–16, TASK-19–21 |
 
-## Additional candidate refinements (not source-settled requirements)
+## Additional PROFILE-R1 refinements (owner-approved, not source-settled requirements)
 
-DC-01–08 and D-01A–D-06A in decisions.md cover exact grammar/path precedence, valid-only chain exclusions, HUMAN_REVIEW counting/stage matrix, candidate JSON 1.0/rounding/no-config/no-clock, conservative symlink/mount/secret matcher and numeric budgets, small tested matrix/identity policy, and dogfood/public-readiness choices. They are mapped through AC-02–24 and TASK-02–06/17–21; their repetition across documents does not ratify them.
+DC-01–08 and D-01A–D-06A in decisions.md cover exact grammar/path precedence, valid-only chain exclusions, HUMAN_REVIEW counting/stage matrix, JSON 1.0/rounding/no-config/no-clock, conservative symlink/mount/secret matcher and numeric budgets, small tested matrix/identity policy, and dogfood/public-readiness choices. They are mapped through AC-02–24 and TASK-02–06/17–21; the owner approved them as built (DC-03: D-2026-11-07-03; dogfood inputs: D-2026-11-07-08; the rest: D-2026-11-11-02), except DC-08's mirror or Bitbucket expectations, which remain open. Repetition across documents is not what ratified them.
 
 ## Coverage and contradiction checklist
 
 - Human/JSON one model, raw unknowns, null denominators, weighted tasks and deterministic ordering are shared across specification and contracts.
-- Strict supersession is retained, not optionally cut; invalid-reference metrics are explicitly proposed, not smuggled into source authority. No silent dependency redirect, even verified successor.
+- Strict supersession is retained, not optionally cut; invalid-reference metrics are an explicit owner decision (DC-02, D-2026-11-11-02), not smuggled into source authority. No silent dependency redirect, even verified successor.
 - Inferred quarters omitted from interface, schema, algorithms, denominators and future implementation backlog. Explicit timing is not transformed into a new forecast/evidence source.
 - Parsing and confined reads stay in the standard library. Cobra is the owner-approved command, help, and flag exception. Lip Gloss is the owner-approved human-text layout and color exception. The summary panel, filters, and `--explain` are human-text views on that same surface. None of those approvals adds a network client, telemetry, Bubble Tea, or a dashboard. The core stays offline, read-only, and extension-independent. Future writer approval and reread stay isolated, and no deferred dashboard or notification feature is promoted.
-- Compile versus runtime verification and unsigned integrity versus identity remain distinct. A development CLI and implementer-run tests now exist. They are not independent verification, a release, a supported platform list, a signature, or a chosen license.
+- Compile versus runtime verification and unsigned integrity versus identity remain distinct. A development CLI and implementer-run tests now exist. They are not independent verification, a release, a supported platform list, or a signature. The Apache-2.0 license was chosen separately (D-2026-11-11-02).
 - README/docs stage does not remain under an obsolete drafting hold; implementation and release gates remain. Public-facing text includes no private coordination/source handles/paths.
 
 ## Implementation slice
 
 The development CLI covers the read-only reporting path: narrow roadmap parsing, raw statuses, separate checkbox and recorded-verified counts, history-safe supersession, human-review dependencies, shared text/JSON results, exits 0/1/2, root-confined reads, a static summary panel, and human-text filters with `--explain`. JSON stays the full schema 1.0 result. In-repo tests exercise malformed input, deterministic output, and adversarial filesystem cases. Those tests were run by the implementer.
 
-Still open as product work, not silently dropped: owner approval of DC-01–08, real dogfood roadmaps, release identity and multi-platform execution, signing, license, and phase-two mutation. Acceptance rows AC-21–AC-25 are not met. AC-20 has one host measurement and is not a passed certification.
+Still open as product work, not silently dropped: DC-08's mirror or Bitbucket expectations, the Go toolchain version, release identity and multi-platform execution, and phase-two mutation. Signing is not part of v1 (D-2026-11-11-02). DC-01–DC-08 are otherwise approved (D-2026-11-07-03, D-2026-11-07-08, D-2026-11-11-02), and the dogfood part of AC-24 was recorded done (D-2026-11-11-01). Acceptance rows AC-21–AC-23 and AC-25 are not met. AC-20 has one host measurement and is not a passed certification.
 
-Documentation review still must assess details, not only identifier counts. Cases where ambiguity remains (grammar/source provenance, metadata races, unsafe skips versus fatal, duplicate counts and stage matrix) are labelled as implementation blockers or candidate policies rather than falsely resolved requirements.
+Documentation review still must assess details, not only identifier counts. Cases where ambiguity remains (grammar/source provenance, metadata races, unsafe skips versus fatal, duplicate counts and stage matrix) were labelled as implementation blockers or candidate policies rather than falsely resolved requirements; the policies were later approved as built (D-2026-11-07-03, D-2026-11-11-02).
 
 ## Draft proposals outside the baseline count
 
