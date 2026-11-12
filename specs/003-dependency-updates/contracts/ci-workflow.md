@@ -25,7 +25,7 @@ A conforming workflow meets every **MUST** below. Each one maps to a spec requir
 ## Steps, in order, per job
 
 1. Checkout.
-2. setup-go with `go-version: ${{ matrix.go }}`.
+2. setup-go with `go-version: ${{ matrix.go }}` and `check-latest: true`, so the newest patch is used rather than a version cached on the runner.
 3. **Platform assertion**: `go env GOOS GOARCH` MUST equal `linux amd64` on ubuntu and `darwin arm64` on macOS, otherwise fail (R3).
 4. **Minimum assertion**: the `go` line in `go.mod` MUST start with `go 1.26`, otherwise fail (R2).
 5. `go vet ./...` MUST pass (FR-006).
