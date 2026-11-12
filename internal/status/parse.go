@@ -834,6 +834,7 @@ func matchTask(line string) (checked bool, body string, ok bool) {
 // "[label][ref]" and autolinks "<path>" are reported as unsupported rather
 // than skipped, so they are never silently ignored.
 func extractLinks(body string, refs map[string]bool) (out []taskLink) {
+	body = stripCodeSpans(body)
 	inline := 0
 	defer func() {
 		// Every "](" should belong to an inline link found above. Any left
@@ -892,6 +893,51 @@ func extractLinks(body string, refs map[string]bool) (out []taskLink) {
 		out = append(out, taskLink{Kind: "local", Path: target})
 	}
 	return out
+}
+
+// stripCodeSpans removes inline code spans from a task line before links are
+// looked for: text inside a code span is literal, never a link (CommonMark
+// 6.1). A span opens with a run of N backticks and closes at the next run of
+// exactly N backticks. A run with no matching close is literal text and is
+// kept, so a stray backtick cannot hide a real link after it. Roadmap sync
+// finding F5, decision D-2026-11-12-01.
+func stripCodeSpans(line string) string {
+	var b strings.Builder
+	for i := 0; i < len(line); {
+		if line[i] != '`' {
+			b.WriteByte(line[i])
+			i++
+			continue
+		}
+		n := 0
+		for i+n < len(line) && line[i+n] == '`' {
+			n++
+		}
+		closeAt := -1
+		for j := i + n; j < len(line); {
+			if line[j] != '`' {
+				j++
+				continue
+			}
+			m := 0
+			for j+m < len(line) && line[j+m] == '`' {
+				m++
+			}
+			if m == n {
+				closeAt = j
+				break
+			}
+			j += m
+		}
+		if closeAt < 0 {
+			b.WriteString(line[i : i+n])
+			i += n
+			continue
+		}
+		b.WriteByte(' ')
+		i = closeAt + n
+	}
+	return b.String()
 }
 
 // linkDestination splits "path" or "path \"title\"" or "<path> 'title'" into
