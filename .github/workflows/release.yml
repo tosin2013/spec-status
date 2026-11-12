@@ -176,6 +176,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-files
@@ -213,6 +217,12 @@ jobs:
             echo "**Compatibility (pre-1.0):** before v1.0.0, a minor version may change CLI flags, exit codes or the JSON schema. Any such change is listed in these notes. Patch versions do not break compatibility. JSON schema: 1.0."
             echo
             echo "**Not provided:** signed or notarized binaries, provenance attestations, reproducible-build guarantees, or archives for other platforms. Other platforms may build from source but are untested. Known limits: [README Limits](https://github.com/$GITHUB_REPOSITORY#limits)."
+            echo
+            echo "### Use it with an AI coding agent"
+            echo
+            echo "Paste this into an AI coding agent that runs in the repository you want reviewed. It installs the latest release, asking you first and checking the checksum, and then reviews the Spec Kit roadmap without changing any files."
+            echo
+            sed -n '/<!-- agent-prompt:start -->/,/<!-- agent-prompt:end -->/p' docs/agent-prompt.md | sed '1d;$d'
           } > notes.md
           cat notes.md
           gh release create "$TAG" \

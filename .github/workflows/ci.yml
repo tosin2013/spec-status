@@ -87,6 +87,13 @@ jobs:
       - name: go mod verify
         run: go mod verify
 
+      - name: agent prompt in README matches docs/agent-prompt.md
+        shell: bash
+        run: |
+          extract() { sed -n '/<!-- agent-prompt:start -->/,/<!-- agent-prompt:end -->/p' "$1"; }
+          [ -n "$(extract docs/agent-prompt.md)" ] || { echo "::error::no agent-prompt block in docs/agent-prompt.md"; exit 1; }
+          diff <(extract docs/agent-prompt.md) <(extract README.md) || { echo "::error::README agent prompt differs from docs/agent-prompt.md"; exit 1; }
+
       - name: spec status on this repository's roadmap
         env:
           CGO_ENABLED: '0'

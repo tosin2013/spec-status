@@ -29,4 +29,6 @@ There are no other files: no Windows archive, no linux/arm64 archive, no signatu
 **Not provided:** signed or notarized binaries, provenance attestations, reproducible-build guarantees, or archives for other platforms. Other platforms may build from source but are untested. Known limits: [README Limits](https://github.com/tosin2013/spec-status#limits).
 ```
 
+After the "Not provided" paragraph, the notes add a section **Use it with an AI coding agent**: one sentence, then the prompt block from `docs/agent-prompt.md` (between its `agent-prompt` markers), so every release page shows a copy-and-paste install-and-review prompt. CI's hygiene job keeps the README copy identical.
+
 For a release candidate, the heading is `## spec <version> (release candidate)`.
