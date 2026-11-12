@@ -198,7 +198,7 @@
 ## Phase 8: Polish and cross-cutting
 
 - [X] T028 Run the full local verification: `CGO_ENABLED=0 go test -count=1 ./...`, `go vet ./...`, `gofmt -l .` (empty), `go mod tidy -diff`, `go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...`, `spec status --fail-on error` on the repo, and the T010 byte checks again.
-- [ ] T029 Run the Doomer review workflow on the source changes (`internal/cli`, `internal/status`, `.github/workflows`), and record a response for every Quick finding before push.
+- [X] T029 Run the Doomer review workflow on the source changes (`internal/cli`, `internal/status`, `.github/workflows`), and record a response for every Quick finding before push.
 - [ ] T030 Commit, push and open the PR. Confirm feature 003's CI passes on it: four test jobs, hygiene and dependency review.
 - [ ] T031 Add an implementation-record row to `specs/001-spec-status/tasks.md`: "Release engineering (feature 004)". Cover the build identity, the release workflow, the README install section and RELEASING.md, with run URLs once T019 and T020 exist. Mark roadmap 004 `implemented` in `.specify/memory/roadmap.md` after T019 succeeds; `verified` waits for the owner-published v0.1.0 and the US2 install check.
 - [ ] T032 **(owner, optional)** Offer the repository settings from research.md R8: immutable releases, and a `v*` tag ruleset limiting tag creation and deletion to the owner. Also re-offer feature 003's branch protection. Apply none without explicit approval.
