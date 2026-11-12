@@ -528,7 +528,8 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   `spec status` output, link to each other and to the Spec Kit and roadmap
   commands, and help when recorded statuses disagree with tasks or evidence.
   Review has role views: pm, developer, qa, architect. Roles may recommend
-  installed partner extensions (adrkit, Assure, Bug Triage), never required.
+  installed partner extensions (arch-governance, Assure, Bug Triage), never
+  required.
 - **Outcome:** An agent turns `spec status` output into correct next actions,
   including reconciling status/task mismatches, without the CLI gaining any AI
   or write path.

@@ -191,4 +191,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-12-06 | Owner, 12 November 2026 | Feature 005 roles may recommend partner Spec Kit extensions when installed: architect → adrkit (community catalog, v0.1.5 when checked), qa → Assure (community, v2.7.5), developer → Bug Triage Workflow (`bug`, default catalog, v1.0.2). They are detected from the project's extension registry, recommended only by registered command names, and never required, installed or run without approval. Community-catalog partners carry a "not vetted by Spec Kit" note. Exact commands are confirmed from each repository during planning | Defining the mechanism without naming partners; deferring partner integration past v0.2.0 |
 
+## Recorded decision — ADR partner for the architect role, 12 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-12-07 | Owner, 12 November 2026 | Amends D-2026-11-12-06. The architect role's partner is **Architecture Governance** (`arch-governance` 1.2.3, community catalog, MIT, `ashbrener/spec-kit-arch-governance`). It supports Spec Kit `>=0.1.0` and needs no extra tools. Its commands are `speckit.arch-governance.validate` (read-only), `.gate`, `.install`, `.sync`, `.repin` and `.issues`. **adrkit is dropped**: its 0.1.5 extension requires Spec Kit `<1.2.0` and the `adr` CLI, and no newer extension release supports 1.2. Revisit adrkit when it does | Keeping adrkit alongside arch-governance; vetting arch-governance with a throwaway install before choosing |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.
