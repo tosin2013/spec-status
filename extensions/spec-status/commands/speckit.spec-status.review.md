@@ -13,7 +13,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Goal
 
-Give the user an accurate, short picture of the roadmap: what is recorded verified, how many tasks are checked, what is blocked and why, which dependencies need a human decision, which findings `spec status` reported, and what is ready to start. Every finding is cited and sent to exactly one follow-up command. With a role (`as qa`, for example) the same facts are reordered for that role.
+Give the user an accurate, short picture of the roadmap: what is recorded verified, how many tasks are checked, what is blocked and why, which dependencies need a human decision, which findings `spec status` reported, and what is ready to start. Every finding is cited and given one primary follow-up command (and at most one secondary). With a role (`as qa`, for example) the same facts are reordered for that role.
 
 ## Operating Constraints
 
@@ -29,21 +29,21 @@ Give the user an accurate, short picture of the roadmap: what is recorded verifi
    - Exit `2`: report the diagnostic (`error.code`, message, source) and stop. Do not create a roadmap.
    - Check `schema_version` is `1.0` (`rules.md`).
    - `summary.total_items` is `0`: say the roadmap is empty or not in a supported shape, and that `spec` cannot tell which; stop.
-4. Build each section in `roles.md` "Review sections" that has content, from the JSON (facts) and the `--explain` output (`path:line`):
+4. Build each section in `roles.md` "Review sections" that has content, from the JSON (facts; an item's own line is `items[].source`) and the `--explain` output (dependency and checkbox lines):
    - `progress`: `summary.verified_active_items` / `summary.active_items`, and `summary.tasks.checked` / `summary.tasks.total`. Say "recorded verified".
    - `blockers`: active items with a dependency whose `state` is not `satisfied`.
    - `human-review`: dependencies with `state` `human_review`.
    - `diagnostics`: group by severity (error, warning, info); one line each with code, item and `path:line`.
-   - `ready-to-start`: active `planned` or `specced` items whose dependencies are all `satisfied`.
+   - `ready-to-start`: active `planned` or `specced` items whose dependencies are all `satisfied`, excluding items whose tasks are all checked (those are a reconcile finding, not new work).
    - `unchecked-tasks`: active items with `tasks.state` `read` and `checked` < `total`.
-   - `missing-artifacts`: `SS_SPEC_REFERENCE_MISSING`, `SS_SPEC_DIRECTORY_MISSING`, `SS_STAGE_FILE_MISSING`, and items with `tasks.state` `missing`.
-   - `evidence-gaps`: items recorded `implemented` or `verified` with unchecked tasks, `tasks.state` other than `read`, a dependency that is not `satisfied`, or an error diagnostic.
+   - `missing-artifacts`: active, non-superseded items with an **error**-severity `SS_SPEC_REFERENCE_MISSING`, `SS_SPEC_DIRECTORY_MISSING` or `SS_STAGE_FILE_MISSING`, or with `tasks.state` `missing`. Info-level `SS_SPEC_REFERENCE_MISSING` on `planned` items is normal and is left out (it still appears under `diagnostics`).
+   - `evidence-gaps`: active, non-superseded items recorded `implemented` or `verified` with unchecked tasks, `tasks.state` other than `read`, a dependency that is not `satisfied`, or an error diagnostic. Superseded items are history; they appear under `supersession`, not here.
    - `dependency-chains`: for each blocked item, follow `dependencies` back to the first item that is not satisfied.
    - `supersession`: items with `superseded_by`, their successors, and `supersession.valid` false.
    - `constraints`: each affected item's `Governed by` line from the roadmap (cite it).
 5. Order the sections by the selected role's "Leads with" list, then the remaining sections in the order above. Keep every fact identical across roles.
-6. Route every finding to one follow-up (see Follow-ups): a diagnostic the user may not understand → explain; a status that disagrees with tasks, files or dependencies → reconcile; a blocker or human-review dependency → unblock; an item the user wants to record `verified`, or any evidence gap → verify-readiness.
-7. Partner extensions: read `.specify/extensions/.registry` (JSON). For each partner row in `roles.md` for the selected role, if `extensions.<id>.enabled` is true, recommend only those of its commands listed under `registered_commands`, with the row's "Adds" sentence. If a role's partner is not installed, mention it once with its install command and requirements (and the "not vetted" note for community partners). If the registry is missing or unreadable, say once that installed partners could not be detected. Never install or run a partner.
+6. Give every finding one **primary** follow-up (see Follow-ups), and at most one secondary: a status that disagrees with tasks, files or dependencies → reconcile (primary), with verify-readiness as secondary when the item is recorded `implemented` or `verified`; a blocker or human-review dependency → unblock; an item the user wants to record `verified` with no mismatch → verify-readiness; a diagnostic the user may not understand → explain.
+7. Partner extensions: read `.specify/extensions/.registry` (JSON). For each partner row in `roles.md` for the selected role, if `extensions.<id>.enabled` is true, recommend only those of its commands that appear in `registered_commands`, an object keyed by agent integration (for example `{"claude": [...]}`), so use the current agent's list or any list. Give the row's "Adds" sentence. If a role's partner is not installed, mention it once with its install command and requirements, plus the "not vetted" note for community partners. If the registry is missing or unreadable, do both: say once that installed partners could not be detected, **and** give each of the role's partners its one install hint. Never install or run a partner.
 8. End with the role's first follow-ups, then at most three next actions, each citing the item and command.
 
 ## Follow-ups

@@ -12,10 +12,10 @@ The closed list of sections review produces. Each section is shown only when it 
 | `blockers` | Active items with an unsatisfied dependency, and which dependency. |
 | `human-review` | Dependencies on superseded items (never redirected automatically). |
 | `diagnostics` | All findings grouped by severity: error, warning, info. |
-| `ready-to-start` | `planned` or `specced` items whose dependencies are all satisfied. |
+| `ready-to-start` | `planned` or `specced` items whose dependencies are all satisfied, excluding items whose tasks are all checked. |
 | `unchecked-tasks` | Active items with unchecked tasks, with counts. |
-| `missing-artifacts` | Missing spec link, spec directory, spec.md, plan.md or tasks.md for the recorded stage. |
-| `evidence-gaps` | Items recorded `implemented` or `verified` with unchecked tasks, an unread task file, an unverified dependency, or error diagnostics. |
+| `missing-artifacts` | Error-level missing spec link, spec directory, spec.md, plan.md or tasks.md for the recorded stage (active, non-superseded items). |
+| `evidence-gaps` | Active, non-superseded items recorded `implemented` or `verified` with unchecked tasks, an unread task file, an unverified dependency, or error diagnostics. |
 | `dependency-chains` | Each blocked item's chain back to the first unfinished dependency. |
 | `supersession` | Superseded items, their successors, and invalid chains. |
 | `constraints` | Each item's `Governed by` constraints, as recorded in the roadmap. |

@@ -29,7 +29,7 @@ Show what stands between blocked work and progress, earliest first: every unsati
 4. Order the work so that items depended on come before items that depend on them (follow `dependencies[].id`); report cycles separately. For each step give: the item, its recorded status, `path:line`, which items it unblocks, and what it needs to reach `verified` (for example "write the spec", "finish 2 tasks", "record verified after review").
 5. `human_review` (dependency on a superseded item): explain that `spec` never redirects it; name the successor (`superseded_by` of the target); ask the user whether the dependent should depend on the successor instead. Only after a yes: change the dependent's `Depends on` via `/speckit.roadmap.write`, re-run `spec status`, report confirmed or unconfirmed.
 6. `missing`, `ambiguous`, `self`, `cycle`: name the field and line from `--explain`, explain it (`output.md`), and propose the smallest fix (remove or correct the reference; for a cycle, the user chooses which edge to remove). Apply only after approval via `/speckit.roadmap.write`.
-7. Finish with the first item to work on and its command.
+7. Finish with the first action: the first unfinished item to work on and its command. If every blocked item is part of a cycle, the first action is breaking the cycle (step 6).
 
 ## Follow-ups
 
