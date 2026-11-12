@@ -167,15 +167,15 @@ All paths are relative to the repository root. New files go under `.github/`. Pr
   - A test-and-scan workflow exists, which the release workflow (004) may reuse.
   - The minimum Go version is decided (D-2026-11-11-05), and only the release-build patch stays open.
   - Compile-only builds are not support.
-- [ ] T020 [P] Add an implementation-record row to `specs/001-spec-status/tasks.md`: "Dependency automation and CI (feature 003)". State the CI checks, the Dependabot configuration, CodeQL, Go 1.26, and that it was run by the implementer, with run URLs.
+- [X] T020 [P] Add an implementation-record row to `specs/001-spec-status/tasks.md`: "Dependency automation and CI (feature 003)". State the CI checks, the Dependabot configuration, CodeQL, Go 1.26, and that it was run by the implementer, with run URLs.
 - [X] T021 Run quickstart §1 locally: the go line, gofmt, tidy -diff and verify, own-roadmap `spec status --fail-on error`, both cross-builds, then tests, vet and govulncheck under go1.26.11. Then run the workflow-file greps: every `uses:` has a 40-hex SHA, and there is no `secrets.`, `pull_request_target` or `continue-on-error`.
 - [X] T022 Run quickstart §2 (SC-005). Build `spec-after` under go1.26.11. Then `cmp` the `--json` and `--color=never` text output against `spec-before` for `testdata/example-roadmap`, `testdata/speckit-roadmap-upstream` and every `testdata/conformance/*` fixture. Every result must be byte-identical.
-- [ ] T023 Commit, push and open or update the PR. Confirm six checks pass: four test cells, `hygiene`, and `dependency-review`. Record the run URLs in the PR and in the T020 row.
-- [ ] T024 Seeded-fault runs (SC-007 and US2's independent test), on throwaway commits on a scratch branch, reverted afterwards. Record each run URL:
+- [X] T023 Commit, push and open or update the PR. Confirm six checks pass: four test cells, `hygiene`, and `dependency-review`. Record the run URLs in the PR and in the T020 row.
+- [X] T024 Seeded-fault runs (SC-007 and US2's independent test), on throwaway commits on a scratch branch, reverted afterwards. Record each run URL:
   1. Break one test: all four test cells fail.
   2. Misformat a file: only `hygiene` fails.
   3. Break a roadmap field: only `hygiene` fails, showing the diagnostic.
-- [ ] T025 Update `.specify/memory/roadmap.md`: 009 becomes `implemented`, and its notes cite the PR and run URLs. Item 004's notes say that the CI check exists and the minimum Go version is decided. Bump the patch version with a sync note.
+- [X] T025 Update `.specify/memory/roadmap.md`: 009 becomes `implemented`, and its notes cite the PR and run URLs. Item 004's notes say that the CI check exists and the minimum Go version is decided. Bump the patch version with a sync note.
 - [ ] T026 Offer the owner the optional branch-protection step (quickstart §4), which requires the CI checks before merging to `main`. Do not apply it without explicit approval.
 
 ---
