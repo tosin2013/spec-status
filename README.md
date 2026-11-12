@@ -201,7 +201,7 @@ spec status --json | jq '.summary | {active_items, verified_active_items, blocke
 
 ## Use it with an AI coding agent
 
-Paste this prompt into an AI coding agent (for example Claude Code, Cursor or Codex) that runs in the repository you want reviewed. The agent installs the latest release, asking you before it installs anything and checking the checksum. It then runs `spec status` and summarizes progress, blockers, items needing human review, diagnostics, and what is ready to start, without changing any files. The same text is in [docs/agent-prompt.md](docs/agent-prompt.md) and on every release page.
+Paste this prompt into an AI coding agent (for example Claude Code, Cursor or Codex) that runs in the repository you want reviewed. The agent installs the latest release, asking you before it installs anything and checking the checksum. It then runs `spec status` and summarizes progress, blockers, items needing human review, diagnostics, and what is ready to start, without changing any files. If `spec` itself misbehaves, it drafts a GitHub issue that follows the [bug report form](https://github.com/tosin2013/spec-status/issues/new?template=bug_report.yml) and files it only with your approval. Security problems go to [private reporting](SECURITY.md), not an issue. The same text is in [docs/agent-prompt.md](docs/agent-prompt.md) and on every release page.
 
 <!-- agent-prompt:start -->
 ```text
@@ -247,8 +247,35 @@ STEP 2 - REVIEW THE ROADMAP
      satisfied.
 - Suggest the three most useful next actions.
 
+STEP 3 - IF SPEC-STATUS ITSELF MISBEHAVES, OPEN A GITHUB ISSUE
+- This step is for problems with the tool, not with my roadmap. Diagnostics
+  about my roadmap are normal output, not bugs.
+- Tool problems: an install or checksum failure, a crash, a fatal error on a
+  roadmap that follows the speckit-roadmap template, a count, status,
+  dependency or exit code you can show is wrong, or a false warning.
+- Security problems (reading outside the project, reading secret files,
+  terminal escapes reaching the output) must NOT go in a public issue. Point
+  me to https://github.com/tosin2013/spec-status/security/advisories/new
+- First look for an existing issue:
+    gh issue list --repo tosin2013/spec-status --state all --search "<key words>"
+- Otherwise draft one that follows the repository's bug report form,
+  https://github.com/tosin2013/spec-status/issues/new?template=bug_report.yml
+  with these sections: `spec version` output; exact command; minimal input
+  (a small made-up example, never my private roadmap content); expected
+  result; actual result and exit code; kind of problem; platform; where the
+  roadmap or tasks file came from.
+- Show me the draft and ask before filing. When I approve, save it to a file
+  and run:
+    gh issue create --repo tosin2013/spec-status --label bug \
+      --title "<short summary>" --body-file <draft file>
+  If gh is not installed or not logged in, give me the form link and the
+  draft to paste instead.
+- For a missing feature rather than a bug, do the same with the feature
+  request form (?template=feature_request.yml) and the label enhancement.
+
 RULES
-- Do not edit the roadmap, specs, tasks or any other file unless I ask.
+- Do not edit the roadmap, specs, tasks or any other file, and do not file
+  an issue, unless I ask or approve.
 - "verified" is a label someone recorded, not proof the work is correct. A
   checked box is not a passing test. Exit 0 means no finding reached the
   threshold, not that the work is done.
