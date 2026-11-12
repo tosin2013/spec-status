@@ -9,6 +9,8 @@
 This feature adds repository tooling only:
 - a Dependabot configuration for Go modules and GitHub Actions;
 - a CI workflow that runs tests, `go vet` and `govulncheck` on pull requests and `main`, on linux/amd64 and darwin/arm64 and on both supported Go release lines;
+- a hygiene job (gofmt, `go mod tidy -diff`, `go mod verify`, `spec status --fail-on error` on this repository, build-only checks for windows/amd64 and linux/arm64) and a dependency-review job on pull requests;
+- CodeQL code scanning (default setup, a repository setting);
 - the merge rule (D-2026-11-11-04), written into CONTRIBUTING.md;
 - a dependency-vulnerability section in SECURITY.md;
 - truthful README and build-release wording.
@@ -22,7 +24,8 @@ Planning found that the declared `go 1.22` makes the vulnerability scan fail on 
 - CI tests the latest `1.26.x` and `stable` (1.27.x today).
 
 **Primary Dependencies**: None added to the module. Development tooling:
-- `actions/checkout` v7.0.1 and `actions/setup-go` v7.0.0, both pinned by commit SHA;
+- `actions/checkout` v7.0.1, `actions/setup-go` v7.0.0 and `actions/dependency-review-action` v5.0.0, all pinned by commit SHA;
+- CodeQL default setup (repository setting);
 - `golang.org/x/vuln/cmd/govulncheck` v1.9.0, run with `go run pkg@version` so it stays outside `go.mod`;
 - GitHub Dependabot.
 
@@ -76,7 +79,7 @@ Planning found that the declared `go 1.22` makes the vulnerability scan fail on 
 specs/003-dependency-updates/
 ├── spec.md
 ├── plan.md              # this file
-├── research.md          # R1–R7
+├── research.md          # R1–R11
 ├── data-model.md        # configuration entities and the merge-rule classification
 ├── quickstart.md        # validation steps
 ├── contracts/

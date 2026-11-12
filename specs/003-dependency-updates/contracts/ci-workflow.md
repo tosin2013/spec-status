@@ -32,6 +32,22 @@ A conforming workflow meets every **MUST** below. Each one maps to a spec requir
 6. `CGO_ENABLED=0 go test ./...` MUST pass (FR-005).
 7. `go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...` MUST exit 0. Any reachable advisory, or a database fetch failure, fails the job (FR-006, edge cases).
 
+## Job `hygiene` (FR-016 to FR-018)
+
+- `runs-on: ubuntu-latest`, Go `1.26.x`, same checkout and setup-go pins.
+- Steps, each MUST pass:
+  1. `gofmt -l .` prints nothing.
+  2. `go mod tidy -diff` exits 0.
+  3. `go mod verify`.
+  4. Build `./cmd/spec`, then `./spec status --color=never --fail-on error` exits 0.
+  5. With `CGO_ENABLED=0`, `go build ./...` succeeds for `GOOS=windows GOARCH=amd64` and `GOOS=linux GOARCH=arm64`.
+
+## Job `dependency-review` (FR-019)
+
+- MUST run only for `pull_request`, on `ubuntu-latest`, with the workflow's read-only permissions.
+- MUST use `actions/dependency-review-action` pinned by SHA, with `fail-on-severity: low`.
+- MUST NOT enable `comment-summary-in-pr` or any option that needs write permission.
+
 ## Must not
 
 - Build archives, compute release checksums, create tags or releases, upload artifacts, comment on PRs, or push (FR-008).
@@ -39,5 +55,6 @@ A conforming workflow meets every **MUST** below. Each one maps to a spec requir
 
 ## Observable result
 
-- Four checks appear on each pull request, one per `os` × `go` cell, each pass or fail.
+- Six checks appear on each pull request: four test cells (`os` × `go`), `hygiene`, and `dependency-review`. Pushes to `main` show five, because dependency review runs only on pull requests.
+- CodeQL default setup adds its own code-scanning check. It's a repository setting (FR-020), outside this workflow file.
 - Whether passing checks are *required* for merge is a branch-protection setting. It is outside this contract; quickstart notes it as an optional owner step.

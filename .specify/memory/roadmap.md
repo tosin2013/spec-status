@@ -2,10 +2,12 @@
 SYNC IMPACT REPORT
 ==================
 Version change: 1.3.9 → 1.4.0
-Bump rationale: MINOR — new item 009.
+Bump rationale: MINOR — new items 009, 010, 011.
 
 Changes this revision:
   - Added 009 Dependency update automation (specced, specs/003-dependency-updates)
+  - Added 010 Upstream drift automation and 011 README sample test (planned;
+    deferred from feature 003)
   - 004: depends on 009; notes updated for the DC-07/DC-08 decisions
 
 Specs affected: 003-dependency-updates (new)
@@ -391,6 +393,31 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   three T026 rounds changed 001's parser but were classified in this
   feature's `reclassification.md`. Roadmap 1.3.4 is a hand-counted fixture
   (`testdata/conformance/this-repo-1.3.4`).
+
+### 010 — Upstream drift automation [status: planned]
+
+- **Description:** A scheduled workflow that fetches the latest spec-kit and
+  speckit-roadmap templates and runs the conformance drift check (`TestDrift`)
+  against the pins.
+- **Outcome:** An upstream template change is noticed within a week, so the
+  pin moves deliberately (007's intent), not by surprise.
+- **Scope (in):** schedule, which releases to fetch, how a drift is reported.
+- **Scope (out):** moving pins automatically; runtime network access.
+- **Depends on:** 007, 009
+- **Governed by:** C-02, C-08
+- **Notes:** Deferred from feature 003 by the owner on 2026-11-11. Needs its own
+  spec; reporting by issue would need write permission.
+
+### 011 — README sample test [status: planned]
+
+- **Description:** A Go test that compares the README's example output with
+  `spec status` on `testdata/example-roadmap`.
+- **Outcome:** The README sample cannot drift from real output unnoticed.
+- **Scope (in):** the human-text and JSON samples in README.md.
+- **Scope (out):** other documentation checks.
+- **Depends on:** 001
+- **Governed by:** C-01
+- **Notes:** Deferred from feature 003 by the owner on 2026-11-11.
 
 ### Future
 

@@ -14,6 +14,7 @@ A conforming configuration meets every **MUST** below.
 | Setting | Required state | Checked with |
 |---|---|---|
 | Dependabot alerts | enabled | `gh api repos/tosin2013/spec-status/vulnerability-alerts -i` → `204` |
+| Code scanning (CodeQL default setup, Go) | configured (FR-020) | `gh api repos/tosin2013/spec-status/code-scanning/default-setup --jq .state` → `configured` |
 | Dependabot security updates | enabled | `gh api repos/tosin2013/spec-status/automated-security-fixes` → `{"enabled":true,...}` |
 
-Both were enabled and checked on 2026-11-11.
+Alerts and security updates were enabled and checked on 2026-11-11. Code scanning is applied during implementation.

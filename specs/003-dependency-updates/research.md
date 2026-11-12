@@ -75,6 +75,39 @@ Feature 003 · roadmap item 009 · 2026-11-11. Facts were checked on this date w
 - **Decision**: `go mod edit -go=1.26.0`, then `go mod tidy` under go1.26.11. Review the diff: if tidy adds any module not already in `go.mod`, stop and ask for a decision (D-2026-11-11-04).
 - **Rationale**: Raising the `go` line can make tidy rewrite the requirement blocks, for example by pruning or adding indirect requirements. The merge rule applies to this feature's own change too.
 
+## R8 — Hygiene job (owner addition after planning)
+
+- **Decision**: one job, `hygiene`, on `ubuntu-latest` with Go `1.26.x`. Steps:
+  1. `test -z "$(gofmt -l .)"`, printing the list on failure.
+  2. `go mod tidy -diff`. Available since Go 1.23; it exits non-zero and prints the diff without modifying files.
+  3. `go mod verify`.
+  4. `CGO_ENABLED=0 go build -o spec ./cmd/spec && ./spec status --color=never --fail-on error`.
+  5. `CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build ./...` and `CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build ./...`.
+- **Rationale**:
+  - All of it uses Go's own tools, and all of it passed locally on 2026-11-11: gofmt reports nothing, tidy changes nothing, verify reports "all modules verified", and the roadmap check exits 0 at `--fail-on error`.
+  - It uses `--fail-on error`, not `warning`, because a dependency on an unfinished item is a correct warning, for example 004 waiting on 009.
+  - Running hygiene once on the minimum line is enough: formatting and tidiness don't depend on the OS.
+- **Not claimed**: The cross-builds are compile checks. windows/amd64 and linux/arm64 stay unsupported (DC-07).
+
+## R9 — Dependency review
+
+- **Decision**: a job `dependency-review` that runs only on `pull_request`. It uses `actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0` (latest on 2026-11-11, tag ref points to a commit), with `fail-on-severity: low`.
+  - No `comment-summary-in-pr`, which would need `pull-requests: write`. The summary goes to the job log and step summary.
+  - No license allow-list: licenses are shown, not enforced.
+- **Rationale**: It lists the modules a PR adds or changes, with their advisories and licenses. That makes D-2026-11-11-04's "new module" condition visible during review. It needs the dependency graph, which is on by default for this public repository.
+- **Difference from govulncheck**: dependency review works per module, not per call. A version can fail here while govulncheck passes. Both results are shown, and the spec's edge case covers the decision.
+
+## R10 — Code scanning (CodeQL)
+
+- **Decision**: enable CodeQL **default setup** for Go as a repository setting: `PATCH repos/tosin2013/spec-status/code-scanning/default-setup` with `{"state":"configured"}`. The state on 2026-11-11 was `not-configured`, languages `go`, query suite `default`.
+- **Rationale**: Default setup needs no workflow file, and GitHub maintains it. Findings appear in the Security tab. An advanced setup (a workflow file) isn't needed at this size.
+- **Not claimed**: CodeQL results are automated static analysis, not an audit.
+
+## R11 — Deferred to roadmap items
+
+- **010 Upstream drift automation**: a scheduled workflow that fetches the latest spec-kit and speckit-roadmap templates and runs `TestDrift`. It needs its own spec: which releases to fetch, how to report (a failing run, or an issue, which needs `issues: write`), and how network access fits C-02 (development tooling only).
+- **011 README sample test**: a Go test comparing the README's example output with `spec status` on `testdata/example-roadmap`. It's product test code, so it belongs under 001 maintenance.
+
 ## Commands used
 
 ```sh
@@ -85,6 +118,10 @@ gh api repos/actions/setup-go/git/ref/tags/v7.0.0                      # b7ad1da
 curl -fsSL https://proxy.golang.org/golang.org/x/vuln/@latest          # v1.9.0
 curl -fsSL https://proxy.golang.org/golang.org/x/vuln/@v/v1.9.0.mod    # go 1.26.0
 curl -fsSL https://proxy.golang.org/golang.org/x/sys/@v/v0.44.0.mod    # go 1.25.0
+gh api repos/actions/dependency-review-action/releases/latest            # v5.0.0, a1d282b3…
+gh api repos/tosin2013/spec-status/code-scanning/default-setup          # not-configured, go
+gofmt -l . ; go mod tidy (no diff) ; go mod verify                      # clean
+go run ./cmd/spec status --fail-on error                                # exit 0
 curl -fsSL 'https://go.dev/dl/?mode=json'                              # go1.27.4, go1.26.11
 GOTOOLCHAIN=local    govulncheck ./...   # go1.24.3: 1 reachable stdlib vuln, exit 3
 GOTOOLCHAIN=go1.26.9 govulncheck ./...   # 0 reachable; x/sys GO-2026-5024 not called

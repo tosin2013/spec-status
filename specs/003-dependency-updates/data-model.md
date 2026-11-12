@@ -27,7 +27,7 @@ Security updates are not set in this file. They are a repository setting, enable
 | fail-fast | false (each cell reports its own result) | Acceptance scenario 2.3 |
 | steps | checkout (pinned) → setup-go (pinned) → assert platform → assert `go.mod` minimum → `go vet ./...` → `CGO_ENABLED=0 go test ./...` → govulncheck v1.9.0 | FR-005, FR-006, R2–R5 |
 
-There are 4 jobs: 2 operating systems × 2 Go lines. One job passes only if every one of its steps passes.
+There are 4 test jobs (2 operating systems × 2 Go lines), plus `hygiene` (ubuntu, 1.26.x: gofmt, tidy -diff, verify, own-roadmap `spec status --fail-on error`, windows/amd64 and linux/arm64 builds) and `dependency-review` (pull requests only). A job passes only if every step passes. Code scanning is a repository setting, not a job in this file.
 
 ## Dependency proposal → merge-rule outcome (D-2026-11-11-04)
 

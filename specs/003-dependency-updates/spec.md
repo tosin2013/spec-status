@@ -8,7 +8,9 @@
 
 **Roadmap item**: 009 (ahead of 004, release engineering)
 
-**Input**: Owner choices of 11 November 2026: automated dependency update proposals (security fixes as soon as an advisory exists, plus one weekly grouped proposal for minor and patch bumps; major bumps separately; workflow components tracked too); an automatic check on every pull request and on `main` (tests on the two chosen v1 platforms, static analysis, and a known-vulnerability scan); a merge policy under the constitution's dependency allowlist; repository vulnerability alerts and automatic security fixes (enabled on 11 November 2026); and a SECURITY.md section on dependency vulnerabilities.
+**Input**: Additions chosen by the owner after planning (11 November 2026): hygiene checks (formatting, module-file tidiness and integrity, `spec status` on this repository's own roadmap, build-only checks for two unsupported targets), static security analysis, and dependency review on pull requests. A scheduled upstream drift check and a README sample test were deferred to their own roadmap items.
+
+Owner choices of 11 November 2026: automated dependency update proposals (security fixes as soon as an advisory exists, plus one weekly grouped proposal for minor and patch bumps; major bumps separately; workflow components tracked too); an automatic check on every pull request and on `main` (tests on the two chosen v1 platforms, static analysis, and a known-vulnerability scan); a merge policy under the constitution's dependency allowlist; repository vulnerability alerts and automatic security fixes (enabled on 11 November 2026); and a SECURITY.md section on dependency vulnerabilities.
 
 ## Context
 
@@ -99,6 +101,23 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 2. **Given** no release exists, **When** SECURITY.md is read, **Then** it says so and that fixes land on `main` until the first release.
 3. **Given** SECURITY.md, **When** read, **Then** it makes no claim of a security audit, supply-chain certification, signed artifacts, or a response time.
 
+### User Story 6 - Hygiene and security checks catch what tests miss (Priority: P2)
+
+As the owner, the automatic check also tells me when code is not formatted, when module files are untidy or do not match their checksums, when this repository's own roadmap stops passing `spec status`, or when the code no longer builds for windows/amd64 or linux/arm64. Each pull request also shows the modules it adds, with their known vulnerabilities and licenses, and the code is scanned by static security analysis.
+
+**Why this priority**: These are cheap, catch real mistakes (an untidy dependency proposal, a roadmap edit that breaks its own report), and make the merge rule's "new module" condition visible.
+
+**Independent Test**: On a scratch branch, misformat one file, add a stray requirement to `go.mod`, and break a roadmap field. Each of the three checks fails and names the cause. Revert, and all pass.
+
+**Acceptance Scenarios**:
+
+1. **Given** a file not in standard Go format, **When** the check runs, **Then** the hygiene job fails and lists the file.
+2. **Given** `go.mod` or `go.sum` that tidying would change, or a module whose contents do not match `go.sum`, **When** the check runs, **Then** the hygiene job fails.
+3. **Given** a roadmap change that makes `spec status --fail-on error` exit non-zero on this repository, **When** the check runs, **Then** the hygiene job fails and shows the diagnostics.
+4. **Given** code that does not compile for windows/amd64 or linux/arm64, **When** the check runs, **Then** the hygiene job fails. A pass makes no support claim for those targets.
+5. **Given** a pull request that adds or changes modules, **When** dependency review runs, **Then** its result lists each added or changed module with known vulnerabilities and license, and fails if an added or changed version has a known vulnerability.
+6. **Given** a push or pull request, **When** static security analysis runs, **Then** its findings appear in the repository's code-scanning view.
+
 ### Edge Cases
 
 - **A vulnerability with no fixed version yet**: the alert stays open; no proposal is opened. The owner decides whether a workaround or a README limit is needed. The scan fails only if the vulnerable code is reachable.
@@ -107,6 +126,8 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 - **A grouped proposal where one module breaks the tests**: the check fails; the owner can ask for the group to be split or close it. Nothing merges on a failing check.
 - **Automated proposals from forks or with workflow edits**: the check runs with read-only repository permissions and no secrets, so a proposal cannot publish or write anything.
 - **Advisory database or scan service unreachable**: the scan job fails visibly, it does not pass silently.
+- **A cross-build for an unsupported target breaks because of an intended platform-specific change**: the owner either fixes the build or records a decision to drop that build-only check; it is never silently skipped.
+- **Dependency review flags a vulnerable version that the code does not call**: the job fails because dependency review works per module. The owner decides: upgrade, or record an accepted-risk note in the pull request. A module-level finding can differ from govulncheck's reachability result, and both are shown.
 - **darwin/arm64 runner unavailable**: the darwin job fails or queues visibly; it is not skipped or marked as passed.
 
 ## Requirements *(mandatory)*
@@ -123,10 +144,15 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 - **FR-008**: The check MUST NOT build release archives, create tags, or publish anything; that is roadmap item 004.
 - **FR-009**: CONTRIBUTING.md MUST state the merge rule: a proposal that only changes versions of modules already in `go.mod` may merge after the check passes and the owner approves the pull request; a proposal that adds any module not already in `go.mod`, or changes the minimum language version, MUST NOT merge until an owner decision naming the change is recorded in `specs/001-spec-status/decisions.md`.
 - **FR-010**: The merge rule MUST be recorded as an owner decision in the decision log.
-- **FR-011**: SECURITY.md MUST gain a dependency-vulnerability section meeting User Story 5's acceptance scenarios.
+- **FR-011**: SECURITY.md MUST gain a dependency-vulnerability section that meets User Story 5's acceptance scenarios and names the detection methods: repository alerts, the reachability scan, dependency review, and code scanning.
 - **FR-012**: The `spec` binary's behavior, output, exit codes, JSON bytes, imports, and dependency set MUST be unchanged by this feature; all existing tests, including the dependency-allowlist test, MUST pass.
 - **FR-013**: No document MAY claim a security audit, supply-chain certification, signed or attested artifacts, reproducible builds, or a supported platform as a result of this feature (constitution Art. VII).
 - **FR-015**: `go.mod` MUST declare `go 1.26.0`, the oldest supported Go release line (D-2026-11-11-05, added during planning). The check MUST test the newest patch of that line and the current stable release, and MUST fail if `go.mod`'s minimum and the tested minimum line differ.
+- **FR-016**: The check MUST include a hygiene job that fails when any Go file is not in standard format, when tidying would change `go.mod` or `go.sum`, or when module verification fails.
+- **FR-017**: The hygiene job MUST build the `spec` binary and run `spec status --fail-on error` on this repository, failing on a non-zero exit.
+- **FR-018**: The hygiene job MUST build (not test) the module with cgo disabled for windows/amd64 and linux/arm64. Documentation MUST state that these builds are compile checks only and make no support claim.
+- **FR-019**: Every pull request MUST run dependency review, which lists added or changed modules with known vulnerabilities and licenses, and fails when an added or changed version has a known vulnerability. It MUST run with read-only permissions and MUST NOT post comments.
+- **FR-020**: Static security analysis (GitHub code scanning with CodeQL, default setup for Go) MUST be enabled as a repository setting, and SECURITY.md MUST name it alongside the dependency checks without claiming an audit.
 - **FR-014**: The README and the release document (`specs/001-spec-status/build-release.md`) MUST state accurately that a test check exists on pull requests and `main`, that it is not a release workflow, and which platforms it runs on.
 
 ### Key Entities
@@ -145,6 +171,7 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 - **SC-003**: In any week, routine updates produce at most one grouped proposal for modules and one for workflow components, plus one per major update.
 - **SC-004**: Applying the merge rule to any dependency proposal yields exactly one outcome, "merge after review" or "decision needed", with no case left undecided.
 - **SC-005**: The `spec` binary built from `main` after this feature produces byte-identical output to the build before it on the example and conformance fixtures.
+- **SC-007**: On a scratch branch, each seeded hygiene fault (format, tidy, own-roadmap) makes exactly the hygiene job fail with the cause named; reverting restores a pass.
 - **SC-006**: A reader of SECURITY.md can answer three questions without asking: how dependency vulnerabilities are found, how they are fixed, and when a fix reaches them.
 
 ## Assumptions
@@ -162,4 +189,5 @@ As a security reporter or user, SECURITY.md tells me how dependency vulnerabilit
 - The exact toolchain patch used for release builds (004). The minimum Go version is in scope (FR-015).
 - Signing, attestations, or provenance (excluded from v1 by D-2026-11-11-02).
 - Automatic merging of any proposal.
-- Coverage thresholds, linters beyond the language's own static analysis, and fuzzing in the check.
+- Coverage thresholds, third-party linters or workflow linters, markdown link checks, and fuzzing in the check.
+- A scheduled upstream-template drift check (roadmap item 010) and a README sample test (roadmap item 011); both deferred by the owner on 11 November 2026.

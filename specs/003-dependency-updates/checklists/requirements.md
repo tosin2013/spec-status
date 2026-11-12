@@ -34,4 +34,4 @@
 - **Named tools, deliberately.** This feature is repository tooling, and the owner chose its tools on 11 November 2026: GitHub's update service and checks, and the Go vulnerability scanner. The spec names them only in Context, Assumptions and file paths. The requirements say what must happen (schedule, grouping, platforms, permissions, failure behavior), not how to configure it.
 - **Platform names stay.** linux/amd64 and darwin/arm64 are owner decisions (D-2026-11-11-02), not implementation choices.
 - **No open questions.** All four scope questions were answered before drafting: update mode, CI scope, merge policy, and repository settings.
-- Validation passed on the first iteration.
+- Validation passed on the first iteration. Re-validated after the planning additions (User Story 6, FR-015 to FR-020, SC-007): still passes. The new requirements name GitHub's own features because the owner chose them.
