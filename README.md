@@ -73,6 +73,43 @@ warning SS_DEPENDENCY_HUMAN_REVIEW
 
 `--status` matches the raw status exactly, including an unknown token. Repeat it with a different token to match any of those tokens. `--blocked`, `--human-review`, `--active`, and `--historical` combine with AND. `--blocked` includes a historical item with an unsatisfied dependency; that is separate from the active-blockers count. `--explain` adds a mechanical reason and a file:line only when the parse retained that location.
 
+## Install
+
+There is no published release yet. When there is one, it will be on [GitHub Releases](https://github.com/tosin2013/spec-status/releases) with one archive per supported platform and a SHA-256 checksum file. Until a release's smoke tests pass on a platform, that platform is chosen but not yet proven (decision D-2026-11-11-02).
+
+| Platform | Archive |
+|---|---|
+| Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` |
+| macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` |
+
+No root and no Go are needed. Replace `<version>` with the release version without the `v`, for example `0.1.0`:
+
+```sh
+V=<version>
+OS_ARCH=linux_amd64          # or darwin_arm64
+base=https://github.com/tosin2013/spec-status/releases/download/v$V
+curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
+curl -fLO "$base/spec_${V}_checksums.txt"
+sha256sum -c --ignore-missing "spec_${V}_checksums.txt"        # macOS: shasum -a 256 -c --ignore-missing ...
+tar -xzf "spec_${V}_${OS_ARCH}.tar.gz"
+mkdir -p ~/.local/bin && mv "spec_${V}_${OS_ARCH}/spec" ~/.local/bin/
+spec version                                                   # label: release build
+```
+
+Put `~/.local/bin`, or any directory you own, on your `PATH`. The checksum file verifies that the archive matches what the release workflow built; it does not prove who published it, and the binaries are not signed.
+
+**Upgrade or roll back** by repeating the same steps with another version. Every published release stays downloadable, and its files are never replaced: a fix ships as a new version.
+
+**macOS:** binaries are not signed or notarized. `curl` downloads run directly. If you download an archive with a web browser, macOS quarantines it and blocks the first run. Clear the flag for that one file with `xattr -d com.apple.quarantine ~/.local/bin/spec`. Do not disable Gatekeeper.
+
+**Other platforms**, such as Windows or linux/arm64, have no release archive. Building from source or `go install` may work there, but it is untested and unsupported.
+
+**With Go** (1.26 or newer): `go install github.com/tosin2013/spec-status/cmd/spec@v<version>`. That binary is built by your own toolchain from the published module, so `spec version` reports `label: module build (built from the module version, not a release archive)` and `commit: unknown`.
+
+**Compatibility before 1.0:** before v1.0.0, a minor version (0.x.0) may change command flags, exit codes or the JSON schema, and the release notes list every such change. Patch versions (0.x.y) do not break compatibility. The JSON schema is versioned separately (currently 1.0).
+
+Release steps for the maintainer are in [RELEASING.md](RELEASING.md).
+
 ## Build and run from source
 
 Building needs Go 1.26 or newer (decision D-2026-11-11-05). Before that change, these commands were run in this workspace on Linux amd64 with Go 1.22.2 and on Darwin arm64 with Go 1.24.3; after it, the implementer ran the tests on Darwin arm64 with Go 1.26.11.

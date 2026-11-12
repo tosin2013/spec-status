@@ -25,9 +25,12 @@ import (
 
 // Overridden with -ldflags -X when a builder stamps a commit.
 // Defaults describe a development build, not a release.
+// Kind is set to "release" only by the release workflow
+// (.github/workflows/release.yml); see build.go.
 var (
 	Version = "0.0.0-dev"
 	Commit  = "unknown"
+	Kind    = ""
 )
 
 func init() {
@@ -106,7 +109,7 @@ func newRoot(cwd string) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "spec",
 		Short:         "Read-only status for a Spec Kit roadmap",
-		Long:          rootLong,
+		Long:          rootLong(),
 		Example:       rootExamples,
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -204,6 +207,7 @@ This command does not run tests or Git, and it does not change files.`,
 				Width: textColumns(), Color: false,
 				Statuses: opts.statusFlag.values, Blocked: opts.blocked, HumanReview: opts.humanReview,
 				Active: opts.active, Historical: opts.historical, Explain: opts.explain,
+				Build: currentBuild().heading,
 			}
 			if rep.Outcome == "fatal" {
 				fmt.Fprint(cmd.ErrOrStderr(), status.Text(rep, view))
@@ -296,8 +300,9 @@ func wantColor(w io.Writer, mode string) bool {
 }
 
 func versionText() string {
-	return fmt.Sprintf("spec %s\ncommit: %s\ngo: %s\ntarget: %s/%s\nlabel: development build, not a release\n",
-		Version, Commit, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	b := currentBuild()
+	return fmt.Sprintf("spec %s\ncommit: %s\ngo: %s\ntarget: %s/%s\nlabel: %s\n",
+		b.version, b.commit, runtime.Version(), runtime.GOOS, runtime.GOARCH, b.label)
 }
 
 type silentExit struct{ code int }
@@ -463,10 +468,13 @@ func jsonEscape(s string) string {
 	return string(b[1 : len(b)-1])
 }
 
-const rootLong = `Spec Status reads a Spec Kit roadmap and reports what the files record.
-
-This is a development build. It does not change files, use the network, or infer quarters.
-Exit 0 means no finding reached the threshold. It does not mean the work is done.`
+// rootLong is the root help text; its first sentence of the second paragraph
+// names the build kind (feature 004, contracts/build-identity.md).
+func rootLong() string {
+	return "Spec Status reads a Spec Kit roadmap and reports what the files record.\n\n" +
+		currentBuild().helpSentence + " It does not change files, use the network, or infer quarters.\n" +
+		"Exit 0 means no finding reached the threshold. It does not mean the work is done."
+}
 
 const rootExamples = `  spec status
   spec status --root testdata/example-roadmap

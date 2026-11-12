@@ -21,6 +21,9 @@ type View struct {
 	Active      bool
 	Historical  bool
 	Explain     bool
+	// Build is the panel heading label after "Spec Status"; empty means
+	// "development build". It never affects JSON (feature 004).
+	Build string
 }
 
 func normalizeWidth(n int) int {
@@ -192,7 +195,7 @@ func renderHuman(rep Report, view View) string {
 		b.WriteString("summary  N/A\n")
 		return b.String()
 	}
-	b.WriteString(summaryPanel(p, rep, width))
+	b.WriteString(summaryPanel(p, rep, width, view.Build))
 	shown := filterItems(rep.Items, view)
 	if view.filtering() {
 		b.WriteString("shown " + itoa(len(shown)) + " of " + itoa(len(rep.Items)) + " items\n")
@@ -276,7 +279,7 @@ func wrapText(s string, width int) []string {
 
 const summaryLabelWidth = 18
 
-func summaryPanel(p *painter, rep Report, width int) string {
+func summaryPanel(p *painter, rep Report, width int, build string) string {
 	s := rep.Summary
 	padX := 1
 	if width < 48 {
@@ -286,13 +289,16 @@ func summaryPanel(p *painter, rep Report, width int) string {
 	if inner < 16 {
 		inner = 16
 	}
-	lines := summaryLines(p, s, rep.Roadmap, inner)
+	lines := summaryLines(p, s, rep.Roadmap, inner, build)
 	return frame(p, lines, inner, padX)
 }
 
-func summaryLines(p *painter, s *Summary, roadmap string, inner int) []string {
+func summaryLines(p *painter, s *Summary, roadmap string, inner int, build string) []string {
+	if build == "" {
+		build = "development build"
+	}
 	var lines []string
-	lines = append(lines, fitSegments(inner, p.paint("Spec Status", "heading"), "  development build"))
+	lines = append(lines, fitSegments(inner, p.paint("Spec Status", "heading"), "  "+sanitizeTerminal(build)))
 	lines = append(lines, metricLines(p, "recorded verified", s.VerifiedActiveItems, s.ActiveItems, s.VerifiedPercent.Text(), "verified", inner)...)
 	lines = append(lines, metricLines(p, "checked tasks", s.Tasks.Checked, s.Tasks.Total, s.Tasks.Percent.Text(), "", inner)...)
 	lines = append(lines, countLine(p, "active blockers", itoa(s.BlockedCount), "", inner)...)

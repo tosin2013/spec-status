@@ -9,6 +9,8 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # Reused by release.yml (feature 004) so a release runs exactly these checks.
+  workflow_call:
 
 permissions:
   contents: read

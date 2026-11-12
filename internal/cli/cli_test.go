@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
+	"runtime/debug"
 	"strings"
 	"testing"
 	"time"
@@ -197,5 +199,74 @@ func mustWrite(t *testing.T, path, body string) {
 	}
 	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// Build identity on the command surface (feature 004, contracts/build-identity.md).
+func withBuild(t *testing.T, b buildIdentity) {
+	t.Helper()
+	buildOverride = &b
+	t.Cleanup(func() { buildOverride = nil })
+}
+
+func TestVersionTextPerBuildKind(t *testing.T) {
+	const sha = "0123456789abcdef0123456789abcdef01234567"
+	tail := "go: " + runtime.Version() + "\ntarget: " + runtime.GOOS + "/" + runtime.GOARCH + "\n"
+	for _, c := range []struct {
+		b    buildIdentity
+		want string
+	}{
+		{resolveBuild("", "0.0.0-dev", "unknown", nil, false),
+			"spec 0.0.0-dev\ncommit: unknown\n" + tail + "label: development build, not a release\n"},
+		{resolveBuild("release", "0.1.0", sha, nil, false),
+			"spec 0.1.0\ncommit: " + sha + "\n" + tail + "label: release build\n"},
+		{resolveBuild("", "0.0.0-dev", "unknown", &debug.BuildInfo{Main: debug.Module{Version: "v0.1.0", Sum: "h1:a="}}, true),
+			"spec 0.1.0\ncommit: unknown\n" + tail + "label: module build (built from the module version, not a release archive)\n"},
+	} {
+		withBuild(t, c.b)
+		if got := versionText(); got != c.want {
+			t.Errorf("%s:\ngot  %q\nwant %q", c.b.kind, got, c.want)
+		}
+	}
+}
+
+func TestHelpSentencePerBuildKind(t *testing.T) {
+	keep := "It does not change files, use the network, or infer quarters."
+	for _, c := range []struct {
+		b         buildIdentity
+		want, not string
+	}{
+		{resolveBuild("", "0.0.0-dev", "unknown", nil, false), "This is a development build. " + keep, "release"},
+		{resolveBuild("release", "0.1.0", "c", nil, false), "This is release 0.1.0. " + keep, "development build"},
+		{resolveBuild("", "0.0.0-dev", "unknown", &debug.BuildInfo{Main: debug.Module{Version: "v0.1.0", Sum: "h1:a="}}, true), "This is a module build of 0.1.0, not a release archive. " + keep, "development build"},
+	} {
+		withBuild(t, c.b)
+		var out, errb bytes.Buffer
+		if code := Run([]string{"--help"}, t.TempDir(), &out, &errb); code != 0 {
+			t.Fatal(code)
+		}
+		if !strings.Contains(out.String(), c.want) || strings.Contains(out.String(), c.not) {
+			t.Errorf("%s help:\n%s", c.b.kind, out.String())
+		}
+	}
+}
+
+func TestStatusHeadingAndJSONPerBuildKind(t *testing.T) {
+	dir := t.TempDir()
+	mustWrite(t, filepath.Join(dir, ".specify", "memory", "roadmap.md"), "### 001 — Work [status: planned]\n")
+	run := func(args ...string) string {
+		var out, errb bytes.Buffer
+		Run(args, dir, &out, &errb)
+		return out.String()
+	}
+	withBuild(t, resolveBuild("", "0.0.0-dev", "unknown", nil, false))
+	devText, devJSON := run("status", "--root", dir, "--color=never"), run("status", "--root", dir, "--json")
+	withBuild(t, resolveBuild("release", "0.1.0", "c", nil, false))
+	relText, relJSON := run("status", "--root", dir, "--color=never"), run("status", "--root", dir, "--json")
+	if !strings.Contains(devText, "Spec Status  development build") || !strings.Contains(relText, "Spec Status  release 0.1.0") {
+		t.Fatalf("headings:\n%s\n%s", devText, relText)
+	}
+	if devJSON != relJSON || devJSON == "" {
+		t.Fatalf("JSON differs across build kinds:\n%s\n%s", devJSON, relJSON)
 	}
 }

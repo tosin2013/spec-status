@@ -87,6 +87,10 @@ The minimum Go version is 1.26 (D-2026-11-11-05). CI tests the newest 1.26 patch
   claim more than that.
 - `CGO_ENABLED=0 go test ./...` must pass.
 
+## Releases
+
+Only the maintainer tags and publishes releases. The steps are in [RELEASING.md](RELEASING.md).
+
 ## License
 
 The project is licensed under [Apache-2.0](LICENSE). Unless you state otherwise,
