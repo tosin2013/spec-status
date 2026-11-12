@@ -1,6 +1,6 @@
 # Feature specification — deterministic roadmap status
 
-**Feature SS-001, specification version 0.1.** This file is the specification, not a release. A development CLI implements a read-only slice. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 was approved as built: DC-03 on 7 November 2026 (D-2026-11-07-03) and the rest of [DC-01–08](decisions.md) on 11 November 2026 (D-2026-11-11-02), except DC-08's mirror or Bitbucket expectations, which remain open.
+**Feature SS-001, specification version 0.1.** This file is the specification, not a release. A development CLI implements a read-only slice. It preserves the PRD baseline. Every exact grammar, field/code choice or policy labelled PROFILE-R1 was approved as built: DC-03 on 7 November 2026 (D-2026-11-07-03) and the rest of [DC-01–08](decisions.md) on 11 November 2026 (D-2026-11-11-02, D-2026-11-11-03).
 
 ## 1. Product outcome and users
 
@@ -99,7 +99,7 @@ Owner-approved RC precedes first stable tag. Platform matrix remains undecided; 
 
 Functional acceptance requires the detailed cases in [acceptance.md](acceptance.md); coverage mapping is [traceability.md](traceability.md). Tests have been executed by the implementer; they are not independent verification. The <100 ms median cold-start target applies to a documented 100-item/10,000-task fixture on disclosed hardware/OS and is not a measured fact.
 
-DC-01–06 and the PROFILE-R1 details were approved as built (D-2026-11-07-03, D-2026-11-11-02), the real dogfood inputs were approved (D-2026-11-07-08), and implementation was authorized on 7 November 2026. DC-07 (v1 targets linux/amd64 and darwin/arm64, each advertised only after a real runner proves it; checksum-only GitHub Release archives) and DC-08 (Apache-2.0 license, GitHub private vulnerability reporting, latest-release-only best-effort support) were chosen on 11 November 2026 (D-2026-11-11-02). No release exists and no target is supported yet. Still open: DC-08's mirror or Bitbucket expectations, the Go toolchain version, CI runners and the release workflow. Remaining choices must be recorded rather than turned into implicit approval.
+DC-01–06 and the PROFILE-R1 details were approved as built (D-2026-11-07-03, D-2026-11-11-02), the real dogfood inputs were approved (D-2026-11-07-08), and implementation was authorized on 7 November 2026. DC-07 (v1 targets linux/amd64 and darwin/arm64, each advertised only after a real runner proves it; checksum-only GitHub Release archives) and DC-08 (Apache-2.0 license, GitHub private vulnerability reporting, latest-release-only best-effort support) were chosen on 11 November 2026 (D-2026-11-11-02). No release exists and no target is supported yet. GitHub is the only home, with no mirror (D-2026-11-11-03). Still open: the Go toolchain version, CI runners and the release workflow. Remaining choices must be recorded rather than turned into implicit approval.
 
 ## 6. Draft proposals, not approvals
 

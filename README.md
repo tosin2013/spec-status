@@ -128,7 +128,7 @@ Inferred quarters are not calculated. The sensitive-name filter and symlink chec
 
 On this Linux amd64 host, nine runs of a 100-item, 10,000-task fixture had a median of about 3.9 ms. That is one development machine, not a performance promise and not an independent measurement.
 
-There is no package-manager install, release workflow, or file-updating command. Licensed under [Apache-2.0](LICENSE); report vulnerabilities as described in [SECURITY.md](SECURITY.md).
+There is no package-manager install, release workflow, or file-updating command. Licensed under [Apache-2.0](LICENSE); report vulnerabilities as described in [SECURITY.md](SECURITY.md). See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 Known limits. Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input outside the [supported shapes](specs/002-upstream-format-conformance/contracts/shape-inventory.md) is non-blocking when it fails visibly or is listed here; the classification of every review finding is in [reclassification.md](specs/002-upstream-format-conformance/reclassification.md).
 

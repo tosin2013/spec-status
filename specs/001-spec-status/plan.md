@@ -1,6 +1,6 @@
 # Technical plan — architecture design record
 
-**PROFILE-R1.** This file remains the design record. A development implementation exists beside it; the owner approved its PROFILE-R1 choices as built (DC-03: D-2026-11-07-03; the rest of DC-01–DC-08 except DC-08's mirror expectations: D-2026-11-11-02). This file contains no executable code.
+**PROFILE-R1.** This file remains the design record. A development implementation exists beside it; the owner approved its PROFILE-R1 choices as built (DC-03: D-2026-11-07-03; the rest of DC-01–DC-08: D-2026-11-11-02 and D-2026-11-11-03). This file contains no executable code.
 
 ## Architecture and processing boundaries
 

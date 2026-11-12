@@ -113,7 +113,7 @@ Each row lists specification location plus a detailed contract when applicable, 
 
 ## Additional PROFILE-R1 refinements (owner-approved, not source-settled requirements)
 
-DC-01–08 and D-01A–D-06A in decisions.md cover exact grammar/path precedence, valid-only chain exclusions, HUMAN_REVIEW counting/stage matrix, JSON 1.0/rounding/no-config/no-clock, conservative symlink/mount/secret matcher and numeric budgets, small tested matrix/identity policy, and dogfood/public-readiness choices. They are mapped through AC-02–24 and TASK-02–06/17–21; the owner approved them as built (DC-03: D-2026-11-07-03; dogfood inputs: D-2026-11-07-08; the rest: D-2026-11-11-02), except DC-08's mirror or Bitbucket expectations, which remain open. Repetition across documents is not what ratified them.
+DC-01–08 and D-01A–D-06A in decisions.md cover exact grammar/path precedence, valid-only chain exclusions, HUMAN_REVIEW counting/stage matrix, JSON 1.0/rounding/no-config/no-clock, conservative symlink/mount/secret matcher and numeric budgets, small tested matrix/identity policy, and dogfood/public-readiness choices. They are mapped through AC-02–24 and TASK-02–06/17–21; the owner approved them as built (DC-03: D-2026-11-07-03; dogfood inputs: D-2026-11-07-08; the rest: D-2026-11-11-02; DC-08 hosting: D-2026-11-11-03). Repetition across documents is not what ratified them.
 
 ## Coverage and contradiction checklist
 
@@ -128,7 +128,7 @@ DC-01–08 and D-01A–D-06A in decisions.md cover exact grammar/path precedence
 
 The development CLI covers the read-only reporting path: narrow roadmap parsing, raw statuses, separate checkbox and recorded-verified counts, history-safe supersession, human-review dependencies, shared text/JSON results, exits 0/1/2, root-confined reads, a static summary panel, and human-text filters with `--explain`. JSON stays the full schema 1.0 result. In-repo tests exercise malformed input, deterministic output, and adversarial filesystem cases. Those tests were run by the implementer.
 
-Still open as product work, not silently dropped: DC-08's mirror or Bitbucket expectations, the Go toolchain version, release identity and multi-platform execution, and phase-two mutation. Signing is not part of v1 (D-2026-11-11-02). DC-01–DC-08 are otherwise approved (D-2026-11-07-03, D-2026-11-07-08, D-2026-11-11-02), and the dogfood part of AC-24 was recorded done (D-2026-11-11-01). Acceptance rows AC-21–AC-23 and AC-25 are not met. AC-20 has one host measurement and is not a passed certification.
+Still open as product work, not silently dropped: the Go toolchain version, release identity and multi-platform execution, and phase-two mutation. Signing is not part of v1 (D-2026-11-11-02). DC-01–DC-08 are otherwise approved (D-2026-11-07-03, D-2026-11-07-08, D-2026-11-11-02), and the dogfood part of AC-24 was recorded done (D-2026-11-11-01). Acceptance rows AC-21–AC-23 and AC-25 are not met. AC-20 has one host measurement and is not a passed certification.
 
 Documentation review still must assess details, not only identifier counts. Cases where ambiguity remains (grammar/source provenance, metadata races, unsafe skips versus fatal, duplicate counts and stage matrix) were labelled as implementation blockers or candidate policies rather than falsely resolved requirements; the policies were later approved as built (D-2026-11-07-03, D-2026-11-11-02).
 

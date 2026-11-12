@@ -1,6 +1,6 @@
 # Build, release and distribution requirements
 
-**Release requirements remain a draft.** A development CLI and implementer-run tests now exist in the repository. No workflow, tag, release, published binary, artifact manifest, or supported-platform claim exists. On 11 November 2026 the owner chose the v1 targets, checksum-only integrity, the Apache-2.0 license, the security reporting route and the support window (DC-07, DC-08, D-2026-11-11-02). The Go toolchain version, CI runners, the release workflow and DC-08's mirror expectations remain open.
+**Release requirements remain a draft.** A development CLI and implementer-run tests now exist in the repository. No workflow, tag, release, published binary, artifact manifest, or supported-platform claim exists. On 11 November 2026 the owner chose the v1 targets, checksum-only integrity, the Apache-2.0 license, the security reporting route and the support window (DC-07, DC-08, D-2026-11-11-02). GitHub is the only home and release channel (D-2026-11-11-03). The Go toolchain version, CI runners and the release workflow remain open.
 
 ## Identity and compatibility
 
@@ -48,6 +48,6 @@ First stable tag follows explicitly owner-approved tested RC. Archive contents, 
 
 ## Public availability gates
 
-Public documentation targets [tosin2013/spec-status](https://github.com/tosin2013/spec-status); repository establishment occurred separately from this package. The license is Apache-2.0 (`LICENSE`); security reports go through GitHub private vulnerability reporting (`SECURITY.md`); only the latest release is supported, best effort (DC-08, D-2026-11-11-02). Release readiness still requires confirmed release configuration, fixture privacy review and owner publication approval. Host-independent build/runtime and optional fork/Bitbucket expectations remain open under DC-08; there are no mirrors or extra release channels.
+Public documentation targets [tosin2013/spec-status](https://github.com/tosin2013/spec-status); repository establishment occurred separately from this package. The license is Apache-2.0 (`LICENSE`); security reports go through GitHub private vulnerability reporting (`SECURITY.md`); only the latest release is supported, best effort (DC-08, D-2026-11-11-02). Release readiness still requires confirmed release configuration, fixture privacy review and owner publication approval. GitHub is the only repository home and release channel; there are no mirrors, Bitbucket copies or extra release channels (D-2026-11-11-03).
 
 Performance (<100 ms cold median on disclosed fixture) and build effort are not measured today. Neither a one-day aspiration nor an earlier unvalidated planning range is a release schedule. See acceptance AC-20–24 and future TASK-17–21; all are unstarted.

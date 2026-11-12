@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.3.8 → 1.3.9
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 002 status: needs-info → verified (D-2026-11-11-02, D-2026-11-11-03;
+    contracts reconciled); Spec dir specs/001-spec-status added (C-07)
+
+Specs affected: 001
+Open questions added/resolved: none
+
+Previous revision (1.3.8, 2026-11-11):
 Version change: 1.3.7 → 1.3.8
 Bump rationale: PATCH — wording: 002 notes record D-2026-11-11-02.
 
@@ -242,7 +253,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   blocking finding fixed, no round with zero findings; residual risk in README
   Limits. Not a human review or an upstream certification. PROFILE-R1 choices remain reversible until 002 lands.
 
-### 002 — Contract approval DC-01–DC-08 [status: needs-info]
+### 002 — Contract approval DC-01–DC-08 [status: verified]
 
 - **Description:** Gate 0 (TASK-01–06): owner decisions on grammar, metrics,
   CLI/JSON, safety, limits, platforms, and dogfood inputs that PROFILE-R1
@@ -253,13 +264,17 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** implementing changes the decisions require (tracked per spec).
 - **Depends on:** none
 - **Governed by:** C-01, C-03, C-05
+- **Spec dir:** specs/001-spec-status
 - **Notes:** Approved on 2026-11-07: one DC-01 refinement (speckit-roadmap field
   spelling), all of DC-03 (C-07), and the DC-08 dogfood inputs. Approved on
   2026-11-11 (D-2026-11-11-02): the rest of DC-01, DC-02, DC-04–DC-06 as built;
   DC-07 linux/amd64 and darwin/arm64 with checksum-only archives; DC-08
   Apache-2.0, GitHub private vulnerability reporting, latest release only.
-  Still open: DC-08 mirror expectations, and reconciling the contracts with
-  these decisions.
+  DC-08 hosting on 2026-11-11 (D-2026-11-11-03): GitHub only, no mirror;
+  CONTRIBUTING.md and CODE_OF_CONDUCT.md added. Contracts reconciled with
+  these decisions in PR #25. Recorded verified on 2026-11-11: every DC item
+  is decided and the contracts match; the toolchain, runners and release
+  workflow belong to 004.
 
 ### 008 — Two-mode roadmap and feature inventory [status: needs-info]
 
@@ -392,4 +407,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.3.8 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
+**Version**: 1.3.9 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
