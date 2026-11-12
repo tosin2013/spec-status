@@ -12,7 +12,7 @@ This feature stores no data. The "entities" are repository configuration and one
 | updates[gomod].groups.go-minor-patch | patterns `*`, update-types `minor`, `patch` | FR-001; majors stay ungrouped |
 | updates[github-actions].directory | `/` | Dependabot reads `.github/workflows/` |
 | updates[github-actions].schedule | weekly, Monday | FR-002 |
-| updates[github-actions].groups.actions | patterns `*` | FR-002 |
+| updates[github-actions].groups.actions | patterns `*`, update-types `minor`, `patch` | FR-002; majors stay ungrouped (US3) |
 
 Security updates are not set in this file. They are a repository setting, enabled on 2026-11-11 (FR-003), and they ignore the schedule and groups.
 
