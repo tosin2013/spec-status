@@ -1,7 +1,7 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.4.0 → 1.4.1
+Version change: 1.4.1 → 1.4.2
 Bump rationale: PATCH — status transition.
 
 Changes this revision:
@@ -9,6 +9,17 @@ Changes this revision:
     runs recorded in specs/001-spec-status/tasks.md)
 
 Specs affected: 003-dependency-updates
+Open questions added/resolved: none
+
+Previous revision (1.4.1, 2026-11-11):
+Version change: 1.4.0 → 1.4.1
+Bump rationale: PATCH — status transition and wording.
+
+Changes this revision:
+  - 004 status: needs-info → specced (specs/004-release-engineering, D-2026-11-11-06);
+    outcome now "first tagged release (v0.1.0)"; scope rewritten
+
+Specs affected: 004-release-engineering (new)
 Open questions added/resolved: none
 
 Previous revision (1.4.0, 2026-11-11):
@@ -368,23 +379,26 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   failed exactly the expected jobs (implementation record in
   `specs/001-spec-status/tasks.md`). Recorded implemented, not verified.
 
-### 004 — Release engineering [status: needs-info]
+### 004 — Release engineering [status: specced]
 
 - **Description:** TASK-17–21: support matrix, pinned toolchain,
   test-before-publish tag workflow, archives and checksums, runtime smoke on each
   advertised target, install/upgrade docs, owner-approved release candidate.
-- **Outcome:** A first stable tag created by the owner from a tested release
-  candidate, with evidence for every advertised platform.
-- **Scope (in):** build-release.md gates; DC-07 decisions; license and security
-  disclosure choices.
-- **Scope (out):** signing or provenance unless separately approved; package
-  managers.
+- **Outcome:** A first tagged release (v0.1.0) published by the owner from a
+  tested release candidate, with smoke-test evidence for every advertised
+  platform.
+- **Scope (in):** tag-triggered draft-release workflow, archives and checksums,
+  per-platform smoke tests, build-identity labeling (release, module and
+  development builds), README install section, release checklist.
+- **Scope (out):** signing or provenance; package managers; Windows and
+  linux/arm64 archives; automatic publishing.
 - **Depends on:** 002, 003, 009
 - **Governed by:** C-06
+- **Spec dir:** specs/004-release-engineering
 - **Notes:** DC-07 and DC-08 are decided (D-2026-11-11-02, D-2026-11-11-03):
-  linux/amd64 and darwin/arm64, checksum-only archives, Apache-2.0. Open: the
-  toolchain version, runner evidence and the release workflow. Reuses the test
-  check from 009.
+  linux/amd64 and darwin/arm64, checksum-only archives, Apache-2.0. Minimum Go
+  1.26 (D-2026-11-11-05). Release flow, v0.1.0 and channels chosen on
+  2026-11-11 (D-2026-11-11-06). Specced the same day; implementation waits for 009's CI.
 
 ### 007 — Upstream-format conformance [status: verified]
 
@@ -482,4 +496,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.4.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
+**Version**: 1.4.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-11
