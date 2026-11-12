@@ -126,7 +126,7 @@
   - that the draft pre-release has exactly three assets;
   - that the notes meet FR-015;
   - that `sha256sum -c` passes on the downloaded assets.
-- [ ] T020 [US1] **(with owner approval)** Negative runs from quickstart §3, each recorded with its run URL, and each throwaway tag and draft deleted afterwards:
+- [X] T020 [US1] **(with owner approval)** Negative runs from quickstart §3, each recorded with its run URL, and each throwaway tag and draft deleted afterwards: *Done 2026-11-12 with owner approval. `v0.1`: verify failed on the name check. `v0.1.0-rc.99` on a commit not on main: verify failed on the main check. `v0.1.0-rc.98` with a pre-existing **draft** release: verify passed, because a read-only token cannot see drafts. Build and smoke ran, then `create draft release` refused with "a release for the tag already exists", so nothing was created or replaced. Published releases are caught at verify (the `v0.1.0` run). The throwaway tags and drafts were deleted.*
   - bad tag name `v0.1`: `verify` fails;
   - tag on a commit not on `main`: `verify` fails;
   - re-push of the existing `v0.1.0-rc.1` tag name: `verify` fails because the release exists.
@@ -201,7 +201,7 @@
 - [X] T029 Run the Doomer review workflow on the source changes (`internal/cli`, `internal/status`, `.github/workflows`), and record a response for every Quick finding before push.
 - [X] T030 Commit, push and open the PR. Confirm feature 003's CI passes on it: four test jobs, hygiene and dependency review.
 - [ ] T031 Add an implementation-record row to `specs/001-spec-status/tasks.md`: "Release engineering (feature 004)". Cover the build identity, the release workflow, the README install section and RELEASING.md, with run URLs once T019 and T020 exist. Mark roadmap 004 `implemented` in `.specify/memory/roadmap.md` after T019 succeeds; `verified` waits for the owner-published v0.1.0 and the US2 install check.
-- [ ] T032 **(owner, optional)** Offer the repository settings from research.md R8: immutable releases, and a `v*` tag ruleset limiting tag creation and deletion to the owner. Also re-offer feature 003's branch protection. Apply none without explicit approval.
+- [X] T032 **(owner, optional)** Offer the repository settings from research.md R8: immutable releases, and a `v*` tag ruleset limiting tag creation and deletion to the owner. Also re-offer feature 003's branch protection. Apply none without explicit approval. *Done 2026-11-12 ({D}): tag ruleset "release tags: owner only" (id 27092565), branch protection on `main` (four test jobs and hygiene required), and immutable releases enabled.*
 - [ ] T033 **(owner)** After the release candidate is reviewed, the owner tags and publishes `v0.1.0` (SC-007). The implementer then runs the quickstart §4 checks, updates the README support wording (FR-016), and records the results.
 
 ---
