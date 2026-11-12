@@ -39,6 +39,8 @@ Two future issue classes are required as text, not as files created here:
 
 Not selected, and not to be treated as approved: command names and flags, whether either mode is the default, how a template version is identified, the precise feature-folder naming rule, the precise checkbox grammar (indentation, marker character, empty boxes, letter case), the inventory JSON fields and exit codes, and whether either mode ships in v1 or later.
 
+**Update, 12 November 2026:** all of these were chosen by the owner in decision D-2026-11-12-08 (`specs/001-spec-status/decisions.md`): `spec inventory` as its own command; `spec status` keeps exit 2 for a missing roadmap and suggests inventory; recognition by item headings or the `## Planned Specs` template heading, with a new fatal `SS_ROADMAP_UNRECOGNIZED` otherwise; Spec Kit's two feature-folder naming forms; the existing tasks.md checkbox rules; a separate inventory JSON schema 1.0 with unchanged exit-code meanings; and shipping in v0.3.0. Nothing is implemented yet; the next step is a feature spec.
+
 ## Evidence, not a passing inventory run
 
 These observations used pull request 15's commit. They are not an implementation of this direction.
