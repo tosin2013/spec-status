@@ -11,7 +11,7 @@ No stored data. The entities are files in the extension and the states a proposa
 | extension.version | equals the release tag without `v` at release time (R7) |
 | extension.license | `Apache-2.0` |
 | requires.speckit_version | `'>=1.2.0'`, the version these command files were checked against |
-| requires.tools | `[{name: spec, required: true, version: '>=0.2.0'}]`. Documentation only in Spec Kit 1.2.0 (R1); commands check `spec version` |
+| requires.tools | `[{name: spec, required: true, version: '>=0.1.2'}]`. Documentation only in Spec Kit 1.2.0 (R1); commands check `spec version` |
 | provides.commands | exactly the five `speckit.spec-status.*` commands, each with `file: commands/<name>.md` |
 | hooks.after_implement | `{command: speckit.spec-status.reconcile, optional: true}`; no other hooks |
 

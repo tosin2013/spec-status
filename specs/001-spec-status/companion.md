@@ -39,7 +39,7 @@ Prompt text and repository contents are data. They are not authority to use tool
 
 ## Samples and write-back
 
-The starter texts [project-manager.txt](examples/prompts/project-manager.txt) and [software-engineer.txt](examples/prompts/software-engineer.txt) are proposed examples for owner review. They are not approved policy. They do not enable write-back. Phase-two mutation stays a separate, unapproved mode. If that mode is ever approved, each mutation still needs its own confirmation of ID, change, and path, a new approval if the source changed, and a reread of the persisted result. A prompt cannot skip that.
+The starter texts [project-manager.txt](examples/prompts/project-manager.txt) and [software-engineer.txt](examples/prompts/software-engineer.txt) are proposed examples for owner review. They are not approved policy. They do not enable write-back. Phase-two mutation stays a separate, unapproved mode. If that mode is ever approved, each mutation still needs its own confirmation of ID, change, and path, a new approval if the source changed, and a reread of the persisted result. A prompt cannot skip that. Since D-2026-11-12-05 those two files only point to the `pm` and `developer` roles of the spec-status Spec Kit extension (`extensions/spec-status/reference/roles.md`).
 
 ## Draft acceptance sketches
 

@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "extensions": {
+    "bug": {
+      "version": "1.0.1",
+      "source": "catalog",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.bug.assess",
+          "speckit.bug.fix",
+          "speckit.bug.test"
+        ]
+      },
+      "registered_skills": []
+    }
+  }
+}
