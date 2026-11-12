@@ -55,7 +55,7 @@ Block final implementation acceptance if grammar/stage matrix, invalid replaceme
 
 ## Two-mode sketches — not acceptance of the current build
 
-These rows record D-2026-11-08-01. They are not executed tests and not a claim that pull request 15 implements them. Details and the open choices are in [two-mode-direction.md](two-mode-direction.md).
+These rows record D-2026-11-08-01. They are not executed tests. Merged pull request 15 does not implement them. Details and the open choices are in [two-mode-direction.md](two-mode-direction.md).
 
 | Sketch | Later outcome, once syntax and schema are chosen |
 |---|---|

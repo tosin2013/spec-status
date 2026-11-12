@@ -104,4 +104,4 @@ D-2026-11-08-01 is recorded in [two-mode-direction.md](two-mode-direction.md). T
 | TASK-25 | TASK-24 | Implement the two modes without a silent fallback, with tests for missing, empty, unrecognized, and malformed inputs. Not authorized by the documentation pull request. |
 | TASK-26 | TASK-24 | Add the supported-format bug and compatibility-request issue text to the repository's issue guidance only after the owner asks for the forms. |
 
-Pull request 15 (reviewed at `a6a6ad04bc861608e3b0bea014ff7dc021542259`; current head `bb3af1ff8d0ea2eb074a3427714a7a11ff6718ad` adds one README Limits line and no code) remains a supported-roadmap grammar repair. It is not this follow-up, and this table does not decide its merge.
+Pull request 15 is merged. Its head is `bb3af1ff8d0ea2eb074a3427714a7a11ff6718ad` (reviewed at `a6a6ad04bc861608e3b0bea014ff7dc021542259`; the later commit on that pull request adds one README Limits line and no code). Pull request 16 is merged too. Both are on `main`. Pull request 15 is a supported-roadmap grammar repair. It is not this follow-up.
