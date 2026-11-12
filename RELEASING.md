@@ -16,6 +16,7 @@ Only the owner creates release tags and publishes releases (decision D-2026-11-1
 - [ ] `main` CI is green: four test jobs, `hygiene`, and CodeQL.
 - [ ] `spec status --fail-on error` passes on this repository, and the roadmap and README reflect what ships.
 - [ ] No open Dependabot security PR or alert is waiting that should be in this release.
+- [ ] `extensions/spec-status/extension.yml` `version:` and the heading of `extensions/spec-status/README.md` both equal the version you are about to tag, without the `v`. The `verify` job fails otherwise, and `go test ./internal/extension` checks that the two agree.
 
 ## 2. Tag
 

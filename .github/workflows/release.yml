@@ -45,6 +45,14 @@ jobs:
         run: |
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::$GITHUB_SHA is not reachable from origin/main"; exit 1; }
 
+      - name: Extension version matches the tag
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          v="$(awk '/^extension:/{f=1;next} f&&/^[^ ]/{f=0} f&&/^  version:/{gsub(/["'"'"']/,"",$2);print $2;exit}' extensions/spec-status/extension.yml)"
+          [ "$v" = "${TAG#v}" ] || { echo "::error::extensions/spec-status/extension.yml version is '$v', tag is ${TAG#v}; bump it (and the extension README heading) before tagging"; exit 1; }
+
       - name: No release exists for this tag
         shell: bash
         env:
@@ -99,7 +107,8 @@ jobs:
             tar -C dist -czf "dist/$name.tar.gz" "$name"
             rm -rf "dist/$name"
           done
-          (cd dist && sha256sum spec_"${VERSION}"_*.tar.gz | sort -k2 > "spec_${VERSION}_checksums.txt" && cat "spec_${VERSION}_checksums.txt")
+          (cd extensions && zip -qr "../dist/spec-status-extension_${VERSION}.zip" spec-status)
+          (cd dist && sha256sum spec_"${VERSION}"_*.tar.gz "spec-status-extension_${VERSION}.zip" | sort -k2 > "spec_${VERSION}_checksums.txt" && cat "spec_${VERSION}_checksums.txt")
           ls -l dist
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -169,6 +178,24 @@ jobs:
           [ "$fatal_exit" = 2 ] || { echo "::error::missing root did not exit 2"; exit 1; }
           python3 -c 'import json,sys; d=json.load(open("status.json")); assert d["schema_version"]=="1.0", d["schema_version"]; print("json ok")'
 
+      - name: Smoke-test the extension archive
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd dist
+          zipname="spec-status-extension_${VERSION}.zip"
+          check="$(sha256sum -c --ignore-missing "spec_${VERSION}_checksums.txt")"; echo "$check"
+          grep -qx "$zipname: OK" <<<"$check" || { echo "::error::checksum for $zipname did not verify"; exit 1; }
+          mkdir ext && cd ext && unzip -q "../$zipname"
+          [ -f spec-status/extension.yml ] || { echo "::error::extension.yml missing from $zipname"; exit 1; }
+          n="$(ls spec-status/commands/*.md | wc -l | tr -d ' ')"
+          [ "$n" = 5 ] || { echo "::error::expected 5 command files, found $n"; exit 1; }
+          grep -q "version: $VERSION\$" spec-status/extension.yml || { echo "::error::extension version is not $VERSION"; exit 1; }
+          echo "extension archive ok"
+
   release:
     name: create draft release
     needs: [verify, build, smoke]
@@ -223,11 +250,20 @@ jobs:
             echo "Paste this into an AI coding agent that runs in the repository you want reviewed. It installs the latest release, asking you first and checking the checksum, and then reviews the Spec Kit roadmap without changing any files."
             echo
             sed -n '/<!-- agent-prompt:start -->/,/<!-- agent-prompt:end -->/p' docs/agent-prompt.md | sed '1d;$d'
+            echo
+            echo "### Use it as Spec Kit skills"
+            echo
+            echo "Install the spec-status extension (Spec Kit 1.2.0 or newer). It adds five agent skills: review (roles pm, developer, qa, architect), explain, reconcile, unblock and verify-readiness. They propose changes and apply them only through Spec Kit commands after you approve each one."
+            echo
+            echo '```sh'
+            echo "specify extension add spec-status --from https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/spec-status-extension_${VERSION}.zip"
+            echo '```'
           } > notes.md
           cat notes.md
           gh release create "$TAG" \
             "dist/spec_${VERSION}_linux_amd64.tar.gz" \
             "dist/spec_${VERSION}_darwin_arm64.tar.gz" \
+            "dist/spec-status-extension_${VERSION}.zip" \
             "dist/spec_${VERSION}_checksums.txt" \
             --repo "$GITHUB_REPOSITORY" --draft --verify-tag --title "$TAG" \
             --generate-notes --notes-file notes.md "${extra[@]}"

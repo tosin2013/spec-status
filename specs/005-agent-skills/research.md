@@ -7,7 +7,7 @@ Feature 005 · roadmap item 012 · 2026-11-12. The sources were the installed Sp
 - **Decision**: Model `extensions/spec-status/` on `.specify/extensions/roadmap/`:
   - an `extension.yml` with `schema_version: '1.0'`, `extension{id,name,version,description,author,repository,license,homepage}`, `requires`, `provides.commands[{name,file,description}]`, `hooks`, and `tags`;
   - `commands/*.md` files, each starting with frontmatter (`description`, optional `argument-hint`).
-- **Rendering**: Spec Kit renders each command into a skill per agent integration (`specify_cli/agents.py`). For Claude, `argument-hint` from the command frontmatter is copied into the skill (`apply_argument_hint`), so `review` can advertise `[as pm|developer|qa|architect]`. Commands refer to each other in text, as the roadmap commands do with `/speckit.roadmap.write`.
+- **Rendering**: Spec Kit renders each command into a skill per agent integration (`specify_cli/agents.py`). The source calls `apply_argument_hint` to copy a command's `argument-hint` into Claude skills. **Observed during implementation (2026-11-12): Spec Kit 1.2.0's extension install does not carry it**, and the rendered `speckit-spec-status-review/SKILL.md` has no `argument-hint`. Review therefore names the roles in its `description`, which is rendered. `$ARGUMENTS` receives `as <role>` either way. The source file keeps the hint, which does no harm and works if a later Spec Kit carries it. Commands refer to each other in text, as the roadmap commands do with `/speckit.roadmap.write`.
 - **Install sources**:
   - `specify extension add --dev <dir>`;
   - `--from <url>`, accepting `.zip`, `.tar.gz` or `.tgz`, with `extension.yml` at the root of the archive or inside one top-level directory (`specify_cli/extensions/__init__.py`, `install_from_archive`).
@@ -29,6 +29,10 @@ Each manifest was read from its repository on 2026-11-12.
   - arch-governance's hint gives the tag-archive install command;
   - Assure's hint says it needs the `illustrate` extension and Python 3.11+;
   - community partners also get the "not vetted by Spec Kit" note.
+- **Checked by installing (T032, 2026-11-12, throwaway project):**
+  - `specify extension add bug` installed **1.0.1** from the default catalog; the repository's `main` says 1.0.2. Its registered commands are `speckit.bug.{assess,fix,test}`.
+  - `arch-governance` from the v1.2.3 tag archive (after Spec Kit's "sources you trust" prompt) registered `speckit.arch-governance.{validate,install,gate,sync,repin,issues}`.
+  - Its commands run bundled Python scripts with `uv run python` (`requires-python >=3.11`; pydantic, pyyaml), and `validate.py` calls `git`. **None of these tools are declared in its manifest.** Its `roles.md` row states them.
 - **Consequence**: in this project (Spec Kit 1.2.0), Bug Triage and arch-governance can be installed and tested. Assure needs `illustrate` and Python 3.11+, so it is tested through a synthetic registry entry and its "not installed" hint.
 - **adrkit dropped (D-2026-11-12-07)**: adrkit 0.1.5 was the first architect candidate. Its extension manifest on `main` still says `speckit_version: ">=0.13.0,<1.2.0"`, with a comment that widening past 1.1 requires re-verification under its ADR-0007. The project's newer CLI releases (up to v0.20.0, 2026-10-11) do not change that. It also needs the `adr` CLI. A catalog search for ADR extensions (names, descriptions and tags matching ADR, "decision record" or MADR) found only adrkit and arch-governance. Revisit adrkit when it supports Spec Kit 1.2 or later.
 

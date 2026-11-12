@@ -283,6 +283,33 @@ RULES
 ```
 <!-- agent-prompt:end -->
 
+
+### As Spec Kit skills
+
+If the project uses [Spec Kit](https://github.com/github/spec-kit) 1.2.0 or newer, install the **spec-status extension**. It adds five skills to your AI coding agent:
+
+| Skill | What it does |
+|---|---|
+| `/speckit.spec-status.review [as pm\|developer\|qa\|architect]` | Start here. Summarizes progress, blockers, human-review dependencies and findings, then sends each finding to the right skill. The role changes what comes first, never the facts |
+| `/speckit.spec-status.reconcile` | Finds recorded statuses that disagree with tasks, files or dependencies, and proposes one fix at a time |
+| `/speckit.spec-status.explain [code]` | Explains any `SS_*` finding and the command that fixes it |
+| `/speckit.spec-status.unblock` | Lists blockers and superseded dependencies in the order to clear them |
+| `/speckit.spec-status.verify-readiness [item]` | Lists the evidence still missing before an item can honestly be recorded `verified` |
+
+The skills never change a file on their own. Each change is proposed, applied through a Spec Kit command such as `/speckit.roadmap.write` only after you approve it, and then confirmed by running `spec status` again. When the project has them installed, the roles also recommend partner extensions:
+- architect: arch-governance (ADRs);
+- qa: Assure;
+- developer: Bug Triage.
+
+Install from a release (v0.2.0 or later), or from a clone with `--dev`:
+
+```sh
+specify extension add spec-status --from https://github.com/tosin2013/spec-status/releases/download/v<version>/spec-status-extension_<version>.zip
+specify extension add --dev /path/to/spec-status/extensions/spec-status
+```
+
+Details: [extensions/spec-status/README.md](extensions/spec-status/README.md).
+
 ## Install
 
 Releases are published on [GitHub Releases](https://github.com/tosin2013/spec-status/releases) by the [release workflow](.github/workflows/release.yml). Each release has one archive per supported platform and a SHA-256 checksum file. Every archive is smoke-tested on its own platform before the owner publishes the release.
