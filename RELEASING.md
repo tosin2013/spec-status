@@ -4,7 +4,7 @@ Only the owner creates release tags and publishes releases (decision D-2026-11-1
 
 ## Versions
 
-- `v0.1.0` was published directly, outside the workflow, and then withdrawn (D-2026-11-12-02). It is never reused. The first release is `v0.1.1`.
+- `v0.1.0` was published directly, outside the workflow, and then withdrawn (D-2026-11-12-02). It is never reused. `v0.1.1` was tagged and drafted but never published (D-2026-11-12-03). The first release is `v0.1.2`.
 - Repository protections: only admins can create, move or delete `v*` tags (tag ruleset); `main` requires the four CI test jobs and `hygiene`; published releases are immutable.
 
 - Tags are `vX.Y.Z`, or `vX.Y.Z-rc.N` for release candidates.

@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.4.5 → 1.4.6
+Bump rationale: PATCH — wording.
+
+Changes this revision:
+  - 004 notes: first release is v0.1.2; v0.1.1 drafted, not published (D-2026-11-12-03)
+
+Specs affected: 004-release-engineering
+Open questions added/resolved: none
+
+Previous revision (1.4.5, 2026-11-12):
 Version change: 1.4.4 → 1.4.5
 Bump rationale: PATCH — wording.
 
@@ -438,8 +448,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   smoke tests on both platforms; the draft has 3 assets with verified checksums.
   v0.1.0 was published directly by the Cursor integration at the owner's
   request, outside the workflow, then withdrawn (D-2026-11-12-02). The first release is
-  v0.1.1. Release protections are enabled. Recorded `verified` after the owner
-  publishes v0.1.1 and the install check passes on both platforms.
+  v0.1.2; the v0.1.1 tag was drafted but not published (D-2026-11-12-03). Release
+  protections are enabled. Recorded `verified` after the owner publishes v0.1.2
+  and the install check passes on both platforms.
 
 ### 007 — Upstream-format conformance [status: verified]
 
@@ -541,4 +552,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.4.5 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
+**Version**: 1.4.6 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
