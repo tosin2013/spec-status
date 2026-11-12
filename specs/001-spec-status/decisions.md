@@ -149,4 +149,10 @@ A clarification in the same documentation authorization says a harness means an 
 |---|---|---|---|
 | D-2026-11-11-05 | Owner, 11 November 2026, during planning of feature 003 | `go.mod` declares `go 1.26.0`, the oldest supported Go release line (1.27 and 1.26 are supported). CI tests the newest 1.26 patch and the current stable release. Reasons: Go 1.22 no longer receives fixes, govulncheck reports reachable standard-library advisories on old toolchains, and the `golang.org/x/sys` security fix needs Go ≥1.25. Feature 004 still chooses the exact toolchain patch used for release builds. A later change of the minimum needs a recorded decision (D-2026-11-11-04) | Go 1.27 minimum; keeping Go 1.22 with a non-blocking scan |
 
+## Recorded decision — release flow, first version and channels, 11 November 2026
+
+| ID | Approver, date | Chosen | Not chosen |
+|---|---|---|---|
+| D-2026-11-11-06 | Owner, 11 November 2026 (feature 004, roadmap item 004) | **Flow:** the owner pushes a SemVer tag (`vX.Y.Z`, or `vX.Y.Z-rc.N` for candidates). The release workflow runs the full CI, builds linux/amd64 and darwin/arm64 archives, smoke-tests each on its own platform, and creates a **draft** GitHub Release with a SHA-256 checksum file. Only the owner publishes. **First version:** `v0.1.0` (pre-1.0; a minor version may break compatibility, and the notes list it); roadmap 004's "first stable tag" becomes "first tagged release". **Channels:** GitHub Release archives plus documented `go install …@vX.Y.Z`. `spec version` reports the module version for `go install` builds and labels release, module and development builds distinctly. JSON is unchanged | Manual-dispatch releases; publishing directly from the tag; starting at v1.0.0; releases-only (go install reporting 0.0.0-dev); a Homebrew tap |
+
 Where an earlier bullet in this file says every DC-01–DC-08 choice remains unapproved, the Recorded decisions table is the later record for the IDs it actually lists. D-2026-11-08-01 does not close the rest of DC-01–DC-08. It also does not change roadmap item 001.
