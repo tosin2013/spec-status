@@ -263,6 +263,7 @@ As a user who has installed other Spec Kit extensions for ADRs, QA or bug triage
 - The roadmap extension is usually installed alongside. Where it isn't, roadmap changes are shown for the user to make by hand.
 - Commands are text instructions for an agent. Their behavior is checked by structure tests and fixture runs, not by executing an agent in CI.
 - Spec Kit 1.2.0's extension format (manifest plus command files, as in `.specify/extensions/roadmap/`) is the target. A future Spec Kit format change is handled like an upstream drift.
+- Partner commands confirmed during planning (research R2): adrkit `speckit.adrkit.{context,check,draft}`, Assure `speckit.assure.{init,analyze,document}`, Bug Triage `speckit.bug.{assess,fix,test}`. adrkit 0.1.5 currently requires Spec Kit below 1.2.0 and the `adr` tool, and Assure requires the `illustrate` extension and Python 3.11+. The install hints say so, and in a Spec Kit 1.2.0 project only Bug Triage can be installed and tested.
 - Partner extensions keep their own release cycles and command names. The role file records the versions checked during planning; a later change is handled like an upstream drift.
 - This is a minor release (v0.2.0) under the pre-1.0 policy, because it adds a release asset and a new installable component.
 
