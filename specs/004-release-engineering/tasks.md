@@ -121,7 +121,7 @@
   - only job `release` has `contents: write`;
   - `gh release` appears only in `verify` (`view`) and `release` (`view`, `create`).
 - [X] T018 [US1] Dry-run the build and package steps locally in the scratchpad for `0.0.0-local`. Run the same commands as T014 for both targets, then `sha256sum -c` on the result, and run the darwin/arm64 binary's `version` and `--help` checks from T015 locally.
-- [ ] T019 [US1] **(owner)** After this PR merges, the owner pushes `v0.1.0-rc.1` on `main`. Watch the run, then record in the PR or implementation record:
+- [X] T019 [US1] **(owner)** After this PR merges, the owner pushes `v0.1.0-rc.1` on `main`. Watch the run, then record in the PR or implementation record: *Done 2026-11-12: owner pushed `v0.1.0-rc.1` at `ab66b22`. Run https://github.com/tosin2013/spec-status/actions/runs/43157383315: all jobs passed. Draft pre-release with exactly 3 assets; `shasum -a 256 -c` OK for both archives; the downloaded darwin/arm64 binary reports `0.1.0-rc.1`, commit `ab66b22…`, go1.27.4, `label: release build`; the notes contain every FR-015 item.*
   - the run URL;
   - that the draft pre-release has exactly three assets;
   - that the notes meet FR-015;
@@ -162,7 +162,7 @@
 **Independent test**: After `v0.1.0-rc.1` exists, `go install …@v0.1.0-rc.1` in a clean `GOBIN` reports `spec 0.1.0-rc.1`, `commit: unknown` and the module-build label (SC-004).
 
 - [X] T023 [P] [US3] Add a "With Go" subsection to `README.md` install: `go install github.com/tosin2013/spec-status/cmd/spec@v<version>` (needs Go 1.26+). Explain that `spec version` then reports a module build, not a release archive, with commit `unknown`.
-- [ ] T024 [US3] After T019, run `GOBIN=$(mktemp -d) GOFLAGS=-modcacherw go install github.com/tosin2013/spec-status/cmd/spec@v0.1.0-rc.1` and record the `spec version` output. It must show module kind, version `0.1.0-rc.1` and `commit: unknown`. If the module proxy hasn't indexed the tag yet, retry later, and record the wait.
+- [X] T024 [US3] After T019, run `GOBIN=$(mktemp -d) GOFLAGS=-modcacherw go install github.com/tosin2013/spec-status/cmd/spec@v0.1.0-rc.1` and record the `spec version` output. It must show module kind, version `0.1.0-rc.1` and `commit: unknown`. If the module proxy hasn't indexed the tag yet, retry later, and record the wait. *Done 2026-11-12: `go install …@v0.1.0-rc.1` (Darwin arm64, go1.26.11) reports `spec 0.1.0-rc.1`, `commit: unknown`, `label: module build (built from the module version, not a release archive)`; build info shows `Main.Sum` `h1:j6OhWZNJ…`.*
 
 **Checkpoint**: The `go install` channel is truthful.
 
