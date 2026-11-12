@@ -17,7 +17,7 @@
 
 Owner decision D-2026-11-12-05 (same day): personas (project manager, developer, QA, architect) are **views of the review skill**, chosen with an argument. They are not separate skills, so the rules and routing exist in one place.
 
-Owner decision D-2026-11-12-06 (same day): roles may recommend **partner Spec Kit extensions** when the project has them installed. Candidates are adrkit (ADRs) for architect, Assure (QA) for qa, and Bug Triage Workflow for developer. Partners are detected, never required or installed by this extension.
+Owner decision D-2026-11-12-06 (same day): roles may recommend **partner Spec Kit extensions** when the project has them installed. Candidates are Architecture Governance (`arch-governance`, ADR citation sync) for architect (D-2026-11-12-07 replaced adrkit, which does not support Spec Kit 1.2.0), Assure (QA) for qa, and Bug Triage Workflow for developer. Partners are detected, never required or installed by this extension.
 
 ## Context
 
@@ -157,7 +157,7 @@ As a user who has installed other Spec Kit extensions for ADRs, QA or bug triage
 
 1. **Given** a project, **When** review runs with a role, **Then** it reads which extensions and commands are installed from the project's extension registry, and uses only command names found there.
 2. **Given** an installed partner listed for the role, **When** review recommends follow-ups, **Then** the partner's command appears beside the spec-status and Spec Kit follow-ups, with one line saying what it adds:
-   - **architect with adrkit:** check plans against governing decisions, or draft an ADR when a dependency or supersession change is really an architecture decision.
+   - **architect with arch-governance:** validate that specs and plans still cite current ADRs (`speckit.arch-governance.validate`, read-only) after a dependency or supersession change, and check its implementation gate (`speckit.arch-governance.gate`) before an item is recorded `verified`.
    - **qa with Assure:** test-readiness and the QA test manual as evidence before an item is recorded `verified`.
    - **developer with Bug Triage:** when a checked task's work is reported broken.
 3. **Given** a listed partner that is not installed, **When** review runs with that role, **Then** it mentions the partner once with its install command. For an extension from the community catalog, it adds that the extension is not vetted by Spec Kit and should be reviewed before installing. It never installs anything.
@@ -208,7 +208,7 @@ As a user who has installed other Spec Kit extensions for ADRs, QA or bug triage
 - **FR-021**: review MUST accept an optional role: `pm`, `developer`, `qa` or `architect`. The default view is used when no role is given. Roles MUST be defined in one shared file in the extension. Each role entry names: which summary sections come first, which follow-ups are recommended first, and any role-specific checks (User Story 6).
 - **FR-022**: A role MUST NOT change or hide any fact or finding. It may only reorder sections and prioritize follow-ups. A repository test MUST fail if the role file names a follow-up outside the allowed set (FR-008) or a section that review does not produce.
 - **FR-024**: review MUST detect installed extensions and their commands from the project's Spec Kit extension registry. It MUST recommend a partner command only if that exact command is registered.
-- **FR-025**: The shared role file MUST list optional partners per role. Each entry gives the partner's extension id, the catalog it comes from, its install command, what it adds for that role, and the commands to recommend when installed. The first entries are: architect → adrkit; qa → Assure; developer → Bug Triage Workflow. Exact command names MUST be confirmed from each extension's own repository during planning.
+- **FR-025**: The shared role file MUST list optional partners per role. Each entry gives the partner's extension id, the catalog it comes from, its install command, what it adds for that role, and the commands to recommend when installed. The first entries are: architect → arch-governance (D-2026-11-12-07); qa → Assure; developer → Bug Triage Workflow. Exact command names MUST be confirmed from each extension's own repository during planning.
 - **FR-026**: This extension MUST NOT declare any partner as required, install one, or run one without approval. For a community-catalog partner, the install hint MUST say it is not vetted by Spec Kit.
 - **FR-027**: The link test (FR-016) MUST treat partner commands separately. It checks that each partner entry is well formed and that partner commands appear only in a role's partner list. Core and spec-status follow-ups stay strictly checked.
 - **FR-023**: The two sample prompts (`specs/001-spec-status/examples/prompts/project-manager.txt` and `software-engineer.txt`) MUST be replaced by the `pm` and `developer` role definitions. The sample files point to the extension instead.
@@ -263,7 +263,7 @@ As a user who has installed other Spec Kit extensions for ADRs, QA or bug triage
 - The roadmap extension is usually installed alongside. Where it isn't, roadmap changes are shown for the user to make by hand.
 - Commands are text instructions for an agent. Their behavior is checked by structure tests and fixture runs, not by executing an agent in CI.
 - Spec Kit 1.2.0's extension format (manifest plus command files, as in `.specify/extensions/roadmap/`) is the target. A future Spec Kit format change is handled like an upstream drift.
-- Partner commands confirmed during planning (research R2): adrkit `speckit.adrkit.{context,check,draft}`, Assure `speckit.assure.{init,analyze,document}`, Bug Triage `speckit.bug.{assess,fix,test}`. adrkit 0.1.5 currently requires Spec Kit below 1.2.0 and the `adr` tool, and Assure requires the `illustrate` extension and Python 3.11+. The install hints say so, and in a Spec Kit 1.2.0 project only Bug Triage can be installed and tested.
+- Partner commands confirmed during planning (research R2): arch-governance `speckit.arch-governance.{validate,gate,install,sync,repin,issues}` (Spec Kit >=0.1.0, no extra tools), Assure `speckit.assure.{init,analyze,document}`, Bug Triage `speckit.bug.{assess,fix,test}`. Assure requires the `illustrate` extension and Python 3.11+, and its install hint says so. adrkit was considered first but dropped (D-2026-11-12-07): its 0.1.5 extension requires Spec Kit below 1.2.0 and the `adr` tool.
 - Partner extensions keep their own release cycles and command names. The role file records the versions checked during planning; a later change is handled like an upstream drift.
 - This is a minor release (v0.2.0) under the pre-1.0 policy, because it adds a release asset and a new installable component.
 

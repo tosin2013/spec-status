@@ -29,7 +29,7 @@ All three are Markdown tables, so an agent can read them and the repository test
 - `## Partners` table: `| Role | Extension | Version checked | Catalog | Install | Requirements | Commands | Adds |`. The first rows are from research R2:
   - developer → `bug`;
   - qa → `assure`;
-  - architect → `adrkit`, with "requires Spec Kit <1.2.0" in Requirements.
+  - architect → `arch-governance` (D-2026-11-12-07; install from its v1.2.3 tag archive).
 
 **Test:**
 - every role's sections exist;

@@ -60,7 +60,7 @@ A test-only Go package keeps the reference in step with the contracts, and check
 
 | Article | Check | Result |
 |---|---|---|
-| I Truthful evidence | The rules restate that `verified` is a label, that a checkbox is not a test, and that exit 0 is not "done". Proposals report proposed, applied or confirmed. Partner limits (adrkit is incompatible with Spec Kit 1.2.0) are stated. | Pass |
+| I Truthful evidence | The rules restate that `verified` is a label, that a checkbox is not a test, and that exit 0 is not "done". Proposals report proposed, applied or confirmed. Partner requirements (Assure needs `illustrate` and Python) are stated, and adrkit was dropped because it doesn't support Spec Kit 1.2.0. | Pass |
 | II Standalone, deterministic; allowlist | The `spec` binary is unchanged. The extension is development tooling (CLAUDE.md). The test package has only `_test.go` files and uses the standard library. | Pass |
 | III Narrow, safe input | Unaffected. The skills consume output; they don't parse roadmaps themselves. | Pass |
 | IV History is not false completion | reconcile never asks superseded items to match tasks, and never retargets a superseded dependency. | Pass |

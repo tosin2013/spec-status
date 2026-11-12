@@ -21,15 +21,16 @@ Each manifest was read from its repository on 2026-11-12.
 
 | Role | Partner (id, version, catalog) | Commands | Requirements | Notes |
 |---|---|---|---|---|
-| architect | `adrkit` 0.1.5, community (discovery only) | `speckit.adrkit.context`, `speckit.adrkit.check`, `speckit.adrkit.draft`; hook `after_plan` → check | Spec Kit `>=0.13.0,<1.2.0`; tool `adr >=0.3.0` | **Not compatible with Spec Kit 1.2.0**, which this project uses. Install archive: `https://github.com/mbeacom/adrkit/releases/download/spec-kit-v0.1.5/adrkit.zip` |
+| architect | `arch-governance` 1.2.3 (catalog lists 1.2.2), community (discovery only), MIT, `ashbrener/spec-kit-arch-governance` | `speckit.arch-governance.validate` (read-only, fail-closed citation validator), `.gate` (before_implement; advisory or blocking), `.install`, `.sync`, `.repin`, `.issues` (the last three dry-run by default); hooks `after_specify` and `after_plan` → validate, `before_implement` → gate | Spec Kit `>=0.1.0`; no tools or extensions | Compatible with Spec Kit 1.2.0. No release assets; install from the tag archive `https://github.com/ashbrener/spec-kit-arch-governance/archive/refs/tags/v1.2.3.zip` (one nested folder, which Spec Kit accepts, R1) |
 | qa | `assure` 2.7.5, community (discovery only), in `samykabu/sanduq` | `speckit.assure.init`, `speckit.assure.analyze`, `speckit.assure.document`; hooks `after_tasks`/`before_implement` → analyze, `after_implement` → document | Spec Kit `>=0.2.0`; requires extension `illustrate >=2.0.0,<3.0.0`; tools `python >=3.11` (required), `git` (optional) | Has a required extension dependency |
 | developer | `bug` 1.0.2, default catalog (github/spec-kit) | `speckit.bug.assess`, `speckit.bug.fix`, `speckit.bug.test` | Spec Kit `>=0.9.0` | Installable: `specify extension add bug` |
 
 - **Decision**: The role file records these exact commands, versions and requirements. A partner command is recommended only if the project's `.specify/extensions/.registry` lists it under `registered_commands`. Install hints quote each partner's requirements:
-  - adrkit's hint says it currently needs Spec Kit below 1.2.0 and the `adr` tool;
+  - arch-governance's hint gives the tag-archive install command;
   - Assure's hint says it needs the `illustrate` extension and Python 3.11+;
   - community partners also get the "not vetted by Spec Kit" note.
-- **Consequence**: In this project (Spec Kit 1.2.0), only Bug Triage can be installed and tested. The architect → adrkit path is tested only for the "not installed" hint, plus a synthetic registry entry in a fixture. This is recorded as a known limit, not hidden.
+- **Consequence**: in this project (Spec Kit 1.2.0), Bug Triage and arch-governance can be installed and tested. Assure needs `illustrate` and Python 3.11+, so it is tested through a synthetic registry entry and its "not installed" hint.
+- **adrkit dropped (D-2026-11-12-07)**: adrkit 0.1.5 was the first architect candidate. Its extension manifest on `main` still says `speckit_version: ">=0.13.0,<1.2.0"`, with a comment that widening past 1.1 requires re-verification under its ADR-0007. The project's newer CLI releases (up to v0.20.0, 2026-10-11) do not change that. It also needs the `adr` CLI. A catalog search for ADR extensions (names, descriptions and tags matching ADR, "decision record" or MADR) found only adrkit and arch-governance. Revisit adrkit when it supports Spec Kit 1.2 or later.
 
 ## R3 — Detecting installed extensions (FR-024)
 
@@ -98,7 +99,9 @@ Each manifest was read from its repository on 2026-11-12.
 ```sh
 specify --version                                   # 1.2.0
 specify extension search adr|architecture|qa|test   # adrkit, Assure, Bug Triage
-specify extension info adrkit                       # Spec Kit >=0.13.0,<1.2.0; adr >=0.3.0; archive URL
+specify extension info adrkit                       # Spec Kit >=0.13.0,<1.2.0; adr >=0.3.0 (dropped)
+curl …/extensions/catalog{,.community}.json         # ADR filter: only adrkit and arch-governance
+gh api repos/ashbrener/spec-kit-arch-governance/contents/extension.yml   # speckit.arch-governance.*; speckit >=0.1.0
 gh api repos/samykabu/sanduq/contents/extensions/assure/extension.yml   # speckit.assure.{init,analyze,document}
 gh api repos/github/spec-kit/contents/extensions/bug/extension.yml      # speckit.bug.{assess,fix,test}
 gh api repos/mbeacom/adrkit/contents/packages/adapters/spec-kit/extension.yml  # speckit.adrkit.{context,check,draft}
