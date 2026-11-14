@@ -610,10 +610,8 @@ func statusTasksDiag(it Item, rel string) *Diagnostic {
 	// Related evidence: the first unchecked checkbox (ahead) or the first
 	// checkbox (early), at a line parseTasks recorded; never a guessed line.
 	for _, c := range it.Tasks.Checks {
-		if wantChecked || !c.Checked {
-			if c.Line > 0 {
-				d.Related = []Ref{{Path: it.Tasks.Source, Line: c.Line}}
-			}
+		if (wantChecked || !c.Checked) && c.Line > 0 {
+			d.Related = []Ref{{Path: it.Tasks.Source, Line: c.Line}}
 			break
 		}
 	}

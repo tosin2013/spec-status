@@ -217,3 +217,22 @@ func TestStatusTasksFixtures(t *testing.T) {
 		}
 	})
 }
+
+// TestStatusTasksRelatedSkipsLinelessChecks: related evidence uses the first
+// matching checkbox that has a recorded line (Doomer lead, feature 007).
+func TestStatusTasksRelatedSkipsLinelessChecks(t *testing.T) {
+	it := Item{ID: "001", Status: "planned", Active: true, Line: 7, Tasks: ItemTasks{
+		State: "read", Checked: 2, Total: 2, Source: "specs/001-x/tasks.md",
+		Checks: []TaskCheck{{Line: 0, Checked: true}, {Line: 5, Checked: true}},
+	}}
+	d := statusTasksDiag(it, ".specify/memory/roadmap.md")
+	if d == nil || len(d.Related) != 1 || d.Related[0].Line != 5 {
+		t.Fatalf("early related %+v", d)
+	}
+	it.Status, it.Tasks.Checked = "implemented", 1
+	it.Tasks.Checks = []TaskCheck{{Line: 0, Checked: false}, {Line: 4, Checked: true}, {Line: 6, Checked: false}}
+	d = statusTasksDiag(it, ".specify/memory/roadmap.md")
+	if d == nil || len(d.Related) != 1 || d.Related[0].Line != 6 {
+		t.Fatalf("ahead related %+v", d)
+	}
+}
