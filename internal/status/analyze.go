@@ -141,6 +141,9 @@ func build(rel string, items []rawItem, fs *safeio.FS) Report {
 			item.Tasks = tasks
 			item.SpecDir = specDir
 		}
+		if d := statusTasksDiag(item, rel); d != nil {
+			diags = append(diags, *d)
+		}
 		outItems[i] = item
 	}
 
@@ -582,6 +585,40 @@ func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads m
 	}
 	return diags, tasks, specDir
 }
+
+// statusTasksDiag compares an active item's recorded status with the
+// checkboxes of its read tasks file (feature 007, D-2026-11-14-01 (2)).
+// It reports a mechanical disagreement only: never whether work is done or
+// verified. Historical items, unknown statuses, unread tasks files and
+// files with no checkboxes are not compared.
+func statusTasksDiag(it Item, rel string) *Diagnostic {
+	if !it.Active || it.Tasks.State != "read" || it.Tasks.Total == 0 {
+		return nil
+	}
+	var code, sev, msg string
+	wantChecked := false
+	switch {
+	case (it.Status == "implemented" || it.Status == "verified") && it.Tasks.Checked < it.Tasks.Total:
+		code, sev, msg = "SS_STATUS_AHEAD_OF_TASKS", "warning", "Recorded status is implemented or verified, but the linked tasks file has unchecked tasks."
+	case beforeImplemented[it.Status] && it.Tasks.Checked == it.Tasks.Total:
+		code, sev, msg = "SS_TASKS_DONE_STATUS_EARLY", "info", "Every task in the linked tasks file is checked, but the recorded status is before implemented."
+		wantChecked = true
+	default:
+		return nil
+	}
+	d := &Diagnostic{Code: code, Severity: sev, Message: msg, ItemID: it.ID, Path: rel, Line: it.Line}
+	// Related evidence: the first unchecked checkbox (ahead) or the first
+	// checkbox (early), at a line parseTasks recorded; never a guessed line.
+	for _, c := range it.Tasks.Checks {
+		if (wantChecked || !c.Checked) && c.Line > 0 {
+			d.Related = []Ref{{Path: it.Tasks.Source, Line: c.Line}}
+			break
+		}
+	}
+	return d
+}
+
+var beforeImplemented = map[string]bool{"undecided": true, "needs-info": true, "planned": true, "specced": true, "in-progress": true}
 
 func stageLink(status string) string {
 	switch status {

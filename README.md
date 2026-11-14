@@ -73,6 +73,8 @@ That binary reports `label: module build`, not `label: release build`. A checkou
 | `SS_ROADMAP_UNRECOGNIZED`, exit 2 | The file is there, but it has no item headings and no `## Planned Specs` heading, so it is not the supported template (for example a hand-written narrative roadmap or an empty file). Before v0.3.0 this printed zero items with exit 0. |
 | `SS_LAYOUT_UNSUPPORTED`, exit 2 | The file has an item-like layout this reader will not guess, such as a table whose first cell is a three-digit id. The JSON names the file and line. The project can still be a valid Spec Kit tree. |
 | A panel with `items 0` and `roadmap explicitly empty` | The file has the template's `## Planned Specs` heading and no items yet. |
+| `SS_STATUS_AHEAD_OF_TASKS`, warning | An item is recorded `implemented` or `verified`, but its `tasks.md` still has unchecked tasks. Either the work is unfinished or the boxes were never ticked. It fails a run only with `--fail-on warning` or `info`. |
+| `SS_TASKS_DONE_STATUS_EARLY`, info | Every task in an item's `tasks.md` is checked, but the roadmap still says `planned`, `specced` or another status before `implemented`. The roadmap is probably out of date; `spec` does not decide that the work is verified. |
 
 ## Example
 

@@ -4,7 +4,7 @@
 
 ## Severity and exit invariants
 
-Retained severity assignments: duplicate ID error; unknown status warning; missing/self/cyclic dependency errors; ordinary unfinished alone no finding; blocked unfinished warning; planned missing spec link info; checked missing explicit local target error; unchecked missing target info. The other rows' severities below were approved as built under D-2026-11-07-03. A fatal error is always exit 2 independent of threshold; error-level nonfatal finding defaults to exit 1. All findings remain visible even with threshold none.
+Retained severity assignments: duplicate ID error; unknown status warning; missing/self/cyclic dependency errors; ordinary unfinished alone no finding; blocked unfinished warning; planned missing spec link info; checked missing explicit local target error; unchecked missing target info; status implemented/verified ahead of unchecked tasks warning; all tasks checked with a status before implemented info (feature 007). The other rows' severities below were approved as built under D-2026-11-07-03. A fatal error is always exit 2 independent of threshold; error-level nonfatal finding defaults to exit 1. All findings remain visible even with threshold none.
 
 ## Registry
 
@@ -40,6 +40,8 @@ Retained severity assignments: duplicate ID error; unknown status warning; missi
 | SS_SPEC_DIRECTORY_MISSING | error, report | Explicit safe linked spec directory absent | Detection retained; approved as built (D-2026-11-07-03) |
 | SS_STAGE_FILE_MISSING | error under the stage matrix | Stage-appropriate spec/plan/tasks missing | Detection retained; stage matrix and severity approved under D-2026-11-07-03 |
 | SS_TASK_TARGET_MISSING | error if checked, info if unchecked | Explicit supported local link target absent | Retained |
+| SS_STATUS_AHEAD_OF_TASKS | warning, report | Active item recorded `implemented` or `verified` whose linked tasks file was read with checked < total; source is the item heading line; related is the first unchecked checkbox | D-2026-11-14-01 (2), feature 007 |
+| SS_TASKS_DONE_STATUS_EARLY | info, report | Active item recorded `undecided`, `needs-info`, `planned`, `specced` or `in-progress` whose linked tasks file was read with total > 0 and every task checked; source is the item heading line; related is the first checkbox | D-2026-11-14-01 (2), feature 007 |
 | SS_REFERENCE_UNSUPPORTED | warning, report unless required parse fatal | Explicit reference syntax outside approved grammar | Approved as built (D-2026-11-11-02); never turns URL/prose into path |
 | SS_PATH_UNSAFE | error; fatal for required source | Escape/traversal/symlink/mount/regular-file policy violation | Confinement retained; approved as built (D-2026-11-11-02) |
 | SS_REFERENCE_SENSITIVE_SKIPPED | error, report; fatal if required source | Excluded sensitive reference, no content read | Exclusion/report retained; approved as built (D-2026-11-11-02) |
