@@ -186,3 +186,17 @@ func TestDuplicateDependencyFinding(t *testing.T) {
 		t.Fatal("duplicate reported for a list without repeats")
 	}
 }
+
+// A bracketed real path in Spec dir is a placeholder too (no path is guessed
+// from markup); a specced item then still reports the missing spec link as
+// an error, so it stays visible (contracts/changes.md §1, Doomer lead).
+func TestBracketedSpecDirIsPlaceholder(t *testing.T) {
+	dir := project(t, "### 001 — A [status: specced]\n- Description: d\n- Outcome: o\n- Scope: s\n- Spec dir: [specs/001-x/]\n", map[string]string{"specs/001-x/spec.md": "# s\n"})
+	rep := Evaluate(Option{Root: dir, CWD: dir})
+	if !hasCode(rep, "SS_FIELD_PLACEHOLDER", "001") || !hasCode(rep, "SS_SPEC_REFERENCE_MISSING", "001") || ExitCode(rep) != 1 {
+		t.Fatalf("bracketed Spec dir: exit %d diags %+v", ExitCode(rep), rep.Diagnostics)
+	}
+	if rep.Items[0].SpecDir != "" || rep.Items[0].Tasks.State != "not_linked" {
+		t.Fatalf("placeholder must leave Spec dir unset: %+v", rep.Items[0])
+	}
+}

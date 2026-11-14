@@ -108,7 +108,7 @@ description: "Tasks for feature 008: real-world field forms and small defect fix
 - [X] T028 Compare every T001 output: JSON byte-identical for every root (no fixture contains rows A–D); human text differs only by the `statuses` line and, where applicable, the other display additions; no exit code changed; record the result in the PR description
 - [X] T029 Run `CGO_ENABLED=0 go vet ./...`, `gofmt -l .`, `go mod tidy -diff`, the full suite on darwin/arm64 and linux/amd64 (container), and `spec status --fail-on error` on this repository; record platforms and Go versions
 - [X] T030 Add a row for feature 008 to the "Implementation record" table in `specs/001-spec-status/tasks.md` (implemented, executed by the implementer, not independently verified; platforms actually run), and draft the v0.3.0 release-note entries in the PR description
-- [ ] T031 Doomer review on the source change (prepare before editing, submit, answer every Quick lead, finish) before handing off the PR
+- [X] T031 Doomer review on the source change (prepare before editing, submit, answer every Quick lead, finish) before handing off the PR
 - [ ] T032 Propose roadmap 015 and 016 `specced` → `implemented` through `/speckit.roadmap.write` after the owner approves; `verified` only after the v0.3.0 release checks
 
 ---
