@@ -81,10 +81,10 @@ description: "Tasks for feature 007: status/tasks consistency diagnostics"
 ## Phase 6: Polish and cross-cutting
 
 - [X] T017 Rebuild and compare every T001 output byte for byte: only `testdata/conformance/template-filled`, `testdata/skills/implemented-unchecked`, `testdata/skills/roles-mixed` and `testdata/skills/tasks-done-status-planned` differ, only by the added diagnostics (and the diagnostics block in human text); every exit code is unchanged; this repository is byte-identical apart from 007's own checked tasks. Record the result in the PR description
-- [ ] T018 Run `CGO_ENABLED=0 go vet ./...`, `gofmt -l .`, `go mod tidy -diff`, the full suite on darwin/arm64 and on linux/amd64 (container), and `spec status --fail-on error` on this repository; record platforms and Go versions in the PR description
+- [X] T018 Run `CGO_ENABLED=0 go vet ./...`, `gofmt -l .`, `go mod tidy -diff`, the full suite on darwin/arm64 and on linux/amd64 (container), and `spec status --fail-on error` on this repository; record platforms and Go versions in the PR description
 - [X] T019 Add a row for feature 007 to the "Implementation record" table in `specs/001-spec-status/tasks.md` (implemented, executed by the implementer, not independently verified; platforms actually run)
 - [X] T020 Draft the v0.3.0 release-note entry in the PR description: two new codes; projects on `--fail-on warning`/`info` may start exiting 1 on real mismatches
-- [ ] T021 Doomer review on the source change (prepare before editing, submit, answer every Quick lead, finish) before handing off the PR
+- [X] T021 Doomer review on the source change (prepare before editing, submit, answer every Quick lead, finish) before handing off the PR
 - [ ] T022 Propose roadmap 014 `specced` → `implemented` through `/speckit.roadmap.write` after the owner approves; `verified` only after the v0.3.0 release checks
 
 ---
