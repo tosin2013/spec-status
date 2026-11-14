@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.6.3 → 1.6.4
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 014 status: specced → implemented (feature 007 merged in PRs #54 and #55)
+
+Specs affected: 007-status-tasks-diagnostics
+Open questions added/resolved: none
+
+Previous revision (1.6.3, 2026-11-14):
 Version change: 1.6.2 → 1.6.3
 Bump rationale: PATCH — status transition.
 
@@ -473,7 +483,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   specs/001-spec-status/tasks.md); constitution Art. II amended the same day
   (D-2026-11-14-02, PR #52). Not verified until the v0.3.0 release checks.
 
-### 014 — Status/tasks consistency diagnostics [status: specced]
+### 014 — Status/tasks consistency diagnostics [status: implemented]
 
 - **Description:** Mechanical findings when an item's recorded status
   disagrees with its tasks: `implemented` or `verified` with unchecked tasks or
@@ -491,6 +501,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** Owner choice of 2026-11-14 (D-2026-11-14-01). Targets v0.3.0.
   Specced on 2026-11-14 (feature 007): SS_STATUS_AHEAD_OF_TASKS (warning) and
   SS_TASKS_DONE_STATUS_EARLY (info), active items with a read tasks file only.
+  Implemented on 2026-11-14 (PRs #54, #55; implementation record in
+  specs/001-spec-status/tasks.md). Not verified until the v0.3.0 release
+  checks.
 
 ### 015 — Real-world field forms [status: planned]
 
@@ -751,4 +764,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.6.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
+**Version**: 1.6.4 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14

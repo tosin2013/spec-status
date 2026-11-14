@@ -85,7 +85,7 @@ description: "Tasks for feature 007: status/tasks consistency diagnostics"
 - [X] T019 Add a row for feature 007 to the "Implementation record" table in `specs/001-spec-status/tasks.md` (implemented, executed by the implementer, not independently verified; platforms actually run)
 - [X] T020 Draft the v0.3.0 release-note entry in the PR description: two new codes; projects on `--fail-on warning`/`info` may start exiting 1 on real mismatches
 - [X] T021 Doomer review on the source change (prepare before editing, submit, answer every Quick lead, finish) before handing off the PR
-- [ ] T022 Propose roadmap 014 `specced` → `implemented` through `/speckit.roadmap.write` after the owner approves; `verified` only after the v0.3.0 release checks
+- [X] T022 Propose roadmap 014 `specced` → `implemented` through `/speckit.roadmap.write` after the owner approves; `verified` only after the v0.3.0 release checks
 
 ---
 
