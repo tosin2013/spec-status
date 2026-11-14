@@ -116,7 +116,7 @@ description: "Tasks for feature 006: two-mode roadmap and feature inventory"
 - [X] T038 Draft the v0.3.0 release-note entries in the PR description: `SS_ROADMAP_UNRECOGNIZED` replaces "zero items, exit 0" (pre-1.0 behavior change); the missing-roadmap message text changed; new `spec inventory` with `inventory_schema_version` 1.0
 - [X] T039 Add a row for feature 006 to the "Implementation record" table in `specs/001-spec-status/tasks.md` (implemented, executed by the implementer, not independently verified; platforms actually run)
 - [X] T040 Run every scenario in `specs/006-two-mode-inventory/quickstart.md` on darwin/arm64, and the test suite on linux/amd64 (container), and record the results in the PR description; run `spec status` on this repository and confirm it is unchanged apart from the 008 entry
-- [ ] T041 Propose the roadmap update for 008 (`specced` → `implemented`, notes) through `/speckit.roadmap.write` after the owner approves; `verified` only after the v0.3.0 release checks
+- [X] T041 Propose the roadmap update for 008 (`specced` → `implemented`, notes) through `/speckit.roadmap.write` after the owner approves; `verified` only after the v0.3.0 release checks
 
 ---
 

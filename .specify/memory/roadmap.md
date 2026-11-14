@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.6.1 → 1.6.2
+Bump rationale: PATCH — status transition and wording.
+
+Changes this revision:
+  - 008 status: specced → implemented (feature 006 merged in PRs #50 and #51;
+    constitution Art. II amendment D-2026-11-14-02 in PR #52); notes updated
+
+Specs affected: 006-two-mode-inventory
+Open questions added/resolved: none
+
+Previous revision (1.6.1, 2026-11-14):
 Version change: 1.6.0 → 1.6.1
 Bump rationale: PATCH — status transition.
 
@@ -427,7 +438,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   is decided and the contracts match; the toolchain, runners and release
   workflow belong to 004.
 
-### 008 — Two-mode roadmap and feature inventory [status: specced]
+### 008 — Two-mode roadmap and feature inventory [status: implemented]
 
 - **Description:** TASK-24–26: distinguish an empty supported roadmap from an
   unrecognized file, and add a separate, explicit inventory of feature folders
@@ -447,8 +458,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   missing roadmap stays exit 2 and suggests inventory; recognition by item
   headings or `## Planned Specs`, otherwise fatal SS_ROADMAP_UNRECOGNIZED;
   Spec Kit feature-folder names; existing checkbox rules; separate inventory
-  JSON schema 1.0. Targets v0.3.0. Specced on 2026-11-14 (feature 006). README
-  Limits records today's zero-item result until it is implemented.
+  JSON schema 1.0. Targets v0.3.0. Specced on 2026-11-14 (feature 006).
+  Implemented on 2026-11-14 (PRs #50, #51; implementation record in
+  specs/001-spec-status/tasks.md); constitution Art. II amended the same day
+  (D-2026-11-14-02, PR #52). Not verified until the v0.3.0 release checks.
 
 ### 014 — Status/tasks consistency diagnostics [status: planned]
 
@@ -725,4 +738,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.6.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
+**Version**: 1.6.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
