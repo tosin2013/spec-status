@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Revised**: 2026-11-14 during planning: FR-002 and FR-006 (explicit empty needs no new JSON field, research R3) and one edge case (folder names, research R7).
+
 **Input**: Roadmap item 008, "Two-mode roadmap and feature inventory", with the owner's Q6 choices in decision D-2026-11-12-08 (`specs/001-spec-status/decisions.md`) and the direction in `specs/001-spec-status/two-mode-direction.md` (C-09). Targets v0.3.0 (D-2026-11-14-01).
 
 ## Context
@@ -89,7 +91,7 @@ A CI job and an AI agent consume `spec inventory --json`. They rely on the same 
 - `--roadmap PATH` naming a readable, unrecognized file: same fatal as the default path.
 - `specs/` missing: inventory exits 0, reports that the specs folder is missing, zero feature folders, null denominators. `specs/` present but not a directory, a symlink, or unreadable: a located finding and the same zero-folder result; never a guess.
 - Two folders with the same number (`003-a`, `003-b`): both listed, no inference about which is current.
-- A folder named `3-short` (fewer than three digits) or `003_name` (underscore) or `20261101-name` (date without time): not a feature folder.
+- A folder named `3-short` (fewer than three digits) or `003_name` (underscore): not a feature folder. `20261101-name` (a date without a time) has eight digits, so it is a sequential feature folder.
 - A feature folder with no files at all: listed, all three files missing.
 - A tasks.md with zero checkboxes: read, 0/0; the item contributes nothing to the denominator; overall checked-task percentage is null if no tasks file has any checkbox.
 - Nested folders under a feature folder (`contracts/`, `checklists/`) are not read, and nothing inside them is counted.
@@ -103,11 +105,11 @@ A CI job and an AI agent consume `spec inventory --json`. They rely on the same 
 **Roadmap recognition (`spec status`)**
 
 - **FR-001**: `spec status` MUST treat a readable roadmap as recognized when it contains at least one supported item heading, or a visible `## Planned Specs` level-2 heading (outside fences and comments, matching the pinned speckit-roadmap v0.1.0 template).
-- **FR-002**: A recognized roadmap with no item headings MUST report as explicitly empty: exit 0, zero items, null completion denominators, and an explicit "empty roadmap" statement in human text and JSON.
+- **FR-002**: A recognized roadmap with no item headings MUST report as explicitly empty: exit 0, zero items, null completion denominators, and an explicit "empty roadmap" statement in human text. In JSON, a complete report with zero items MUST mean exactly this (unrecognized files no longer produce one), and the JSON contract MUST say so.
 - **FR-003**: A readable roadmap that is not recognized MUST produce a new fatal diagnostic `SS_ROADMAP_UNRECOGNIZED` (error, fatal, exit 2) that names the roadmap path and points to the supported template and to `spec inventory`. It MUST NOT say the project is invalid Spec Kit.
 - **FR-004**: Recognition MUST NOT change the result for any roadmap that has a supported item heading: existing reports, diagnostics, JSON bytes and exit codes stay identical, including all existing conformance fixtures and this repository's own roadmap.
 - **FR-005**: When the roadmap is missing, `spec status` MUST keep exiting 2 with `SS_ROADMAP_UNAVAILABLE`, and its message MUST suggest `spec inventory`. It MUST NOT fall back to inventory, and an unrecognized or rejected roadmap MUST NOT fall back either.
-- **FR-006**: `spec status` JSON MUST stay schema 1.0. The new code and the explicit-empty indicator are additive; existing fields keep their meaning.
+- **FR-006**: `spec status` JSON MUST stay schema 1.0 with no field added or removed. The new code is additive; existing fields keep their meaning.
 
 **Inventory command**
 
