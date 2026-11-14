@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.6.4 → 1.6.5
+Bump rationale: PATCH — status transitions.
+
+Changes this revision:
+  - 015 status: planned → specced (specs/008-field-forms-and-fixes)
+  - 016 status: planned → specced (specs/008-field-forms-and-fixes)
+
+Specs affected: 008-field-forms-and-fixes
+Open questions added/resolved: none
+
+Previous revision (1.6.4, 2026-11-14):
 Version change: 1.6.3 → 1.6.4
 Bump rationale: PATCH — status transition.
 
@@ -505,7 +516,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   specs/001-spec-status/tasks.md). Not verified until the v0.3.0 release
   checks.
 
-### 015 — Real-world field forms [status: planned]
+### 015 — Real-world field forms [status: specced]
 
 - **Description:** Accept two forms real speckit-roadmap files contain:
   the bold, capitalized, spaced "Superseded by" label read as `superseded-by`, and a
@@ -518,9 +529,14 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** other label spellings or markup listed in README Limits.
 - **Depends on:** 001, 007
 - **Governed by:** C-03, C-08, C-10
+- **Spec dir:** specs/008-field-forms-and-fixes
 - **Notes:** Owner choice of 2026-11-14 (D-2026-11-14-01). Targets v0.3.0.
+  Specced on 2026-11-14 with 016 (feature 008): the two "Superseded by"
+  spellings; bracketed or single-emphasis placeholders in Spec dir and
+  Depends on as not set, with SS_FIELD_PLACEHOLDER (info), never dropping a
+  real ID.
 
-### 016 — Small defect fixes [status: planned]
+### 016 — Small defect fixes [status: specced]
 
 - **Description:** Open non-blocking defects from README Limits: duplicate ID
   in one `Depends on` list; human text missing status counts, invalid
@@ -532,7 +548,11 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** the other open defects and over-strictness entries.
 - **Depends on:** 001
 - **Governed by:** C-01, C-05
+- **Spec dir:** specs/008-field-forms-and-fixes
 - **Notes:** Owner choice of 2026-11-14 (D-2026-11-14-01). Targets v0.3.0.
+  Specced on 2026-11-14 with 015 (feature 008): SS_DEPENDENCY_DUPLICATE
+  (warning), human-text status counts, invalid supersession and shared-tasks
+  attribution, --json=false, empty --root/--roadmap, fail_on in error JSON.
 
 ### Evidence and distribution
 
@@ -764,4 +784,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.6.4 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
+**Version**: 1.6.5 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
