@@ -8,7 +8,7 @@ The development CLI uses Cobra for commands, help, and flags. The owner approved
 
 ## Working command surface
 
-`spec status` is the working command. The development build also exposes `spec version`, `spec completion`, and `spec help`. Status options:
+`spec status` is the working command. `spec inventory` (feature 006) lists feature folders without reading the roadmap; see "Inventory command" below. The development build also exposes `spec version`, `spec completion`, and `spec help`. Status options:
 
 | Option | Behavior / retained constraint |
 |---|---|
@@ -25,7 +25,7 @@ The development CLI uses Cobra for commands, help, and flags. The owner approved
 | `--historical` | Human-text view. Items outside the active set, including deferred, abandoned, and valid supersession |
 | `--explain` | Human text only. Under each shown item, print mechanical reasons and file:line evidence. Does not filter items by itself |
 
-Working identity commands `spec version` and `spec --version` report CLI version, commit, Go version, and target; development builds are clearly labelled. Version and help are metadata operations, not a roadmap report. Mixing help or version with status or JSON is an invocation error. The development build is not a release.
+Working identity commands `spec version` and `spec --version` report CLI version, commit, Go version, and target; development builds are clearly labelled. Version and help are metadata operations, not a roadmap report. Mixing help or version with status, inventory or JSON is an invocation error. `--json` requires the `status` or `inventory` command. The development build is not a release.
 
 No quarter option exists. `--as-of` is not part of the interface; the owner rejected it under DC-04 (D-2026-11-11-02). No inferred date or inert compatibility flag. `--format=json` is not an approved alias. No write/agent/sync/Git/network option belongs to status.
 
@@ -77,4 +77,16 @@ Executable/grammar/help/error behavior was approved as built on 11 November 2026
 
 [timing-evidence.md](timing-evidence.md) and [companion.md](companion.md) are draft proposals. `spec companion` is not a command in this build. No quarter option is added. Human styled status text remains for supported terminal surfaces. JSON remains the machine evidence. An external harness is not a native integration.
 
-[two-mode-direction.md](two-mode-direction.md) is an owner decision for a later change. This build still reads `.specify/memory/roadmap.md` and still exits 2 when that file is missing. No inventory command is defined. Flag names, default selection, and how a template version is recognized are open. Filters, when a roadmap report exists, still do not hide findings.
+[two-mode-direction.md](two-mode-direction.md) records the owner's direction; D-2026-11-12-08 chose the details and feature 006 implements them. `spec status` still reads `.specify/memory/roadmap.md` and still exits 2 with `SS_ROADMAP_UNAVAILABLE` when that file is missing; the message now suggests `spec inventory`, and `spec status` never runs inventory itself. A readable roadmap with no item heading and no `## Planned Specs` heading is the fatal `SS_ROADMAP_UNRECOGNIZED`. Filters, when a roadmap report exists, still do not hide findings.
+
+## Inventory command (feature 006)
+
+`spec inventory [--json] [--root PATH] [--color auto|always|never] [--fail-on info|warning|error|none]`
+
+- Lists the immediate children of `<root>/specs/`. A directory named `NNN-name` (three or more ASCII digits) or `YYYYMMDD-HHMMSS-name` is a feature folder; for each, `spec.md` and `plan.md` are stat'ed (not read), and `tasks.md` is read and its checkboxes counted with the tasks rules in [roadmap-format.md](roadmap-format.md) §3. Nothing deeper is examined, so requirements checklists are never counted.
+- Does not read the roadmap; reports `roadmap_file` (present, absent or skipped) from a stat only. Does not infer status, priority or dependencies. Checked boxes are not verification.
+- `--json`, `--root`, `--color` and `--fail-on` mean what they mean for `spec status`, with the same repeated-flag and value rules. `--roadmap`, `--status`, `--blocked`, `--human-review`, `--active`, `--historical` and `--explain` are invocation errors (`--<name> is not used by inventory`). `--version` with `inventory` is an invocation error.
+- Exits: 0 below `--fail-on`, 1 at or above it, 2 for fatal or invocation errors; `--fail-on none` never masks a fatal.
+- `--json` prints exactly one [inventory-json.md](inventory-json.md) document, including for invocation errors when the `inventory` command is named; those carry the requested `--fail-on` when its value is valid.
+- Human text: a summary panel, a folder table (one block per folder when names do not fit), "Checked boxes are not verification.", and diagnostics. Fatal text is `spec: CODE: message` on stderr.
+- Shell completion is dynamic (the script asks the binary), so `inventory` is offered without regenerating scripts.

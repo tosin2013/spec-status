@@ -1,6 +1,7 @@
 package status
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -143,5 +144,24 @@ func TestPanelHeadingFollowsBuildLabel(t *testing.T) {
 	}
 	if strings.Replace(rel, "release 0.1.0    ", "development build", 1) != def {
 		t.Fatalf("only the heading label may differ:\n%s\n%s", rel, def)
+	}
+}
+
+func TestInventoryTextSanitizesAndStaysPlain(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, ".specify", ".gitkeep"), "")
+	evil := "001-x\x1b[31mred\x1b]0;title\x07"
+	writeFile(t, filepath.Join(dir, "specs", evil, "spec.md"), "# x\n")
+	rep := EvaluateInventory(InventoryOption{Root: dir})
+	plain := InventoryText(rep, View{Width: 80})
+	if strings.ContainsRune(plain, 0x1b) || strings.ContainsRune(plain, 0x07) {
+		t.Fatalf("terminal escapes leaked: %q", plain)
+	}
+	if !strings.Contains(plain, "001-xred") {
+		t.Fatalf("sanitized name missing: %q", plain)
+	}
+	narrow := InventoryText(rep, View{Width: 30})
+	if !strings.Contains(narrow, "\n  spec present  plan missing\n") {
+		t.Fatalf("narrow layout not used at 30 columns:\n%s", narrow)
 	}
 }

@@ -37,8 +37,12 @@ STEP 2 - REVIEW THE ROADMAP
     spec status --json
     spec status --color=never --explain
 - Exit 2 means the roadmap could not be read (for example
-  SS_ROADMAP_UNAVAILABLE when .specify/memory/roadmap.md is missing). Report the
-  diagnostic and stop; do not create a roadmap.
+  SS_ROADMAP_UNAVAILABLE when .specify/memory/roadmap.md is missing, or
+  SS_ROADMAP_UNRECOGNIZED when the file is not the supported template). Report
+  the diagnostic; do not create or rewrite a roadmap. If `spec --help` lists
+  `inventory` (v0.3.0 or later), you may run `spec inventory --color=never` and
+  report the feature folders it lists; checked boxes there are not verification
+  and imply no status. Then stop.
 - Summarize, citing item IDs and file:line from the output:
   1. Progress: recorded verified X/Y active items, checked tasks X/Y.
   2. Active blockers: each blocked item and the dependency that is not verified.
