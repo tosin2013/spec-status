@@ -1,6 +1,19 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.5.3 → 1.6.0
+Bump rationale: MINOR — new items.
+
+Changes this revision:
+  - New items 013 (close-gap skill), 014 (status/tasks consistency
+    diagnostics), 015 (real-world field forms), 016 (small defect fixes),
+    all planned for v0.3.0 (D-2026-11-14-01)
+  - 011 notes: ships in v0.3.0
+
+Specs affected: none yet
+Open questions added/resolved: none
+
+Previous revision (1.5.3, 2026-11-12):
 Version change: 1.5.2 → 1.5.3
 Bump rationale: PATCH — status transition and wording.
 
@@ -426,6 +439,51 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   JSON schema 1.0. Targets v0.3.0. Next: a feature spec. README Limits records
   today's zero-item result until then.
 
+### 014 — Status/tasks consistency diagnostics [status: planned]
+
+- **Description:** Mechanical findings when an item's recorded status
+  disagrees with its tasks: `implemented` or `verified` with unchecked tasks or
+  no readable tasks file; every task checked while the status is still before
+  `implemented`.
+- **Outcome:** CI and the human report see the same status/tasks mismatches the
+  reconcile skill finds, and `--fail-on` can act on them.
+- **Scope (in):** codes, severities and rules; JSON (additive, schema 1.0),
+  human text, diagnostics contract, extension `reference/output.md`.
+- **Scope (out):** inferring or proposing a status; judging whether an item is
+  verified.
+- **Depends on:** 001
+- **Governed by:** C-01, C-05, C-07
+- **Notes:** Owner choice of 2026-11-14 (D-2026-11-14-01). Targets v0.3.0.
+
+### 015 — Real-world field forms [status: planned]
+
+- **Description:** Accept two forms real speckit-roadmap files contain:
+  the bold, capitalized, spaced "Superseded by" label read as `superseded-by`, and a
+  template placeholder left in a field (`_set once the spec exists_`) read as
+  not set yet.
+- **Outcome:** Two README over-strictness limits are removed without any field
+  being silently misread.
+- **Scope (in):** the exact accepted forms, grammar and README Limits updates,
+  conformance fixtures.
+- **Scope (out):** other label spellings or markup listed in README Limits.
+- **Depends on:** 001, 007
+- **Governed by:** C-03, C-08, C-10
+- **Notes:** Owner choice of 2026-11-14 (D-2026-11-14-01). Targets v0.3.0.
+
+### 016 — Small defect fixes [status: planned]
+
+- **Description:** Open non-blocking defects from README Limits: duplicate ID
+  in one `Depends on` list; human text missing status counts, invalid
+  supersession and shared-tasks attribution; `--json=false` with an invalid
+  flag; empty `--root` or `--roadmap`; `fail_on` in invocation-error JSON.
+- **Outcome:** Each listed defect is fixed, tested, and removed from README
+  Limits.
+- **Scope (in):** the five defects above.
+- **Scope (out):** the other open defects and over-strictness entries.
+- **Depends on:** 001
+- **Governed by:** C-01, C-05
+- **Notes:** Owner choice of 2026-11-14 (D-2026-11-14-01). Targets v0.3.0.
+
 ### Evidence and distribution
 
 ### 003 — Real-roadmap dogfood [status: verified]
@@ -553,7 +611,8 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** other documentation checks.
 - **Depends on:** 001
 - **Governed by:** C-01
-- **Notes:** Deferred from feature 003 by the owner on 2026-11-11.
+- **Notes:** Deferred from feature 003 by the owner on 2026-11-11. Ships in
+  v0.3.0 (D-2026-11-14-01).
 
 ### 012 — Agent skills extension [status: verified]
 
@@ -582,6 +641,25 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   record in specs/001-spec-status/tasks.md). v0.2.0 published 2026-11-12;
   recorded verified the same day after installing from the release archive.
   Submitted to the Spec Kit community catalog (github/spec-kit#5413).
+
+### 013 — Close-gap skill [status: planned]
+
+- **Description:** A sixth extension command, `speckit.spec-status.close-gap`,
+  that works through items whose recorded status lags their evidence (for
+  example a low recorded-verified percentage), one item and one proposed
+  change at a time; plus a verification-gap section in `review` for the `pm`
+  role.
+- **Outcome:** A project with few recorded-verified items gets an ordered,
+  evidence-cited path to close the gap, without any status recorded on the
+  agent's say-so.
+- **Scope (in):** the command, roles and reference updates, fixtures, install
+  check for six skills.
+- **Scope (out):** changes to the `spec` binary; applying changes without
+  per-change approval or outside Spec Kit commands.
+- **Depends on:** 012, 014
+- **Governed by:** C-01, C-06
+- **Notes:** Owner choice of 2026-11-14 (D-2026-11-14-01). Targets v0.3.0 with
+  extension version 0.3.0.
 
 ### Future
 
@@ -636,4 +714,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.5.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
+**Version**: 1.6.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
