@@ -109,3 +109,31 @@ func TestInventoryHelpAndCompletion(t *testing.T) {
 		t.Errorf("completion lacks inventory:\n%s", out)
 	}
 }
+
+func TestInventoryCommandDetection(t *testing.T) {
+	root := inventoryFixture("brownfield")
+	for _, args := range [][]string{
+		{"--json", "inventory", "--root", root},
+		{"inventory", "--json", "--root", root},
+		{"--root", root, "--fail-on", "warning", "--json", "inventory"},
+	} {
+		code, out, _ := runCLI(args...)
+		if code != 0 || !strings.Contains(out, `"inventory_schema_version":"1.0"`) {
+			t.Errorf("%v: exit %d out %q", args, code, out)
+		}
+	}
+	// A --root value named "inventory" is not the command.
+	dir := t.TempDir()
+	mustWrite(t, filepath.Join(dir, "inventory", ".specify", "memory", "roadmap.md"), "### 001 — Work [status: planned]\n")
+	var out, errb bytes.Buffer
+	code := Run([]string{"status", "--root", "inventory", "--json", "--bogus"}, dir, &out, &errb)
+	if code != 2 || strings.Contains(out.String(), "inventory_schema_version") || !strings.Contains(out.String(), `"schema_version":"1.0"`) {
+		t.Fatalf("status with --root inventory: exit %d out %s", code, out.String())
+	}
+	if got := requestedFailOn([]string{"inventory", "--fail-on", "--json"}); got != "" {
+		t.Errorf("missing --fail-on value read as %q", got)
+	}
+	if got := requestedFailOn([]string{"inventory", "--root", "--fail-on", "--fail-on=none"}); got != "none" {
+		t.Errorf("--root value \"--fail-on\" taken as the flag; got %q", got)
+	}
+}

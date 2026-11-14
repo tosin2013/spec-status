@@ -427,7 +427,7 @@ func precheck(args []string) string {
 	help := countFlag(args, "--help")+countFlag(args, "-h") > 0
 	version := countFlag(args, "--version")+countFlag(args, "-V") > 0
 	statusCmd := hasCommand(args, "status")
-	inventoryCmd := hasCommand(args, "inventory")
+	inventoryCmd := commandName(args) == "inventory"
 	completion := hasCommand(args, "completion")
 	versionCmd := hasCommand(args, "version")
 	if help && (version || versionCmd) {
@@ -506,35 +506,67 @@ func oneLine(msg string) string {
 // inventory-shaped document carrying the requested --fail-on when that value
 // is valid (feature 006, research R9); otherwise the status-shaped document.
 func failFor(args []string, jsonMode bool, code, message string, stdout, stderr io.Writer) int {
-	if jsonMode && hasCommand(args, "inventory") {
+	if jsonMode && commandName(args) == "inventory" {
 		fmt.Fprint(stdout, string(status.InventoryInvocationJSON(requestedFailOn(args), message)))
 		return 2
 	}
 	return fail(jsonMode, code, message, stdout, stderr)
 }
 
-// requestedFailOn returns the --fail-on value in args when it is valid, else "".
-func requestedFailOn(args []string) string {
-	for i, a := range args {
+// valueFlags take a separate value token when written without "=", the way
+// pflag consumes them.
+var valueFlags = map[string]bool{"--root": true, "--roadmap": true, "--fail-on": true, "--color": true, "--status": true}
+
+// walkArgs visits every flag with its value and returns the first positional
+// token (the command), skipping the values of valueFlags, so a --root
+// directory named "inventory" is not taken for the command. It stops at "--".
+func walkArgs(args []string, flag func(name, value string, hasValue bool)) string {
+	command := ""
+	for i := 0; i < len(args); i++ {
+		a := args[i]
 		if a == "--" {
 			break
 		}
-		v, ok := "", false
-		switch {
-		case strings.HasPrefix(a, "--fail-on="):
-			v, ok = strings.TrimPrefix(a, "--fail-on="), true
-		case a == "--fail-on" && i+1 < len(args):
-			v, ok = args[i+1], true
-		}
-		if ok {
-			switch v {
-			case "info", "warning", "error", "none":
-				return v
+		if !strings.HasPrefix(a, "-") {
+			if command == "" {
+				command = a
 			}
-			return ""
+			continue
+		}
+		name, value, hasValue := a, "", false
+		if j := strings.IndexByte(a, '='); j >= 0 {
+			name, value, hasValue = a[:j], a[j+1:], true
+		} else if valueFlags[a] && i+1 < len(args) {
+			i++
+			value, hasValue = args[i], true
+		}
+		if flag != nil {
+			flag(name, value, hasValue)
 		}
 	}
-	return ""
+	return command
+}
+
+// commandName is the first positional argument, or "".
+func commandName(args []string) string { return walkArgs(args, nil) }
+
+// requestedFailOn returns the first --fail-on value in args when it is
+// valid, else "" (a missing or invalid value is not a requested threshold).
+func requestedFailOn(args []string) string {
+	got, seen := "", false
+	walkArgs(args, func(name, value string, hasValue bool) {
+		if name != "--fail-on" || seen {
+			return
+		}
+		seen = true
+		switch value {
+		case "info", "warning", "error", "none":
+			if hasValue {
+				got = value
+			}
+		}
+	})
+	return got
 }
 
 func fail(jsonMode bool, code, message string, stdout, stderr io.Writer) int {
