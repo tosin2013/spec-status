@@ -4,7 +4,7 @@
     "speckit-roadmap@v0.1.0"
   ],
   "origin": "template-filled",
-  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07",
+  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07; 2026-11-14: + SS_STATUS_AHEAD_OF_TASKS for 001 (recorded implemented, 6 of 10 tasks checked in specs/001-sample/tasks.md, counted by hand; feature 007, D-2026-11-14-01)",
   "outcome": "report",
   "exit": 0,
   "items": [
@@ -79,6 +79,10 @@
     {
       "code": "SS_DEPENDENCY_BLOCKED",
       "item": "002"
+    },
+    {
+      "code": "SS_STATUS_AHEAD_OF_TASKS",
+      "item": "001"
     }
   ]
 }
