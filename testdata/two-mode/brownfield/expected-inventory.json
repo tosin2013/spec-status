@@ -1,0 +1,42 @@
+{
+  "inventory_schema_version": "1.0",
+  "outcome": "report",
+  "complete": true,
+  "mode": "inventory",
+  "source": {
+    "specs_dir": "specs",
+    "specs_state": "present",
+    "roadmap_file": "absent"
+  },
+  "configuration": {
+    "fail_on": "error",
+    "task_scope": "feature_folder_tasks_md"
+  },
+  "summary": {
+    "feature_folders": 1,
+    "other_folders": 0,
+    "skipped_entries": 0,
+    "tasks": {
+      "checked": 24,
+      "total": 24,
+      "percent": 100,
+      "files_read": 1,
+      "files_missing": 0,
+      "files_skipped": 0
+    }
+  },
+  "folders": [
+    {
+      "name": "001-piranha-server-management-ui",
+      "path": "specs/001-piranha-server-management-ui",
+      "feature": true,
+      "name_form": "sequential",
+      "skipped": false,
+      "spec": {"state": "present", "reason": null},
+      "plan": {"state": "present", "reason": null},
+      "tasks": {"state": "read", "reason": null, "checked": 24, "total": 24, "percent": 100}
+    }
+  ],
+  "diagnostics": [],
+  "error": null
+}

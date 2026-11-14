@@ -1,0 +1,42 @@
+{
+  "inventory_schema_version": "1.0",
+  "outcome": "report",
+  "complete": true,
+  "mode": "inventory",
+  "source": {
+    "specs_dir": "specs",
+    "specs_state": "present",
+    "roadmap_file": "present"
+  },
+  "configuration": {
+    "fail_on": "error",
+    "task_scope": "feature_folder_tasks_md"
+  },
+  "summary": {
+    "feature_folders": 1,
+    "other_folders": 0,
+    "skipped_entries": 0,
+    "tasks": {
+      "checked": 0,
+      "total": 0,
+      "percent": null,
+      "files_read": 0,
+      "files_missing": 1,
+      "files_skipped": 0
+    }
+  },
+  "folders": [
+    {
+      "name": "001-only",
+      "path": "specs/001-only",
+      "feature": true,
+      "name_form": "sequential",
+      "skipped": false,
+      "spec": {"state": "present", "reason": null},
+      "plan": {"state": "missing", "reason": null},
+      "tasks": {"state": "missing", "reason": null, "checked": null, "total": null, "percent": null}
+    }
+  ],
+  "diagnostics": [],
+  "error": null
+}

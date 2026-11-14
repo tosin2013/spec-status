@@ -1,0 +1,26 @@
+# Tasks
+
+- [X] T001 Task 01
+- [X] T002 Task 02
+- [X] T003 Task 03
+- [X] T004 Task 04
+- [X] T005 Task 05
+- [X] T006 Task 06
+- [X] T007 Task 07
+- [X] T008 Task 08
+- [X] T009 Task 09
+- [X] T010 Task 10
+- [X] T011 Task 11
+- [X] T012 Task 12
+- [X] T013 Task 13
+- [X] T014 Task 14
+- [X] T015 Task 15
+- [X] T016 Task 16
+- [X] T017 Task 17
+- [X] T018 Task 18
+- [X] T019 Task 19
+- [X] T020 Task 20
+- [X] T021 Task 21
+- [X] T022 Task 22
+- [X] T023 Task 23
+- [X] T024 Task 24

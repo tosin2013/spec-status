@@ -669,3 +669,141 @@ func itoa(n int) string {
 	}
 	return string(buf[i:])
 }
+
+// InventoryText renders spec inventory human text
+// (specs/006-two-mode-inventory/contracts/inventory-text.md). It uses the
+// same plain-surface rules as the roadmap report; fatal text stays plain.
+func InventoryText(rep InventoryReport, view View) string {
+	if rep.Outcome == "fatal" || rep.Summary == nil {
+		d := Diagnostic{Code: "SS_ROOT_UNAVAILABLE", Message: "Required input is unavailable."}
+		if rep.Fatal != nil {
+			d = *rep.Fatal
+		}
+		return "spec: " + d.Code + ": " + d.Message + "\n"
+	}
+	width := normalizeWidth(view.Width)
+	p := newPainter(view.Color)
+	s := rep.Summary
+	padX := 1
+	if width < 48 {
+		padX = 0
+	}
+	inner := width - 2 - 2*padX
+	if inner < 16 {
+		inner = 16
+	}
+	build := view.Build
+	if build == "" {
+		build = "development build"
+	}
+	var lines []string
+	lines = append(lines, fitSegments(inner, p.paint("Spec Inventory", "heading"), "  "+sanitizeTerminal(build)))
+	lines = append(lines, countLine(p, "mode", "inventory (roadmap not read; no status inferred)", "", inner)...)
+	lines = append(lines, metricLines(p, "checked tasks", s.Tasks.Checked, s.Tasks.Total, s.Tasks.Percent.Text(), "", inner)...)
+	total := s.FeatureFolders + s.OtherFolders + s.SkippedEntries
+	lines = append(lines, wrapText("folders "+itoa(total)+"  feature "+itoa(s.FeatureFolders)+"  other "+itoa(s.OtherFolders)+"  skipped "+itoa(s.SkippedEntries), inner)...)
+	lines = append(lines, wrapText("task files read "+itoa(s.Tasks.FilesRead)+"  missing "+itoa(s.Tasks.FilesMissing)+"  skipped "+itoa(s.Tasks.FilesSkipped), inner)...)
+	source := "source " + inventorySpecsDir
+	if rep.SpecsState != "present" {
+		source += " (" + rep.SpecsState + ")"
+	}
+	lines = append(lines, wrapText(source, inner)...)
+
+	var b strings.Builder
+	b.WriteString(frame(p, lines, inner, padX))
+	b.WriteString("\n")
+	if len(rep.Folders) > 0 {
+		writeInventoryFolders(&b, p, rep.Folders, width)
+		b.WriteString("\n")
+	}
+	b.WriteString("Checked boxes are not verification.\n")
+	if rep.RoadmapFile == "present" {
+		b.WriteString("A roadmap exists; spec status reports it.\n")
+	}
+	b.WriteString("\n")
+	if len(rep.Diagnostics) == 0 {
+		b.WriteString("diagnostics  none\n")
+		return b.String()
+	}
+	b.WriteString(p.paint("diagnostics", "heading") + "\n")
+	for _, d := range rep.Diagnostics {
+		b.WriteString(p.paint(pad(d.Severity, 7), d.Severity) + " " + d.Code + "\n")
+		loc := d.Path
+		if d.Line > 0 {
+			loc += ":" + itoa(d.Line)
+		}
+		if loc == "" {
+			loc = "-"
+		}
+		for _, line := range wrapText(sanitizeTerminal(loc+" "+d.Message), width-2) {
+			b.WriteString("  " + line + "\n")
+		}
+	}
+	return b.String()
+}
+
+func inventoryTasksCell(t *TaskState) string {
+	if t == nil {
+		return "-"
+	}
+	if t.State == "read" {
+		return itoa(t.Checked) + "/" + itoa(t.Total)
+	}
+	if t.Reason != "" {
+		return t.State + " (" + t.Reason + ")"
+	}
+	return t.State
+}
+
+func inventoryFileCell(f *FileState) string {
+	if f == nil {
+		return "-"
+	}
+	if f.Reason != "" {
+		return f.State + " (" + f.Reason + ")"
+	}
+	return f.State
+}
+
+func inventoryRowNote(f Folder) string {
+	switch {
+	case f.Skipped:
+		return "skipped (not examined)"
+	case !f.Feature:
+		return "not a feature folder"
+	}
+	return ""
+}
+
+func writeInventoryFolders(b *strings.Builder, p *painter, folders []Folder, width int) {
+	cellW := 8
+	nameW := displayWidth("Folder")
+	for _, f := range folders {
+		nameW = max(nameW, displayWidth(sanitizeTerminal(f.Name)))
+	}
+	nameW += 2
+	// The table needs every name in full plus three cells; otherwise names
+	// would be truncated, so use one block per folder instead.
+	if nameW+3*(cellW+1) <= width {
+		b.WriteString(p.paint(pad("Folder", nameW)+" "+pad("spec", cellW)+" "+pad("plan", cellW)+" tasks", "heading") + "\n")
+		for _, f := range folders {
+			name := pad(truncate(sanitizeTerminal(f.Name), nameW), nameW)
+			if note := inventoryRowNote(f); note != "" {
+				b.WriteString(name + " " + p.paint(truncate(note, width-nameW-1), "historical") + "\n")
+				continue
+			}
+			b.WriteString(name + " " + pad(truncate(inventoryFileCell(f.Spec), cellW), cellW) + " " + pad(truncate(inventoryFileCell(f.Plan), cellW), cellW) + " " + truncate(inventoryTasksCell(f.Tasks), width-nameW-2*cellW-3) + "\n")
+		}
+		return
+	}
+	// Narrow terminals: one folder per block.
+	for _, f := range folders {
+		b.WriteString(truncate(sanitizeTerminal(f.Name), width) + "\n")
+		if note := inventoryRowNote(f); note != "" {
+			b.WriteString("  " + p.paint(truncate(note, width-2), "historical") + "\n")
+			continue
+		}
+		b.WriteString("  " + truncate("spec "+inventoryFileCell(f.Spec)+"  plan "+inventoryFileCell(f.Plan), width-2) + "\n")
+		b.WriteString("  " + truncate("tasks "+inventoryTasksCell(f.Tasks), width-2) + "\n")
+	}
+}

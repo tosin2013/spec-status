@@ -1,0 +1,96 @@
+{
+  "inventory_schema_version": "1.0",
+  "outcome": "report",
+  "complete": true,
+  "mode": "inventory",
+  "source": {
+    "specs_dir": "specs",
+    "specs_state": "present",
+    "roadmap_file": "absent"
+  },
+  "configuration": {
+    "fail_on": "error",
+    "task_scope": "feature_folder_tasks_md"
+  },
+  "summary": {
+    "feature_folders": 3,
+    "other_folders": 3,
+    "skipped_entries": 0,
+    "tasks": {
+      "checked": 3,
+      "total": 5,
+      "percent": 60,
+      "files_read": 2,
+      "files_missing": 1,
+      "files_skipped": 0
+    }
+  },
+  "folders": [
+    {
+      "name": "001-alpha",
+      "path": "specs/001-alpha",
+      "feature": true,
+      "name_form": "sequential",
+      "skipped": false,
+      "spec": {"state": "present", "reason": null},
+      "plan": {"state": "present", "reason": null},
+      "tasks": {"state": "read", "reason": null, "checked": 3, "total": 5, "percent": 60}
+    },
+    {
+      "name": "003_name",
+      "path": "specs/003_name",
+      "feature": false,
+      "name_form": null,
+      "skipped": false,
+      "spec": null,
+      "plan": null,
+      "tasks": null
+    },
+    {
+      "name": "20261101-093000-beta",
+      "path": "specs/20261101-093000-beta",
+      "feature": true,
+      "name_form": "timestamp",
+      "skipped": false,
+      "spec": {"state": "present", "reason": null},
+      "plan": {"state": "missing", "reason": null},
+      "tasks": {"state": "missing", "reason": null, "checked": null, "total": null, "percent": null}
+    },
+    {
+      "name": "20261101-gamma",
+      "path": "specs/20261101-gamma",
+      "feature": true,
+      "name_form": "sequential",
+      "skipped": false,
+      "spec": {"state": "missing", "reason": null},
+      "plan": {"state": "missing", "reason": null},
+      "tasks": {"state": "read", "reason": null, "checked": 0, "total": 0, "percent": null}
+    },
+    {
+      "name": "3-short",
+      "path": "specs/3-short",
+      "feature": false,
+      "name_form": null,
+      "skipped": false,
+      "spec": null,
+      "plan": null,
+      "tasks": null
+    },
+    {
+      "name": "notes",
+      "path": "specs/notes",
+      "feature": false,
+      "name_form": null,
+      "skipped": false,
+      "spec": null,
+      "plan": null,
+      "tasks": null
+    }
+  ],
+  "diagnostics": [
+    {"code": "SS_FOLDER_NOT_FEATURE", "severity": "info", "message": "Folder name is not a Spec Kit feature folder name.", "source": {"path": "specs/003_name", "line": null}, "item_id": null, "related": []},
+    {"code": "SS_FOLDER_NOT_FEATURE", "severity": "info", "message": "Folder name is not a Spec Kit feature folder name.", "source": {"path": "specs/3-short", "line": null}, "item_id": null, "related": []},
+    {"code": "SS_FOLDER_NOT_FEATURE", "severity": "info", "message": "Folder name is not a Spec Kit feature folder name.", "source": {"path": "specs/notes", "line": null}, "item_id": null, "related": []}
+  ],
+  "error": null
+}

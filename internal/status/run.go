@@ -28,18 +28,9 @@ func Evaluate(opt Option) Report {
 	if failOn == "" {
 		failOn = "error"
 	}
-	root, _, ferr := resolveRoot(opt.CWD, opt.Root)
+	fs, ferr := openProject(opt.CWD, opt.Root)
 	if ferr != nil {
-		r := fatalReport(ferr.Code, ferr.Message, "", failOn)
-		return r
-	}
-	fs, err := safeio.New(root)
-	if err != nil {
-		return fatalReport("SS_ROOT_UNAVAILABLE", "Selected root is unavailable.", "", failOn)
-	}
-	specEnt, err := fs.StatRel(".specify")
-	if err != nil || !specEnt.Exists || !specEnt.Dir {
-		return fatalReport("SS_ROOT_UNAVAILABLE", "Selected root has no .specify directory.", "", failOn)
+		return fatalReport(ferr.Code, ferr.Message, "", failOn)
 	}
 	roadmap := ".specify/memory/roadmap.md"
 	if opt.Roadmap != "" {
@@ -103,6 +94,25 @@ func Evaluate(opt Option) Report {
 	}
 	rep.FailOn = failOn
 	return rep
+}
+
+// openProject selects the root and opens the confined reader. Both
+// spec status and spec inventory use it, so root discovery and the
+// .specify check are identical (feature 006, FR-008).
+func openProject(cwd, explicit string) (*safeio.FS, *rootErr) {
+	root, _, ferr := resolveRoot(cwd, explicit)
+	if ferr != nil {
+		return nil, ferr
+	}
+	fs, err := safeio.New(root)
+	if err != nil {
+		return nil, &rootErr{"SS_ROOT_UNAVAILABLE", "Selected root is unavailable."}
+	}
+	specEnt, err := fs.StatRel(".specify")
+	if err != nil || !specEnt.Exists || !specEnt.Dir {
+		return nil, &rootErr{"SS_ROOT_UNAVAILABLE", "Selected root has no .specify directory."}
+	}
+	return fs, nil
 }
 
 type rootErr struct {
