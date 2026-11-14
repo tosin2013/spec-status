@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.5.2 → 1.5.3
+Bump rationale: PATCH — status transition and wording.
+
+Changes this revision:
+  - 008 status: needs-info → planned (Q6 resolved, D-2026-11-12-08; targets v0.3.0)
+
+Specs affected: none yet
+Open questions added/resolved: Q6 resolved
+
+Previous revision (1.5.2, 2026-11-12):
 Version change: 1.5.1 → 1.5.2
 Bump rationale: PATCH — status transition.
 
@@ -394,7 +404,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   is decided and the contracts match; the toolchain, runners and release
   workflow belong to 004.
 
-### 008 — Two-mode roadmap and feature inventory [status: needs-info]
+### 008 — Two-mode roadmap and feature inventory [status: planned]
 
 - **Description:** TASK-24–26: distinguish an empty supported roadmap from an
   unrecognized file, and add a separate, explicit inventory of feature folders
@@ -409,8 +419,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   folders; counting requirements checklists; network or upstream lookups.
 - **Depends on:** 001
 - **Governed by:** C-01, C-02, C-08, C-09
-- **Notes:** Needs the owner's choices in Q6 before any contract or code
-  work; README Limits records today's zero-item result.
+- **Notes:** Q6 resolved on 2026-11-12 (D-2026-11-12-08): `spec inventory` command;
+  missing roadmap stays exit 2 and suggests inventory; recognition by item
+  headings or `## Planned Specs`, otherwise fatal SS_ROADMAP_UNRECOGNIZED;
+  Spec Kit feature-folder names; existing checkbox rules; separate inventory
+  JSON schema 1.0. Targets v0.3.0. Next: a feature spec. README Limits records
+  today's zero-item result until then.
 
 ### Evidence and distribution
 
@@ -609,9 +623,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   SS_DEPENDENCY_MALFORMED finding? Deferred past v0.1.0 on 2026-11-12 (D-2026-11-12-01);
   the visible finding stays.
 
-- **Q6 —** For 008: command names and flags, default mode, how a template
+- ~~**Q6 —** For 008: command names and flags, default mode, how a template
   version is identified, feature-folder and checkbox rules, inventory JSON
-  schema and exit codes, and whether it ships in v1.
+  schema and exit codes, and whether it ships in v1.~~ Resolved 2026-11-12 (D-2026-11-12-08).
 
 ## Cross-Cutting Notes
 
@@ -622,4 +636,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.5.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
+**Version**: 1.5.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-12
