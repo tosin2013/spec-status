@@ -1,0 +1,39 @@
+{
+  "note": "Hand-written expectation (feature 008, contracts/changes.md §6); not generated from spec output.",
+  "exit": 0,
+  "items": {
+    "001": {
+      "superseded_by": null,
+      "dependencies": [
+        "002",
+        "003"
+      ]
+    }
+  },
+  "diagnostics": [
+    {
+      "item": "001",
+      "code": "SS_SPEC_REFERENCE_MISSING"
+    },
+    {
+      "item": "002",
+      "code": "SS_SPEC_REFERENCE_MISSING"
+    },
+    {
+      "item": "003",
+      "code": "SS_SPEC_REFERENCE_MISSING"
+    },
+    {
+      "item": "001",
+      "code": "SS_DEPENDENCY_DUPLICATE"
+    },
+    {
+      "item": "001",
+      "code": "SS_DEPENDENCY_BLOCKED"
+    },
+    {
+      "item": "001",
+      "code": "SS_DEPENDENCY_BLOCKED"
+    }
+  ]
+}

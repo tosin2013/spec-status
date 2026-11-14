@@ -72,6 +72,18 @@ func build(rel string, items []rawItem, fs *safeio.FS) Report {
 				Code: "SS_SPEC_REFERENCE_MISSING", Severity: sev, ItemID: it.ID, Path: rel, Line: it.Line, Message: msg,
 			})
 		}
+		for _, ph := range it.Placeholders {
+			diags = append(diags, Diagnostic{
+				Code: "SS_FIELD_PLACEHOLDER", Severity: "info", ItemID: it.ID, Path: rel, Line: ph.Line,
+				Message: "Field holds a template placeholder and is treated as not set.",
+			})
+		}
+		for range it.DupDeps {
+			diags = append(diags, Diagnostic{
+				Code: "SS_DEPENDENCY_DUPLICATE", Severity: "warning", ItemID: it.ID, Path: rel, Line: lineOr(it.DepsLine, it.Line),
+				Message: "Dependency list names the same item more than once; it is counted once.",
+			})
+		}
 		if superCode[i] != "" {
 			line := it.SuperLine
 			if line == 0 {
@@ -113,6 +125,7 @@ func build(rel string, items []rawItem, fs *safeio.FS) Report {
 	taskMissing := map[string]struct{}{}
 	taskSkipped := map[string]struct{}{}
 	taskIDs := map[string]string{}
+	taskFirstItem := map[string]string{}
 	outItems := make([]Item, len(items))
 	for i, it := range items {
 		item := Item{
@@ -140,6 +153,13 @@ func build(rel string, items []rawItem, fs *safeio.FS) Report {
 			diags = append(diags, itemDiags...)
 			item.Tasks = tasks
 			item.SpecDir = specDir
+		}
+		if item.Tasks.State == "read" && item.Tasks.Source != "" {
+			if first, ok := taskFirstItem[item.Tasks.Source]; ok {
+				item.TasksSharedWith = first
+			} else {
+				taskFirstItem[item.Tasks.Source] = item.ID
+			}
 		}
 		if d := statusTasksDiag(item, rel); d != nil {
 			diags = append(diags, *d)

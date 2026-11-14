@@ -24,7 +24,17 @@ type rawItem struct {
 	HasSuper    bool
 	SuperBad    bool
 	SuperID     string
-	seen        map[string]bool
+	// Placeholders are template placeholder values left in a Spec dir or
+	// Depends on field (feature 008); DupDeps are IDs repeated in one
+	// Depends on list, each recorded once.
+	Placeholders []placeholder
+	DupDeps      []string
+	seen         map[string]bool
+}
+
+type placeholder struct {
+	Field string
+	Line  int
 }
 
 // parseRoadmap returns the items, whether a visible "## Planned Specs"
@@ -451,6 +461,10 @@ var fieldLabels = []struct{ label, field string }{
 	{"Depends on", "Depends on"},
 	{"Spec dir", "Spec dir"},
 	{"superseded-by", "superseded-by"},
+	// Feature 008 (D-2026-11-14-01 (3)): the two spellings review D6 found.
+	// Other case or punctuation variants stay near misses (C-10).
+	{"Superseded by", "superseded-by"},
+	{"superseded by", "superseded-by"},
 }
 
 // matchField recognizes "- Label: value". The speckit-roadmap bold spellings
@@ -513,6 +527,58 @@ func parseIDList(value string) ([]string, bool) {
 		out = append(out, id)
 	}
 	return out, false
+}
+
+// dedupIDs keeps the first occurrence of each ID, in order, and records
+// each repeated ID once on the item (feature 008).
+func dedupIDs(ids []string, cur *rawItem) []string {
+	if len(ids) < 2 {
+		return ids
+	}
+	seen := map[string]bool{}
+	dup := map[string]bool{}
+	out := ids[:0:0]
+	for _, id := range ids {
+		if seen[id] {
+			if !dup[id] {
+				dup[id] = true
+				cur.DupDeps = append(cur.DupDeps, id)
+			}
+			continue
+		}
+		seen[id] = true
+		out = append(out, id)
+	}
+	return out
+}
+
+// placeholderValue reports whether a field value is a template placeholder:
+// after trimming spaces and one trailing period, the whole value is
+// enclosed in one pair of "[" "]", or of single "_" or "*" (not "__" or
+// "**"). It returns the enclosed text. Feature 008, D-2026-11-14-01 (3).
+func placeholderValue(value string) (string, bool) {
+	v := trimSentenceDot(value)
+	if len(v) < 2 {
+		return "", false
+	}
+	first, last := v[0], v[len(v)-1]
+	inner := v[1 : len(v)-1]
+	switch {
+	case first == '[' && last == ']':
+		if strings.ContainsAny(inner, "[]") {
+			return "", false
+		}
+		return strings.TrimSpace(inner), true
+	case (first == '_' || first == '*') && last == first:
+		if inner == "" {
+			return "", true
+		}
+		if inner[0] == first || inner[len(inner)-1] == first || strings.IndexByte(inner, first) >= 0 {
+			return "", false
+		}
+		return strings.TrimSpace(inner), true
+	}
+	return "", false
 }
 
 func parseSingleID(value string) (string, bool) {
@@ -1141,9 +1207,21 @@ func applyField(cur *rawItem, field, value string, lineNo int) {
 		cur.Scope = value
 	case "Depends on":
 		cur.DepsLine = lineNo
+		if inner, ok := placeholderValue(value); ok {
+			// A valid list inside the enclosure is a real dependency
+			// written with markup: never drop it silently (C-08).
+			if _, bad := parseIDList(inner); bad {
+				cur.Placeholders = append(cur.Placeholders, placeholder{Field: field, Line: lineNo})
+				return
+			}
+		}
 		ids, bad := parseIDList(value)
-		cur.Deps, cur.DepsBad = ids, bad
+		cur.Deps, cur.DepsBad = dedupIDs(ids, cur), bad
 	case "Spec dir":
+		if _, ok := placeholderValue(value); ok {
+			cur.Placeholders = append(cur.Placeholders, placeholder{Field: field, Line: lineNo})
+			return
+		}
 		cur.HasSpec = true
 		cur.SpecLine = lineNo
 		cur.SpecDir = unwrapPath(trimSentenceDot(value))

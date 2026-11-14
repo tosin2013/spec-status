@@ -270,3 +270,46 @@ func TestStatusHeadingAndJSONPerBuildKind(t *testing.T) {
 		t.Fatalf("JSON differs across build kinds:\n%s\n%s", devJSON, relJSON)
 	}
 }
+
+// Feature 008 US5: --json=false, empty --root/--roadmap, fail_on in
+// status invocation JSON (specs/008-field-forms-and-fixes/contracts/changes.md §5).
+func TestInvocationEdgeCases(t *testing.T) {
+	run := func(args ...string) (int, string, string) {
+		var out, errb bytes.Buffer
+		code := Run(args, ".", &out, &errb)
+		return code, out.String(), errb.String()
+	}
+	code, out, errs := run("status", "--json=false", "--bogus")
+	if code != 2 || out != "" || !strings.HasPrefix(errs, "spec: SS_INVOCATION_INVALID: ") {
+		t.Errorf("--json=false: exit %d out %q err %q", code, out, errs)
+	}
+	code, out, _ = run("status", "--json=true", "--bogus")
+	if code != 2 || !json.Valid([]byte(out)) {
+		t.Errorf("--json=true: exit %d out %q", code, out)
+	}
+	for _, args := range [][]string{
+		{"status", "--root", ""}, {"status", "--root="}, {"status", "--roadmap", ""}, {"status", "--roadmap="}, {"inventory", "--root", ""},
+	} {
+		name := "--root"
+		if strings.Contains(strings.Join(args, " "), "roadmap") {
+			name = "--roadmap"
+		}
+		code, _, errs := run(args...)
+		if code != 2 || !strings.Contains(errs, "SS_INVOCATION_INVALID") || !strings.Contains(errs, name+" needs a non-empty value") {
+			t.Errorf("%v: exit %d err %q", args, code, errs)
+		}
+	}
+	_, out, _ = run("status", "--json", "--fail-on", "warning", "--bogus")
+	if !strings.Contains(out, `"fail_on":"warning"`) || !strings.Contains(out, `"schema_version":"1.0"`) {
+		t.Errorf("requested fail_on: %s", out)
+	}
+	_, out, _ = run("status", "--json", "--fail-on", "bogus")
+	if !strings.Contains(out, `"fail_on":"error"`) {
+		t.Errorf("invalid fail_on: %s", out)
+	}
+	// A --root value spelled --json does not turn JSON mode on.
+	code, out, errs = run("status", "--root", "--json", "--bogus")
+	if code != 2 || out != "" || !strings.Contains(errs, "SS_INVOCATION_INVALID") {
+		t.Errorf("--root --json: exit %d out %q err %q", code, out, errs)
+	}
+}

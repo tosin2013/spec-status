@@ -67,7 +67,11 @@ func TestHeadingEndsItemSoFieldsCannotAttachAbove(t *testing.T) { // review D1
 func TestNearMissFieldLabelsAreFatal(t *testing.T) { // review D3
 	for _, line := range []string{
 		"- Superseded-by: 002",
-		"- superseded by: 002",
+		// "- superseded by: 002" and "- Superseded by: 002" are accepted
+		// spellings since feature 008 (D-2026-11-14-01 (3)); other case
+		// forms stay near misses.
+		"- SUPERSEDED BY: 002",
+		"- Superseded By: 002",
 		"- depends on: 002",
 		"- Depends On: 002",
 		"* Depends on: 002",

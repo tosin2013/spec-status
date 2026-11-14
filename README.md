@@ -75,6 +75,8 @@ That binary reports `label: module build`, not `label: release build`. A checkou
 | A panel with `items 0` and `roadmap explicitly empty` | The file has the template's `## Planned Specs` heading and no items yet. |
 | `SS_STATUS_AHEAD_OF_TASKS`, warning | An item is recorded `implemented` or `verified`, but its `tasks.md` still has unchecked tasks. Either the work is unfinished or the boxes were never ticked. It fails a run only with `--fail-on warning` or `info`. |
 | `SS_TASKS_DONE_STATUS_EARLY`, info | Every task in an item's `tasks.md` is checked, but the roadmap still says `planned`, `specced` or another status before `implemented`. The roadmap is probably out of date; `spec` does not decide that the work is verified. |
+| `SS_FIELD_PLACEHOLDER`, info | A `Spec dir` or `Depends on` field still holds a template placeholder, such as the speckit-roadmap template's `[specs/001-.../ — set once the spec exists; otherwise omit]`. The field is treated as not set. A bracketed real ID such as `[002]` is still reported as malformed, never dropped. |
+| `SS_DEPENDENCY_DUPLICATE`, warning | A `Depends on` list names the same item twice. It is counted once. |
 
 ## Example
 
@@ -88,6 +90,7 @@ This is `spec status --color=never --root testdata/example-roadmap`, run on the 
 │ active blockers     1                                                        │
 │ human review        1  warning                                               │
 │ items 3 active 2 historical 1 superseded 1                                   │
+│ statuses implemented 1 planned 1 verified 1                                  │
 │ task files read 2 missing 0 skipped 0                                        │
 │ source .specify/memory/roadmap.md                                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
@@ -520,13 +523,10 @@ Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input out
   So checkboxes that renderers show as raw text may be counted.
 - Lookalike normalization covers Unicode spaces, dashes, invisible characters, and common Cyrillic and Greek letters that look like Latin ones. Other homoglyphs in a field label are not recognized.
 - Open non-blocking defects from review:
-  - Human text omits `status_counts`, `invalid_supersession_items` and per-item task attribution, and doesn't mark an invalid supersession.
   - A FIFO or directory where a tasks file is expected is reported as absent.
   - An over-long or empty `Spec dir` is reported as unsafe.
-  - `--root version --json` is an invocation error, and invocation-error JSON always shows `fail_on` as `error`.
+  - `--root version --json` is an invocation error.
   - An absolute `--roadmap` through a symlinked prefix such as macOS `/tmp` is rejected.
-  - `--json=false` with an invalid flag still emits a JSON error.
-  - An empty `--root` or `--roadmap` value falls back to the default.
   - A spec directory rejected as unsafe shows tasks as `not_linked` and isn't counted in `files_skipped`.
 - Visible over-strictness: input a renderer would accept, but `spec` rejects.
   - **Fences, comments and HTML:**
@@ -535,8 +535,6 @@ Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input out
     - outside items, an item heading or field directly after a line that starts with an HTML tag, with no blank line between them, even where renderers would show the heading.
   - **Spurious warning:** an `SS_REFERENCE_UNSUPPORTED` warning for a reference definition after a fence that follows a task.
   - **Field labels and values reported as errors:**
-    - `- **Superseded by:** 002` (capitalized, with a space) stops the report instead of being read as `superseded-by`;
-    - a template placeholder left in a field, such as `- **Spec dir:** _set once the spec exists_`, is reported as an error;
     - `- **Depends on: 001**`, with the bold closing after the value;
     - a `Depends on` note containing a comma (`002 (blocked, waiting)`) or any of `<`, `[`, `"`, a backtick, `\` or `&` is reported as malformed.
   - **Prose containing a field label:** prose with one of those labels followed by a colon stops the report, for example `- Notes: rollout depends on: vendor approval` or a table cell `Depends on: 002`.

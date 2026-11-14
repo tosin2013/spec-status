@@ -29,7 +29,7 @@ Messages (exact):
 Summary panel, after `items …`:
 
 ```
-│ statuses implemented 1  planned 1  verified 1                                │
+│ statuses implemented 1 planned 1 verified 1                                  │
 ```
 
 When `invalid_supersession_items > 0`, an extra panel line `invalid supersession N`.
