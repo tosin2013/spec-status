@@ -124,4 +124,17 @@ On fatal, `source.specs_state` may be `null`. Invocation errors use this shape w
 | `SS_REFERENCE_SENSITIVE_SKIPPED` | error, report | the entry or file path |
 | `SS_ROOT_UNAVAILABLE`, `SS_INPUT_LIMIT`, `SS_SOURCE_CHANGED`, `SS_ENCODING_INVALID`, `SS_LAYOUT_UNSUPPORTED`, `SS_INVOCATION_INVALID` | error, fatal | as in `spec status`; tasks.md fatals cite the tasks file and line |
 
+Exact report-finding messages:
+
+| Code | Message |
+|---|---|
+| `SS_SPECS_DIRECTORY_MISSING` | `Specs directory is absent.` |
+| `SS_FOLDER_NOT_FEATURE` | `Folder name is not a Spec Kit feature folder name.` |
+| `SS_PATH_UNSAFE` (specs/) | `Specs path is a symlink, not a directory, or outside the confinement rules.` |
+| `SS_PATH_UNSAFE` (entry) | `Entry is a symlink, special file, or on another device and was not examined.` |
+| `SS_PATH_UNSAFE` (file) | `File is a symlink, not a regular file, or could not be read under the confinement rules; it was not read.` |
+| `SS_REFERENCE_SENSITIVE_SKIPPED` | `Entry was skipped because it matched the sensitive-name matcher; it was not opened.` |
+
+The path of a sensitive-named entry is reported (it is a name from the listing, not file content); the entry is never opened or stat'ed.
+
 Not emitted by inventory: roadmap, dependency, supersession, stage and task-link codes.

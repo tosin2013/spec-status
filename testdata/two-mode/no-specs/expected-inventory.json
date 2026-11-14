@@ -1,0 +1,33 @@
+{
+  "inventory_schema_version": "1.0",
+  "outcome": "report",
+  "complete": true,
+  "mode": "inventory",
+  "source": {
+    "specs_dir": "specs",
+    "specs_state": "missing",
+    "roadmap_file": "absent"
+  },
+  "configuration": {
+    "fail_on": "error",
+    "task_scope": "feature_folder_tasks_md"
+  },
+  "summary": {
+    "feature_folders": 0,
+    "other_folders": 0,
+    "skipped_entries": 0,
+    "tasks": {
+      "checked": 0,
+      "total": 0,
+      "percent": null,
+      "files_read": 0,
+      "files_missing": 0,
+      "files_skipped": 0
+    }
+  },
+  "folders": [],
+  "diagnostics": [
+    {"code": "SS_SPECS_DIRECTORY_MISSING", "severity": "info", "message": "Specs directory is absent.", "source": {"path": "specs", "line": null}, "item_id": null, "related": []}
+  ],
+  "error": null
+}

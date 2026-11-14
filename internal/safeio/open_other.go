@@ -15,3 +15,7 @@ func openNoFollow(string) (*os.File, error) {
 func confirmOpened(*os.File, string) error {
 	return errCode(CodeUnsupported)
 }
+
+func openDirNoFollow(string) (*os.File, error) {
+	return nil, errCode(CodeUnsupported)
+}

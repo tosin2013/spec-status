@@ -9,7 +9,10 @@ The vocabulary every spec-status command uses to read `spec status` output. A re
 | `SS_INVOCATION_INVALID` | error, fatal | always | A flag, value or command could not be used. | A typo in a flag, a repeated flag, or an unsupported combination. | Fix the command line; see `spec status --help`. |
 | `SS_CONFIG_INVALID` | error, fatal | always | Reserved, never emitted: there is no config file. | None today. | None needed. |
 | `SS_ROOT_UNAVAILABLE` | error, fatal | always | No project root (a folder with `.specify`) could be used. | Running outside a Spec Kit project, or a wrong `--root`. | Run inside the project or pass `--root`. |
-| `SS_ROADMAP_UNAVAILABLE` | error, fatal | always | The roadmap file is missing or unreadable. | No roadmap yet (Spec Kit without the roadmap extension), or a wrong `--roadmap`. | Create the roadmap with `/speckit.roadmap.write` (with the user's approval), or point `--roadmap` at it. |
+| `SS_ROADMAP_UNAVAILABLE` | error, fatal | always | The roadmap file is missing or unreadable. When missing, the message suggests `spec inventory`. | No roadmap yet (Spec Kit without the roadmap extension), or a wrong `--roadmap`. | Run `spec inventory` for a feature list without a roadmap; or create the roadmap with `/speckit.roadmap.write` (with the user's approval), or point `--roadmap` at it. |
+| `SS_ROADMAP_UNRECOGNIZED` | error, fatal | always | The roadmap file is readable but is not a recognized roadmap: no item headings and no `## Planned Specs` heading. Since v0.3.0; it used to report zero items with exit 0. | A hand-written narrative roadmap, an empty file, or a different template. | Rewrite it in the supported template with `/speckit.roadmap.write` (with the user's approval), or run `spec inventory` for a feature list. |
+| `SS_SPECS_DIRECTORY_MISSING` | info, report | never | `spec inventory` only: there is no `specs/` folder, so there are no feature folders. | A new project with no specs yet, or the wrong `--root`. | Create the first feature with `/speckit-specify`, or pass `--root`. |
+| `SS_FOLDER_NOT_FEATURE` | info, report | never | `spec inventory` only: a folder under `specs/` is not named like a Spec Kit feature folder (`NNN-name` or `YYYYMMDD-HHMMSS-name`). | Notes or asset folders kept under `specs/`. | None needed, or move the folder out of `specs/`. |
 | `SS_ENCODING_INVALID` | error, fatal | always | A required file is not valid UTF-8. | A file saved in another encoding. | Re-save the file as UTF-8. |
 | `SS_LAYOUT_UNSUPPORTED` | error, fatal if inventory unreliable | when the item inventory would be unreliable | Item-like content in a layout `spec` will not guess at (for example a table of items). | Hand-edited roadmap structure outside the supported shapes. | Rewrite the items as `### NNN — Title [status: …]` headings with `- Field:` bullets, via `/speckit.roadmap.write`. |
 | `SS_ITEM_MALFORMED` | error, fatal if inventory unreliable | when the item inventory would be unreliable | An item heading or field line is broken, or a metric label sits outside an accepted field line. | A typo in a heading or field, a misplaced `Depends on:` label. | Fix the line named in the diagnostic, via `/speckit.roadmap.write`. |
@@ -52,6 +55,10 @@ The vocabulary every spec-status command uses to read `spec status` output. A re
 **Dependency** (each entry of `dependencies`): `id`, `satisfied`, `state`, `replacement_id`, `source`.
 
 **Diagnostic:** `code`, `severity` (`info`, `warning`, `error`), `message`, `source` (`path`, `line`), `item_id`, `related`.
+
+A complete report with `total_items: 0` means an explicitly empty roadmap (the `## Planned Specs` heading with no items).
+
+`spec inventory --json` prints a separate document, `inventory_schema_version` `1.0` (`specs/001-spec-status/inventory-json.md`): `mode`, `source` (`specs_dir`, `specs_state`, `roadmap_file`), `summary` (`feature_folders`, `other_folders`, `skipped_entries`, `tasks`), and `folders` (`name`, `path`, `feature`, `name_form`, `skipped`, `spec`, `plan`, `tasks`). Inventory never reports a status, so the skills must not treat it as roadmap evidence.
 
 Use `spec status --color=never --explain` for file:line on each row; the JSON `source` fields carry the same locations.
 

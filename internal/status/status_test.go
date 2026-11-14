@@ -10,29 +10,25 @@ import (
 	"time"
 )
 
+// TestEmptyRoadmapJSON: a 0-byte roadmap is not a recognized roadmap
+// (feature 006). The null-denominator assertions that used to live here
+// now run on an explicitly empty roadmap in
+// TestExplicitEmptyRoadmapHasNullDenominators (recognition_test.go).
 func TestEmptyRoadmapJSON(t *testing.T) {
 	dir := project(t, "", nil)
 	rep := Evaluate(Option{Root: dir, CWD: dir})
-	if rep.Outcome != "report" || !rep.Complete || ExitCode(rep) != 0 {
-		t.Fatalf("empty report %+v exit %d", rep.Fatal, ExitCode(rep))
-	}
-	if rep.Summary.VerifiedPercent.Text() != "N/A" || rep.Summary.Tasks.Percent.Text() != "N/A" {
-		t.Fatalf("empty denominators must be N/A, got %s %s", rep.Summary.VerifiedPercent.Text(), rep.Summary.Tasks.Percent.Text())
+	if rep.Outcome != "fatal" || rep.Fatal == nil || rep.Fatal.Code != "SS_ROADMAP_UNRECOGNIZED" || ExitCode(rep) != 2 {
+		t.Fatalf("empty roadmap: %+v exit %d", rep.Fatal, ExitCode(rep))
 	}
 	got := string(JSON(rep))
 	var doc map[string]any
 	if err := json.Unmarshal([]byte(got), &doc); err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(got, "quarter") || strings.Contains(got, "as_of") || strings.Contains(got, "inferred") {
-		t.Fatalf("unexpected timing fields: %s", got)
+	if doc["summary"] != nil {
+		t.Fatalf("fatal summary must be null: %s", got)
 	}
-	raw, _ := json.Marshal(doc["summary"])
-	if strings.Contains(string(raw), "100") {
-		t.Fatalf("empty summary must not become 100: %s", raw)
-	}
-	again := string(JSON(Evaluate(Option{Root: dir, CWD: dir})))
-	if got != again {
+	if again := string(JSON(Evaluate(Option{Root: dir, CWD: dir}))); got != again {
 		t.Fatal("JSON is not deterministic")
 	}
 }

@@ -56,12 +56,12 @@ func Run(args []string, cwd string, stdout, stderr io.Writer) int {
 	defer completionDebugMu.Unlock()
 	restore, hideErr := hideCompletionDebugFile()
 	if hideErr != nil {
-		return fail(countFlag(args, "--json") > 0, "SS_INVOCATION_INVALID", "Completion debug file setting could not be ignored.", stdout, stderr)
+		return failFor(args, countFlag(args, "--json") > 0, "SS_INVOCATION_INVALID", "Completion debug file setting could not be ignored.", stdout, stderr)
 	}
 	defer restore()
 	jsonMode := countFlag(args, "--json") > 0
 	if msg := precheck(args); msg != "" {
-		return fail(jsonMode, "SS_INVOCATION_INVALID", msg, stdout, stderr)
+		return failFor(args, jsonMode, "SS_INVOCATION_INVALID", msg, stdout, stderr)
 	}
 	root := newRoot(cwd)
 	root.SetOut(stdout)
@@ -75,7 +75,7 @@ func Run(args []string, cwd string, stdout, stderr io.Writer) int {
 	if err == nil {
 		return 0
 	}
-	return fail(jsonMode, "SS_INVOCATION_INVALID", oneLine(err.Error()), stdout, stderr)
+	return failFor(args, jsonMode, "SS_INVOCATION_INVALID", oneLine(err.Error()), stdout, stderr)
 }
 
 // hideCompletionDebugFile unsets BASH_COMP_DEBUG_FILE for this process and
@@ -137,7 +137,7 @@ func newRoot(cwd string) *cobra.Command {
 	root.PersistentFlags().BoolVar(&opts.historical, "historical", false, "Show historical items, including valid supersession")
 	root.PersistentFlags().BoolVar(&opts.explain, "explain", false, "Show mechanical file and line reasons for shown items")
 
-	root.AddCommand(newStatus(opts), newVersion(), newCompletion())
+	root.AddCommand(newStatus(opts), newInventory(opts), newVersion(), newCompletion())
 	return root
 }
 
@@ -220,6 +220,58 @@ This command does not run tests or Git, and it does not change files.`,
 				return nil
 			}
 			return silentExit{code}
+		},
+	}
+	cmd.ValidArgsFunction = cobra.NoFileCompletions
+	return cmd
+}
+
+// inventoryRejected are roadmap-report options that spec inventory does not use.
+var inventoryRejected = []string{"roadmap", "status", "blocked", "human-review", "active", "historical", "explain"}
+
+func newInventory(opts *runOpts) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "inventory",
+		Short: "List Spec Kit feature folders without a roadmap",
+		Long: `List the feature folders directly under specs/, whether spec.md, plan.md and
+tasks.md are present, and the task checkboxes in tasks.md.
+This command does not read the roadmap and does not infer status, priority, or
+dependencies. Checked boxes are not verification. It does not run tests or Git,
+and it does not change files.`,
+		Example: `  spec inventory
+  spec inventory --json
+  spec inventory --root path/to/project --fail-on warning`,
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			if opts.version {
+				return errors.New("version cannot be combined with inventory")
+			}
+			for _, name := range inventoryRejected {
+				if f := cmd.Flags().Lookup(name); f != nil && f.Changed {
+					return errors.New("--" + name + " is not used by inventory")
+				}
+			}
+			opts.prepare()
+			rep := status.EvaluateInventory(status.InventoryOption{
+				Root:   opts.rootFlag.value,
+				FailOn: opts.failOn,
+				CWD:    opts.cwd,
+			})
+			if opts.json {
+				fmt.Fprint(cmd.OutOrStdout(), string(status.InventoryJSON(rep)))
+				return silentExit{status.InventoryExitCode(rep)}
+			}
+			view := status.View{Width: textColumns(), Build: currentBuild().heading}
+			if rep.Outcome == "fatal" {
+				fmt.Fprint(cmd.ErrOrStderr(), status.InventoryText(rep, view))
+				return silentExit{2}
+			}
+			view.Color = wantColor(cmd.OutOrStdout(), opts.color)
+			fmt.Fprint(cmd.OutOrStdout(), status.InventoryText(rep, view))
+			if code := status.InventoryExitCode(rep); code != 0 {
+				return silentExit{code}
+			}
+			return nil
 		},
 	}
 	cmd.ValidArgsFunction = cobra.NoFileCompletions
@@ -375,6 +427,7 @@ func precheck(args []string) string {
 	help := countFlag(args, "--help")+countFlag(args, "-h") > 0
 	version := countFlag(args, "--version")+countFlag(args, "-V") > 0
 	statusCmd := hasCommand(args, "status")
+	inventoryCmd := commandName(args) == "inventory"
 	completion := hasCommand(args, "completion")
 	versionCmd := hasCommand(args, "version")
 	if help && (version || versionCmd) {
@@ -383,11 +436,14 @@ func precheck(args []string) string {
 	if version && statusCmd {
 		return "Version cannot be combined with status."
 	}
+	if version && inventoryCmd {
+		return "Version cannot be combined with inventory."
+	}
 	if jsonMode && (help || version || versionCmd || completion) {
 		return "JSON output cannot be combined with help, version, or completion."
 	}
-	if jsonMode && !statusCmd {
-		return "JSON output requires the status command."
+	if jsonMode && !statusCmd && !inventoryCmd {
+		return "JSON output requires the status or inventory command."
 	}
 	return ""
 }
@@ -446,6 +502,73 @@ func oneLine(msg string) string {
 	return strings.Join(strings.Fields(msg), " ")
 }
 
+// failFor prints an invocation error. Under spec inventory --json it is an
+// inventory-shaped document carrying the requested --fail-on when that value
+// is valid (feature 006, research R9); otherwise the status-shaped document.
+func failFor(args []string, jsonMode bool, code, message string, stdout, stderr io.Writer) int {
+	if jsonMode && commandName(args) == "inventory" {
+		fmt.Fprint(stdout, string(status.InventoryInvocationJSON(requestedFailOn(args), message)))
+		return 2
+	}
+	return fail(jsonMode, code, message, stdout, stderr)
+}
+
+// valueFlags take a separate value token when written without "=", the way
+// pflag consumes them.
+var valueFlags = map[string]bool{"--root": true, "--roadmap": true, "--fail-on": true, "--color": true, "--status": true}
+
+// walkArgs visits every flag with its value and returns the first positional
+// token (the command), skipping the values of valueFlags, so a --root
+// directory named "inventory" is not taken for the command. It stops at "--".
+func walkArgs(args []string, flag func(name, value string, hasValue bool)) string {
+	command := ""
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		if a == "--" {
+			break
+		}
+		if !strings.HasPrefix(a, "-") {
+			if command == "" {
+				command = a
+			}
+			continue
+		}
+		name, value, hasValue := a, "", false
+		if j := strings.IndexByte(a, '='); j >= 0 {
+			name, value, hasValue = a[:j], a[j+1:], true
+		} else if valueFlags[a] && i+1 < len(args) {
+			i++
+			value, hasValue = args[i], true
+		}
+		if flag != nil {
+			flag(name, value, hasValue)
+		}
+	}
+	return command
+}
+
+// commandName is the first positional argument, or "".
+func commandName(args []string) string { return walkArgs(args, nil) }
+
+// requestedFailOn returns the first --fail-on value in args when it is
+// valid, else "" (a missing or invalid value is not a requested threshold).
+func requestedFailOn(args []string) string {
+	got, seen := "", false
+	walkArgs(args, func(name, value string, hasValue bool) {
+		if name != "--fail-on" || seen {
+			return
+		}
+		seen = true
+		switch value {
+		case "info", "warning", "error", "none":
+			if hasValue {
+				got = value
+			}
+		}
+	})
+	return got
+}
+
 func fail(jsonMode bool, code, message string, stdout, stderr io.Writer) int {
 	if jsonMode {
 		fmt.Fprint(stdout, invocationJSON(code, message))
@@ -479,6 +602,7 @@ func rootLong() string {
 const rootExamples = `  spec status
   spec status --root testdata/example-roadmap
   spec status --json
+  spec inventory
   spec completion bash
   spec version`
 

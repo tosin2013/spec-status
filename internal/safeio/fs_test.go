@@ -174,3 +174,118 @@ func TestOpenNoFollowDoesNotBlockOnFIFO(t *testing.T) {
 		t.Fatal("openNoFollow blocked on a FIFO")
 	}
 }
+
+// --- ListDir (feature 006, research R5) ---
+
+func mkListRoot(t *testing.T) (string, *FS) {
+	t.Helper()
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, "specs"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	fs, err := New(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return root, fs
+}
+
+func TestListDirKindsAndByteOrder(t *testing.T) {
+	root, fs := mkListRoot(t)
+	specs := filepath.Join(root, "specs")
+	for _, d := range []string{"b-dir", "A-dir", "001-alpha"} {
+		if err := os.Mkdir(filepath.Join(specs, d), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(specs, "README.md"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(t.TempDir(), filepath.Join(specs, "link")); err != nil {
+		t.Fatal(err)
+	}
+	if err := syscall.Mkfifo(filepath.Join(specs, "pipe"), 0o644); err != nil {
+		t.Skip("mkfifo unavailable")
+	}
+	// A sensitive-named FIFO: opening it would block, so it must never be opened or stat'ed for content.
+	if err := syscall.Mkfifo(filepath.Join(specs, "my-secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	beforeFiles, beforeBytes := fs.files, fs.bytes
+	got, err := fs.ListDir("specs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []struct{ name, kind string }{
+		{"001-alpha", KindDir}, {"A-dir", KindDir}, {"README.md", KindFile}, {"b-dir", KindDir},
+		{"link", KindSymlink}, {"my-secret", KindSensitive}, {"pipe", KindOther},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("entries %+v", got)
+	}
+	for i, w := range want {
+		if got[i].Name != w.name || got[i].Kind != w.kind {
+			t.Errorf("entry %d = %s/%s, want %s/%s", i, got[i].Name, got[i].Kind, w.name, w.kind)
+		}
+	}
+	if fs.files != beforeFiles || fs.bytes != beforeBytes {
+		t.Error("listing must not consume read budgets")
+	}
+}
+
+func TestListDirRejectsUnsafeTargets(t *testing.T) {
+	root, fs := mkListRoot(t)
+	if _, err := fs.ListDir("missing"); err == nil || err.Error() != CodeNotFound {
+		t.Fatalf("missing err=%v", err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "file"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fs.ListDir("file"); err == nil || err.Error() != CodeUnsafe {
+		t.Fatalf("file err=%v", err)
+	}
+	if err := os.Symlink(filepath.Join(root, "specs"), filepath.Join(root, "alias")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fs.ListDir("alias"); err == nil || err.Error() != CodeUnsafe {
+		t.Fatalf("symlinked dir err=%v", err)
+	}
+	if err := os.Mkdir(filepath.Join(root, "specs", "real"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fs.ListDir("alias/real"); err == nil || err.Error() != CodeUnsafe {
+		t.Fatalf("symlink component err=%v", err)
+	}
+	if _, err := fs.ListDir("../x"); err == nil || err.Error() != CodeUnsafe {
+		t.Fatalf("dot-dot err=%v", err)
+	}
+	if _, err := fs.ListDir("specs/.git"); err == nil || err.Error() != CodeSensitive {
+		t.Fatalf("sensitive dir err=%v", err)
+	}
+}
+
+func TestListDirLimit(t *testing.T) {
+	root, fs := mkListRoot(t)
+	for i := 0; i <= MaxDirEntries; i++ {
+		if err := os.Mkdir(filepath.Join(root, "specs", itoa(1000+i)), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := fs.ListDir("specs"); err == nil || err.Error() != CodeLimit {
+		t.Fatalf("limit err=%v", err)
+	}
+}
+
+func TestListDirDetectsChange(t *testing.T) {
+	root, fs := mkListRoot(t)
+	if err := os.Mkdir(filepath.Join(root, "specs", "001-a"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	fs.SetAfterReadHook(func(string) {
+		time.Sleep(10 * time.Millisecond)
+		_ = os.Mkdir(filepath.Join(root, "specs", "002-b"), 0o755)
+	})
+	if _, err := fs.ListDir("specs"); err == nil || err.Error() != CodeChanged {
+		t.Fatalf("change err=%v", err)
+	}
+}

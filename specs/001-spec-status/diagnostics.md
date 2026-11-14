@@ -13,7 +13,10 @@ Retained severity assignments: duplicate ID error; unknown status warning; missi
 | SS_INVOCATION_INVALID | error, fatal | Invalid command/option/value; no invented source line | Fatal meaning retained; Approved as built (D-2026-11-11-02) |
 | SS_CONFIG_INVALID | error, fatal | Invalid effective configuration if such config surface approved | Reserved and not emitted: there is no config file (DC-04, D-2026-11-11-02) |
 | SS_ROOT_UNAVAILABLE | error, fatal | No selected root or required root unusable | Approved as built (D-2026-11-11-02) |
-| SS_ROADMAP_UNAVAILABLE | error, fatal | Required roadmap missing/unreadable | Required-input meaning retained |
+| SS_ROADMAP_UNAVAILABLE | error, fatal | Required roadmap missing/unreadable; when missing, the message suggests `spec inventory` | Required-input meaning retained |
+| SS_ROADMAP_UNRECOGNIZED | error, fatal | Readable roadmap with no supported item heading and no visible `## Planned Specs` heading; source is the roadmap path, line null | D-2026-11-12-08 (3), feature 006 |
+| SS_SPECS_DIRECTORY_MISSING | info, report | `spec inventory` only: `specs/` is absent; source `specs` | D-2026-11-12-08, feature 006 |
+| SS_FOLDER_NOT_FEATURE | info, report | `spec inventory` only: an immediate child directory of `specs/` matches neither Spec Kit feature-folder name form; source `specs/<name>` | D-2026-11-12-08 (4), feature 006 |
 | SS_ENCODING_INVALID | error, fatal | Unsupported/invalid encoding prevents interpretation | Approved as built (D-2026-11-11-02) |
 | SS_LAYOUT_UNSUPPORTED | error, fatal if inventory unreliable | Item-like unsupported table/header; source path/line | Visible failure retained; Approved as built (D-2026-11-11-02) |
 | SS_ITEM_MALFORMED | error, fatal if inventory unreliable | Broken required item heading/fields | Approved as built (D-2026-11-11-02) |
@@ -44,6 +47,10 @@ Retained severity assignments: duplicate ID error; unknown status warning; missi
 | SS_SOURCE_CHANGED | error, fatal | Detectable source change during input read | No-authoritative-snapshot policy (D-05B); approved as built (D-2026-11-11-02) |
 
 No quarter diagnostic/code is defined. No finding is a mutation instruction or semantic code verdict. Codes emitted for a single issue must not inflate summary blocker count; e.g. a human-review dependency may also support a verified-contradiction finding, but the active row counts once.
+
+## Inventory mode (feature 006)
+
+`spec inventory` emits only `SS_SPECS_DIRECTORY_MISSING`, `SS_FOLDER_NOT_FEATURE`, `SS_PATH_UNSAFE` and `SS_REFERENCE_SENSITIVE_SKIPPED` as report findings (an unusable `specs/`, a symlinked or special entry, or a symlinked or non-regular `spec.md`/`plan.md`/`tasks.md`), and `SS_ROOT_UNAVAILABLE`, `SS_INPUT_LIMIT`, `SS_SOURCE_CHANGED`, `SS_ENCODING_INVALID`, `SS_LAYOUT_UNSUPPORTED` and `SS_INVOCATION_INVALID` as fatals. A tasks.md that the narrow dialect cannot count is fatal, citing the tasks file and line. Roadmap, dependency, supersession, stage and task-link codes are never emitted in inventory mode. The JSON document is `specs/001-spec-status/inventory-json.md`.
 
 ## Location, redaction and ordering
 

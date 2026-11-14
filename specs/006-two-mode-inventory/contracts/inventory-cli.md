@@ -43,7 +43,7 @@ Repeated-flag rules, value validation and `--version` exclusivity are the same a
 ## Help and completion
 
 - `spec --help` lists `inventory`. `spec inventory --help` states that inventory does not read the roadmap and that checked boxes are not verification.
-- `spec completion <shell>` gains the subcommand; it still prints to stdout only.
+- Completion scripts are dynamic (they ask the binary through Cobra's hidden `__complete`), so `inventory` is offered without regenerating a script; `spec completion <shell>` still prints to stdout only.
 
 ## Relationship to `spec status`
 

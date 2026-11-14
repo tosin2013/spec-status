@@ -10,16 +10,17 @@
 It does **not**:
 
 - use AI, the network, Git, or a subprocess, and it does not write files;
-- read arbitrary Markdown, a product plan, or a Spec Kit tree that has no supported roadmap;
+- read arbitrary Markdown or a product plan as a roadmap (for a Spec Kit tree without a roadmap, [`spec inventory`](#without-a-roadmap-spec-inventory) lists the feature folders instead);
 - treat a checked task or a recorded `verified` label as proof the code is correct.
 
-A file name does not prove the bytes match that template. A missing roadmap stops with `SS_ROADMAP_UNAVAILABLE`. A layout the reader will not guess, such as an item-like table, stops with `SS_LAYOUT_UNSUPPORTED`. A file that is present but has no supported item headings currently prints zero items and exits 0. That covers both a truly empty supported roadmap and a file that is not the template. This release does not tell those two apart, and it has no roadmap-free inventory mode.
+A file name does not prove the bytes match that template. A missing roadmap stops with `SS_ROADMAP_UNAVAILABLE`. A layout the reader will not guess, such as an item-like table, stops with `SS_LAYOUT_UNSUPPORTED`. A file with neither an item heading nor the template's `## Planned Specs` heading stops with `SS_ROADMAP_UNRECOGNIZED`; a file with that heading and no items is reported as explicitly empty.
 
 ## Contents
 
 - [Quick start](#quick-start)
 - [Example](#example)
 - [Using it](#using-it)
+- [Without a roadmap: spec inventory](#without-a-roadmap-spec-inventory)
 - [Use it with an AI coding agent](#use-it-with-an-ai-coding-agent)
 - [Install](#install)
 - [What it reads](#what-it-reads)
@@ -68,9 +69,10 @@ That binary reports `label: module build`, not `label: release build`. A checkou
 
 | What you see | What it means now |
 |---|---|
-| `SS_ROADMAP_UNAVAILABLE`, exit 2 | `.specify/memory/roadmap.md` is missing, or `--roadmap` names a file that is not there. Spec Kit without the roadmap extension looks like this. Inventory mode is not in this release. |
+| `SS_ROADMAP_UNAVAILABLE`, exit 2 | `.specify/memory/roadmap.md` is missing, or `--roadmap` names a file that is not there. Spec Kit without the roadmap extension looks like this. Run [`spec inventory`](#without-a-roadmap-spec-inventory) for a feature list instead. |
+| `SS_ROADMAP_UNRECOGNIZED`, exit 2 | The file is there, but it has no item headings and no `## Planned Specs` heading, so it is not the supported template (for example a hand-written narrative roadmap or an empty file). Before v0.3.0 this printed zero items with exit 0. |
 | `SS_LAYOUT_UNSUPPORTED`, exit 2 | The file has an item-like layout this reader will not guess, such as a table whose first cell is a three-digit id. The JSON names the file and line. The project can still be a valid Spec Kit tree. |
-| A panel with `items 0` and exit 0 | The file was read and contained no supported item headings. An empty supported roadmap and an unrecognized document currently look the same. |
+| A panel with `items 0` and `roadmap explicitly empty` | The file has the template's `## Planned Specs` heading and no items yet. |
 
 ## Example
 
@@ -123,6 +125,7 @@ How to read it:
 | `spec status --json` | Print one JSON document (schema 1.0) instead of text |
 | `spec status --fail-on LEVEL` | Exit 1 when a finding reaches `info`, `warning`, `error` (default) or `none` |
 | `spec status --explain` | Add the mechanical reason and file:line behind each row |
+| `spec inventory` | List feature folders under `specs/` without a roadmap (see [below](#without-a-roadmap-spec-inventory)) |
 | `spec version` | Show the version, commit, Go version, target, and how the binary was built |
 | `spec completion bash` | Print a shell completion script (zsh, fish and powershell too) |
 
@@ -199,6 +202,45 @@ spec status --json | jq '.summary | {active_items, verified_active_items, blocke
 
 `--color=auto` (the default) uses color only when output is a terminal, `NO_COLOR` is unset, and `TERM` isn't `dumb`. `--color=always` and `--color=never` force it either way. JSON, errors, `spec version` and completion scripts are never colored. Width comes from `COLUMNS`, otherwise 80; `spec` never queries the terminal.
 
+## Without a roadmap: spec inventory
+
+Many Spec Kit projects have no roadmap file. `spec inventory` lists the feature folders directly under `specs/` instead: whether `spec.md`, `plan.md` and `tasks.md` are there, and the checkboxes in `tasks.md`. It never reads the roadmap, and it does not infer a status, priority or dependency from folder names or checkboxes. Checked boxes are not verification. `spec status` never switches to inventory on its own.
+
+A folder counts as a feature folder when its name has one of the two forms Spec Kit creates: `NNN-name` (three or more digits) or `YYYYMMDD-HHMMSS-name`. Other folders are listed as not feature folders. Nothing deeper is opened, so requirements checklists under `checklists/` are never counted.
+
+This is `spec inventory --color=never --root testdata/two-mode/no-roadmap`:
+
+```
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ Spec Inventory  development build                                            │
+│ mode                inventory (roadmap not read; no status inferred)         │
+│ checked tasks       3/5 (60%)  [#######-----]                                │
+│ folders 6 feature 3 other 3 skipped 0                                        │
+│ task files read 2 missing 1 skipped 0                                        │
+│ source specs                                                                 │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Folder                 spec     plan     tasks
+001-alpha              present  present  3/5
+003_name               not a feature folder
+20261101-093000-beta   present  missing  missing
+20261101-gamma         missing  missing  0/0
+3-short                not a feature folder
+notes                  not a feature folder
+
+Checked boxes are not verification.
+
+diagnostics
+info    SS_FOLDER_NOT_FEATURE
+  specs/003_name Folder name is not a Spec Kit feature folder name.
+info    SS_FOLDER_NOT_FEATURE
+  specs/3-short Folder name is not a Spec Kit feature folder name.
+info    SS_FOLDER_NOT_FEATURE
+  specs/notes Folder name is not a Spec Kit feature folder name.
+```
+
+`spec inventory --json` prints one document with its own version, `inventory_schema_version` 1.0 ([contract](specs/001-spec-status/inventory-json.md)). It takes `--root`, `--color` and `--fail-on` like `spec status`; the roadmap options are rejected. Exit codes mean the same as for `spec status`.
+
 ## Use it with an AI coding agent
 
 Paste this prompt into an AI coding agent (for example Claude Code, Cursor or Codex) that runs in the repository you want reviewed. The agent installs the latest release, asking you before it installs anything and checking the checksum. It then runs `spec status` and summarizes progress, blockers, items needing human review, diagnostics, and what is ready to start, without changing any files. If `spec` itself misbehaves, it drafts a GitHub issue that follows the [bug report form](https://github.com/tosin2013/spec-status/issues/new?template=bug_report.yml) and files it only with your approval. Security problems go to [private reporting](SECURITY.md), not an issue. The same text is in [docs/agent-prompt.md](docs/agent-prompt.md) and on every release page.
@@ -236,8 +278,12 @@ STEP 2 - REVIEW THE ROADMAP
     spec status --json
     spec status --color=never --explain
 - Exit 2 means the roadmap could not be read (for example
-  SS_ROADMAP_UNAVAILABLE when .specify/memory/roadmap.md is missing). Report the
-  diagnostic and stop; do not create a roadmap.
+  SS_ROADMAP_UNAVAILABLE when .specify/memory/roadmap.md is missing, or
+  SS_ROADMAP_UNRECOGNIZED when the file is not the supported template). Report
+  the diagnostic; do not create or rewrite a roadmap. If `spec --help` lists
+  `inventory` (v0.3.0 or later), you may run `spec inventory --color=never` and
+  report the feature folders it lists; checked boxes there are not verification
+  and imply no status. Then stop.
 - Summarize, citing item IDs and file:line from the output:
   1. Progress: recorded verified X/Y active items, checked tasks X/Y.
   2. Active blockers: each blocked item and the dependency that is not verified.
@@ -349,6 +395,7 @@ Maintainers: the release steps are in [RELEASING.md](RELEASING.md).
 
 - **The roadmap** at `.specify/memory/roadmap.md`, in the shape written by the [speckit-roadmap](https://github.com/srobroek/speckit-roadmap) extension (v0.1.0). Items are headings like `### 001 — Title [status: planned]`, followed by fields such as `- **Depends on:** 002`, `- **Spec dir:** specs/001-name`, and `- superseded-by: 003`.
 - **Task files**: the `tasks.md` in each item's spec directory, in the shape produced by [github/spec-kit](https://github.com/github/spec-kit) v1.2.0. `spec.md` and `plan.md` are only checked for existence.
+- **With `spec inventory`**: the names of the folders directly under `specs/`, and in each feature folder the same three files, read the same way. The roadmap is not read.
 
 The project root is the directory with `.specify`. `--root` sets it; otherwise `spec` uses the nearest ancestor of the current directory.
 
@@ -425,7 +472,8 @@ The short version:
 - Only linux/amd64 and darwin/arm64 are supported, each since v0.1.2 after its release smoke test. Releases carry SHA-256 checksums and are not signed or notarized (decision D-2026-11-11-02).
 - The sensitive-file filter and symlink checks are safeguards, not a guarantee that every secret or mount escape is caught.
 - Performance: on one Linux amd64 development machine, nine runs over a 100-item, 10,000-task fixture had a median of about 3.9 ms. That is not a performance promise.
-- A roadmap with no item headings, empty or narrative, reports zero items with exit 0 and no warning. Telling an empty roadmap from an unrecognized file is planned future work.
+- The roadmap is recognized only by an item heading or the template's exact `## Planned Specs` line. A roadmap written in another layout stops with `SS_ROADMAP_UNRECOGNIZED`, even if a person would call it a roadmap.
+- `spec inventory` skips, with an error finding, any feature folder or file whose name the sensitive-name filter matches (for example `007-client-secret`), because that filter is deliberately over-inclusive.
 
 ### Detailed known limits
 

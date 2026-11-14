@@ -1,0 +1,7 @@
+{
+  "note": "Hand-written expectation for spec status (feature 006, contracts/roadmap-recognition.md); not generated from spec output.",
+  "exit": 2,
+  "code": "SS_ITEM_MALFORMED",
+  "message": null,
+  "total_items": null
+}

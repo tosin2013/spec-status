@@ -39,6 +39,18 @@ func openNoFollow(path string) (*os.File, error) {
 	return os.NewFile(uintptr(fd), path), nil
 }
 
+// openDirNoFollow opens a directory for listing without following a final symlink.
+func openDirNoFollow(path string) (*os.File, error) {
+	fd, err := syscall.Open(path, syscall.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_DIRECTORY|syscall.O_CLOEXEC, 0)
+	if err != nil {
+		if err == syscall.ENOTDIR {
+			return nil, errCode(CodeUnsafe)
+		}
+		return nil, mapOpenErr(err)
+	}
+	return os.NewFile(uintptr(fd), path), nil
+}
+
 func confirmOpened(f *os.File, root string) error {
 	if runtime.GOOS != "linux" {
 		// Darwin has no /proc/self/fd. Reads there rely on O_NOFOLLOW, the

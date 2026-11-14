@@ -3,8 +3,15 @@ package status
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/tosin2013/spec-status/internal/safeio"
+)
+
+const (
+	msgRoadmapMissing      = "Required roadmap is unavailable. Run spec inventory for a feature list without a roadmap."
+	msgRoadmapUnrecognized = "Roadmap is not a recognized roadmap: no item headings and no \"## Planned Specs\" heading. See the supported template, or run spec inventory for a feature list."
+	msgRoadmapEmpty        = "Roadmap file is empty. See the supported template, or run spec inventory for a feature list."
 )
 
 // Option selects one read-only evaluation.
@@ -21,18 +28,9 @@ func Evaluate(opt Option) Report {
 	if failOn == "" {
 		failOn = "error"
 	}
-	root, _, ferr := resolveRoot(opt.CWD, opt.Root)
+	fs, ferr := openProject(opt.CWD, opt.Root)
 	if ferr != nil {
-		r := fatalReport(ferr.Code, ferr.Message, "", failOn)
-		return r
-	}
-	fs, err := safeio.New(root)
-	if err != nil {
-		return fatalReport("SS_ROOT_UNAVAILABLE", "Selected root is unavailable.", "", failOn)
-	}
-	specEnt, err := fs.StatRel(".specify")
-	if err != nil || !specEnt.Exists || !specEnt.Dir {
-		return fatalReport("SS_ROOT_UNAVAILABLE", "Selected root has no .specify directory.", "", failOn)
+		return fatalReport(ferr.Code, ferr.Message, "", failOn)
 	}
 	roadmap := ".specify/memory/roadmap.md"
 	if opt.Roadmap != "" {
@@ -50,7 +48,7 @@ func Evaluate(opt Option) Report {
 		if se, ok := err.(*safeio.Error); ok {
 			switch se.Code {
 			case safeio.CodeNotFound:
-				return fatalReport("SS_ROADMAP_UNAVAILABLE", "Required roadmap is unavailable.", roadmap, failOn)
+				return fatalReport("SS_ROADMAP_UNAVAILABLE", msgRoadmapMissing, roadmap, failOn)
 			case safeio.CodeSensitive:
 				return fatalReport("SS_REFERENCE_SENSITIVE_SKIPPED", "Roadmap path matched the sensitive-name matcher and was not read.", "", failOn)
 			case safeio.CodeLimit:
@@ -65,7 +63,7 @@ func Evaluate(opt Option) Report {
 		}
 		return fatalReport("SS_ROADMAP_UNAVAILABLE", "Required roadmap is unavailable.", roadmap, failOn)
 	}
-	items, _, perr := parseRoadmap(roadmap, data)
+	items, planned, perr := parseRoadmap(roadmap, data)
 	if perr != nil {
 		r := fatalReport(perr.Code, perr.Message, roadmap, failOn)
 		if perr.Line > 0 {
@@ -73,6 +71,16 @@ func Evaluate(opt Option) Report {
 			r.Fatal.Line = perr.Line
 		}
 		return r
+	}
+	if len(items) == 0 && !planned {
+		// Neither an item heading nor the template's ledger heading: this
+		// is not a supported roadmap, and must not look like an empty one
+		// (feature 006, D-2026-11-12-08 (3)).
+		msg := msgRoadmapUnrecognized
+		if strings.TrimSpace(strings.TrimPrefix(string(data), "\uFEFF")) == "" {
+			msg = msgRoadmapEmpty
+		}
+		return fatalReport("SS_ROADMAP_UNRECOGNIZED", msg, roadmap, failOn)
 	}
 	rep := build(roadmap, items, fs)
 	if rep.Outcome == "fatal" {
@@ -86,6 +94,25 @@ func Evaluate(opt Option) Report {
 	}
 	rep.FailOn = failOn
 	return rep
+}
+
+// openProject selects the root and opens the confined reader. Both
+// spec status and spec inventory use it, so root discovery and the
+// .specify check are identical (feature 006, FR-008).
+func openProject(cwd, explicit string) (*safeio.FS, *rootErr) {
+	root, _, ferr := resolveRoot(cwd, explicit)
+	if ferr != nil {
+		return nil, ferr
+	}
+	fs, err := safeio.New(root)
+	if err != nil {
+		return nil, &rootErr{"SS_ROOT_UNAVAILABLE", "Selected root is unavailable."}
+	}
+	specEnt, err := fs.StatRel(".specify")
+	if err != nil || !specEnt.Exists || !specEnt.Dir {
+		return nil, &rootErr{"SS_ROOT_UNAVAILABLE", "Selected root has no .specify directory."}
+	}
+	return fs, nil
 }
 
 type rootErr struct {
