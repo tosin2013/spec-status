@@ -3,8 +3,15 @@ package status
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/tosin2013/spec-status/internal/safeio"
+)
+
+const (
+	msgRoadmapMissing      = "Required roadmap is unavailable. Run spec inventory for a feature list without a roadmap."
+	msgRoadmapUnrecognized = "Roadmap is not a recognized roadmap: no item headings and no \"## Planned Specs\" heading. See the supported template, or run spec inventory for a feature list."
+	msgRoadmapEmpty        = "Roadmap file is empty. See the supported template, or run spec inventory for a feature list."
 )
 
 // Option selects one read-only evaluation.
@@ -50,7 +57,7 @@ func Evaluate(opt Option) Report {
 		if se, ok := err.(*safeio.Error); ok {
 			switch se.Code {
 			case safeio.CodeNotFound:
-				return fatalReport("SS_ROADMAP_UNAVAILABLE", "Required roadmap is unavailable.", roadmap, failOn)
+				return fatalReport("SS_ROADMAP_UNAVAILABLE", msgRoadmapMissing, roadmap, failOn)
 			case safeio.CodeSensitive:
 				return fatalReport("SS_REFERENCE_SENSITIVE_SKIPPED", "Roadmap path matched the sensitive-name matcher and was not read.", "", failOn)
 			case safeio.CodeLimit:
@@ -65,7 +72,7 @@ func Evaluate(opt Option) Report {
 		}
 		return fatalReport("SS_ROADMAP_UNAVAILABLE", "Required roadmap is unavailable.", roadmap, failOn)
 	}
-	items, _, perr := parseRoadmap(roadmap, data)
+	items, planned, perr := parseRoadmap(roadmap, data)
 	if perr != nil {
 		r := fatalReport(perr.Code, perr.Message, roadmap, failOn)
 		if perr.Line > 0 {
@@ -73,6 +80,16 @@ func Evaluate(opt Option) Report {
 			r.Fatal.Line = perr.Line
 		}
 		return r
+	}
+	if len(items) == 0 && !planned {
+		// Neither an item heading nor the template's ledger heading: this
+		// is not a supported roadmap, and must not look like an empty one
+		// (feature 006, D-2026-11-12-08 (3)).
+		msg := msgRoadmapUnrecognized
+		if strings.TrimSpace(strings.TrimPrefix(string(data), "\uFEFF")) == "" {
+			msg = msgRoadmapEmpty
+		}
+		return fatalReport("SS_ROADMAP_UNRECOGNIZED", msg, roadmap, failOn)
 	}
 	rep := build(roadmap, items, fs)
 	if rep.Outcome == "fatal" {

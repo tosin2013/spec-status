@@ -1,0 +1,7 @@
+{
+  "note": "Hand-written expectation for spec status (feature 006, contracts/roadmap-recognition.md); not generated from spec output.",
+  "exit": 2,
+  "code": "SS_ROADMAP_UNRECOGNIZED",
+  "message": "Roadmap file is empty. See the supported template, or run spec inventory for a feature list.",
+  "total_items": null
+}

@@ -27,13 +27,17 @@ type rawItem struct {
 	seen        map[string]bool
 }
 
-func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic) {
+// parseRoadmap returns the items, whether a visible "## Planned Specs"
+// heading was seen (the pinned speckit-roadmap v0.1.0 template's ledger
+// heading, feature 006 research R1), and a fatal diagnostic if the roadmap
+// cannot be read reliably.
+func parseRoadmap(rel string, data []byte) ([]rawItem, bool, *Diagnostic) {
 	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
 		data = data[3:]
 	}
 	if !utf8.Valid(data) {
 		d := Diagnostic{Code: "SS_ENCODING_INVALID", Severity: "error", Message: "Roadmap encoding is not valid UTF-8.", Path: rel}
-		return nil, nil, &d
+		return nil, false, &d
 	}
 	text := strings.ReplaceAll(string(data), "\r\n", "\n")
 	text = strings.ReplaceAll(text, "\r", "\n")
@@ -41,7 +45,6 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 	var (
 		items   []rawItem
 		cur     *rawItem
-		diags   []Diagnostic
 		fence   byte
 		fenceN  int
 		inFence bool
@@ -100,14 +103,14 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				if w, _ := leadingIndent(line); w < fenceIndent {
 					// The list item holding the fence ended before the fence
 					// closed. Renderers close it there; we fail visibly.
-					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence inside a list item is not closed before the item ends.", fenceLine)
+					return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "Code fence inside a list item is not closed before the item ends.", fenceLine)
 				}
 			}
 			if closesFence(line, fence, fenceN) {
 				if w, _ := leadingIndent(line); w != fenceIndent {
 					// CommonMark limits a closer's indentation; rather than
 					// guess where a renderer ends the block, fail visibly.
-					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence closer is indented differently from its opener.", lineNo)
+					return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "Code fence closer is indented differently from its opener.", lineNo)
 				}
 				inFence, blockEnd = false, true
 			}
@@ -117,14 +120,14 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			hidden[lineNo] = true
 			if commentIndent > 0 && strings.TrimSpace(line) != "" {
 				if w, _ := leadingIndent(line); w < commentIndent {
-					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment inside a list item is not closed before the item ends.", commentLine)
+					return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment inside a list item is not closed before the item ends.", commentLine)
 				}
 			}
 			if end := strings.Index(line, "-->"); end >= 0 {
 				if cur != nil && strings.TrimSpace(line[end+3:]) != "" {
 					// Text after the closing --> renders as visible text; it
 					// is not a field (review 9 D3). Fail visibly.
-					return nil, nil, fail("SS_ITEM_MALFORMED", "Text follows the end of an HTML comment on the same line under an item.", lineNo)
+					return nil, false, fail("SS_ITEM_MALFORMED", "Text follows the end of an HTML comment on the same line under an item.", lineNo)
 				}
 				tails[lineNo] = line[end+3:]
 				inComment, blockEnd = false, true
@@ -150,29 +153,29 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				// the value, with or without a blank line, comment, or other
 				// block before it. It is never joined to the value, so fail
 				// visibly (T026 review B1).
-				return nil, nil, fail("SS_ITEM_MALFORMED", "A list or quote nested under a Depends on, Spec dir, or superseded-by field is not supported.", lineNo)
+				return nil, false, fail("SS_ITEM_MALFORMED", "A list or quote nested under a Depends on, Spec dir, or superseded-by field is not supported.", lineNo)
 			case metricBlank:
-				return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by value continued after a blank line or another block is not supported.", lineNo)
+				return nil, false, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by value continued after a blank line or another block is not supported.", lineNo)
 			case startsBlock(line, b):
 				// Closed field body (owner decision D-2026-11-08-04): under a
 				// metric field, an indented line either joins the value as
 				// paragraph text or is fatal. A comment, HTML block, fence,
 				// break, or heading renders inside the field's bullet but is
 				// never joined, at any indentation (final T026 review B-1 to B-3).
-				return nil, nil, fail("SS_ITEM_MALFORMED", "Under a Depends on, Spec dir, or superseded-by field, only indented continuation text is supported.", lineNo)
+				return nil, false, fail("SS_ITEM_MALFORMED", "Under a Depends on, Spec dir, or superseded-by field, only indented continuation text is supported.", lineNo)
 			}
 		}
 		if cur != nil && bareMetricLabel(line) {
 			// "superseded-by: 002" or "Depends on: 001" without a list marker
 			// renders as text, but its author meant a field: fail visibly.
-			return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label without a list marker is not supported.", lineNo)
+			return nil, false, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label without a list marker is not supported.", lineNo)
 		}
 		if pending != nil {
 			w, b := leadingIndent(line)
 			if w > 0 && strings.TrimSpace(line) != "" {
 				if listMarker(line) {
 					if metricFields[pending.field] {
-						return nil, nil, fail("SS_ITEM_MALFORMED", "A list under a Depends on, Spec dir, or superseded-by field is not supported.", lineNo)
+						return nil, false, fail("SS_ITEM_MALFORMED", "A list under a Depends on, Spec dir, or superseded-by field is not supported.", lineNo)
 					}
 				} else if !startsBlock(line, b) {
 					// Only paragraph text continues a value. A line that starts
@@ -192,13 +195,13 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			// A raw HTML block runs to the next blank line; renderers show its
 			// lines as raw HTML, not as roadmap structure.
 			if _, _, _, ok := matchItem(line); ok || itemLikeLine(line) {
-				return nil, nil, fail("SS_ITEM_MALFORMED", "Roadmap item inside a raw HTML block; renderers show it as text.", lineNo)
+				return nil, false, fail("SS_ITEM_MALFORMED", "Roadmap item inside a raw HTML block; renderers show it as text.", lineNo)
 			}
 			if _, _, ok := matchField(line); ok {
-				return nil, nil, fail("SS_ITEM_MALFORMED", "Item field inside a raw HTML block; renderers show it as text.", lineNo)
+				return nil, false, fail("SS_ITEM_MALFORMED", "Item field inside a raw HTML block; renderers show it as text.", lineNo)
 			}
 			if _, ok := fieldPrefix(line); ok {
-				return nil, nil, fail("SS_ITEM_MALFORMED", "Item field inside a raw HTML block; renderers show it as text.", lineNo)
+				return nil, false, fail("SS_ITEM_MALFORMED", "Item field inside a raw HTML block; renderers show it as text.", lineNo)
 			}
 			continue
 		}
@@ -213,13 +216,13 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		// indentation; deeper "<!--" is indented code or continuation text.
 		// An unclosed comment is fatal below.
 		if w, b := leadingIndent(line); w <= 3 && (strings.HasPrefix(line[b:], "<!-->") || strings.HasPrefix(line[b:], "<!--->")) {
-			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Empty HTML comment is read differently by renderers.", lineNo)
+			return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "Empty HTML comment is read differently by renderers.", lineNo)
 		}
 		if w, b := leadingIndent(line); w <= 3 && rawHTMLBlock(line[b:]) {
-			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Raw HTML block (pre, script, style, textarea) is not supported.", lineNo)
+			return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "Raw HTML block (pre, script, style, textarea) is not supported.", lineNo)
 		}
 		if w, b := leadingIndent(line); w <= 3 && otherHTMLBlock(line[b:]) {
-			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML processing instruction, CDATA, or declaration block is not supported.", lineNo)
+			return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "HTML processing instruction, CDATA, or declaration block is not supported.", lineNo)
 		}
 		if w, b := leadingIndent(line); ((cur == nil && w <= 3) || (cur != nil && w >= 1 && w <= 5)) && htmlBlockStart(line[b:], notParagraph(last) || prevBlockEnd) {
 			// Under an item, an indented HTML block (for example <details>)
@@ -236,7 +239,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				blockEnd = true
 				tails[lineNo] = trim[4+end+3:]
 				if cur != nil && strings.TrimSpace(trim[4+end+3:]) != "" {
-					return nil, nil, fail("SS_ITEM_MALFORMED", "Text follows an HTML comment on the same line under an item.", lineNo)
+					return nil, false, fail("SS_ITEM_MALFORMED", "Text follows an HTML comment on the same line under an item.", lineNo)
 				}
 			} else {
 				inComment, commentLine, commentIndent = true, lineNo, w
@@ -247,7 +250,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			_, _, _, isHeading := heading(line)
 			if strings.TrimSpace(line) != "" && strings.Contains(line, "|") && !listMarker(line) && !isHeading {
 				if tableItemRow(line) {
-					return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
+					return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
 				}
 				continue
 			}
@@ -257,19 +260,19 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			// A GFM table, with or without outer pipes. Its header is the
 			// previous line; its rows follow until a blank or pipe-less line.
 			if tableItemRow(last) {
-				return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo-1)
+				return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo-1)
 			}
 			inTable = true
 			continue
 		}
 		if strings.HasPrefix(strings.TrimSpace(line), "|") && tableItemRow(line) {
-			return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
+			return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "Unsupported item-like table layout.", lineNo)
 		}
 		if tagRun {
 			_, _, isField := matchField(line)
 			_, isNear := fieldPrefix(line)
 			if _, _, _, ok := matchItem(line); ok || itemLikeLine(line) || isField || isNear {
-				return nil, nil, fail("SS_ITEM_MALFORMED", "Roadmap item or field directly after an HTML tag line; renderers may show it as raw HTML.", lineNo)
+				return nil, false, fail("SS_ITEM_MALFORMED", "Roadmap item or field directly after an HTML tag line; renderers may show it as raw HTML.", lineNo)
 			}
 		}
 		if id, title, status, ok := matchItem(line); ok {
@@ -278,16 +281,16 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			continue
 		}
 		if itemLikeLine(line) {
-			return nil, nil, fail("SS_ITEM_MALFORMED", "Item heading does not match the supported shape.", lineNo)
+			return nil, false, fail("SS_ITEM_MALFORMED", "Item heading does not match the supported shape.", lineNo)
 		}
 		if _, _, text, ok := heading(line); ok && bareMetricLabel(text) {
-			return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label written as a heading is not supported.", lineNo)
+			return nil, false, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label written as a heading is not supported.", lineNo)
 		}
 		if _, indent, _, ok := heading(line); ok && cur != nil && indent > 0 {
 			// A heading indented under an item sits inside the item's list
 			// content for renderers; reading it as the item's end could drop
 			// what follows (review 9 D4).
-			return nil, nil, fail("SS_ITEM_MALFORMED", "An indented heading under an item is not supported.", lineNo)
+			return nil, false, fail("SS_ITEM_MALFORMED", "An indented heading under an item is not supported.", lineNo)
 		}
 		if _, _, _, ok := heading(line); ok || (setextUnderline(line) && paragraphLine(last)) {
 			// Any other heading, ATX or setext, ends the current item, so the
@@ -296,7 +299,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			continue
 		}
 		if _, marked := stripMarkers(line); marked && indentDepth(line) > maxNesting {
-			return nil, nil, fail("SS_INPUT_LIMIT", "Parser nesting limit exceeded.", lineNo)
+			return nil, false, fail("SS_INPUT_LIMIT", "Parser nesting limit exceeded.", lineNo)
 		}
 		field, value, ok := matchField(line)
 		if !ok {
@@ -305,7 +308,7 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 				// Metric fields are strict everywhere. A descriptive label is
 				// strict only at the top level of an item; elsewhere it is prose.
 				if metricFields[near] || (cur != nil && width == 0) {
-					return nil, nil, fail("SS_ITEM_MALFORMED", "Field label does not match the supported spelling.", lineNo)
+					return nil, false, fail("SS_ITEM_MALFORMED", "Field label does not match the supported spelling.", lineNo)
 				}
 				continue
 			}
@@ -324,16 +327,16 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			case strings.TrimSpace(line) == "", width > 0, descriptiveField(line):
 				continue
 			}
-			return nil, nil, fail("SS_ITEM_MALFORMED", "Line under an item is not a supported field or an indented continuation.", lineNo)
+			return nil, false, fail("SS_ITEM_MALFORMED", "Line under an item is not a supported field or an indented continuation.", lineNo)
 		}
 		if cur == nil {
 			if metricFields[field] {
-				return nil, nil, fail("SS_ITEM_MALFORMED", "Item field appears outside an item.", lineNo)
+				return nil, false, fail("SS_ITEM_MALFORMED", "Item field appears outside an item.", lineNo)
 			}
 			continue
 		}
 		if cur.seen[field] {
-			return nil, nil, fail("SS_ITEM_MALFORMED", "Item repeats a recognized field.", lineNo)
+			return nil, false, fail("SS_ITEM_MALFORMED", "Item repeats a recognized field.", lineNo)
 		}
 		cur.seen[field] = true
 		pending = &pendingField{field: field, value: value, line: lineNo}
@@ -342,10 +345,10 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 	}
 	apply()
 	if inFence {
-		return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "Code fence is not closed.", fenceLine)
+		return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "Code fence is not closed.", fenceLine)
 	}
 	if inComment {
-		return nil, nil, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment is not closed.", commentLine)
+		return nil, false, fail("SS_LAYOUT_UNSUPPORTED", "HTML comment is not closed.", commentLine)
 	}
 	// Line-level label rule (owner direction, 8 November 2026): a visible
 	// line that contains a Depends on, Spec dir, or superseded-by label with
@@ -361,12 +364,12 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 			visible = tails[lineNo]
 		}
 		if metricLabelIn(visible) {
-			return nil, nil, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label appears outside a supported field line.", lineNo)
+			return nil, false, fail("SS_ITEM_MALFORMED", "A Depends on, Spec dir, or superseded-by label appears outside a supported field line.", lineNo)
 		}
 	}
 	flush()
 	if len(items) > maxItems {
-		return nil, nil, fail("SS_INPUT_LIMIT", "Roadmap item limit exceeded.", 0)
+		return nil, false, fail("SS_INPUT_LIMIT", "Roadmap item limit exceeded.", 0)
 	}
 	edges := 0
 	for _, it := range items {
@@ -376,9 +379,23 @@ func parseRoadmap(rel string, data []byte) ([]rawItem, []Diagnostic, *Diagnostic
 		}
 	}
 	if edges > maxEdges {
-		return nil, nil, fail("SS_INPUT_LIMIT", "Reference edge limit exceeded.", 0)
+		return nil, false, fail("SS_INPUT_LIMIT", "Reference edge limit exceeded.", 0)
 	}
-	return items, diags, nil
+	planned := false
+	for i, line := range lines {
+		if !hidden[i+1] && plannedSpecsHeading(line) {
+			planned = true
+			break
+		}
+	}
+	return items, planned, nil
+}
+
+// plannedSpecsHeading matches exactly "## Planned Specs" at column 0 with
+// optional trailing spaces or tabs: no setext form, indentation, closing
+// hashes or other spelling (contracts/roadmap-recognition.md).
+func plannedSpecsHeading(line string) bool {
+	return strings.TrimRight(line, " \t") == "## Planned Specs"
 }
 
 func matchItem(line string) (id, title, status string, ok bool) {

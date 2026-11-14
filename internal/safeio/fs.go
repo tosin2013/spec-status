@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -18,6 +19,9 @@ const (
 	MaxTotalBytes = 32 << 20
 	MaxFiles      = 1024
 	MaxPathBytes  = 4096
+	// MaxDirEntries bounds one directory listing. Listing reads names and
+	// metadata only, so it does not count against MaxFiles or MaxTotalBytes.
+	MaxDirEntries = 1024
 
 	CodeUnsafe      = "unsafe"
 	CodeSensitive   = "sensitive"
@@ -47,6 +51,23 @@ type Entry struct {
 	// them, so two path spellings of one file (for example on a
 	// case-insensitive filesystem) can be recognized. Empty if unknown.
 	ID string
+}
+
+// Directory entry kinds returned by ListDir.
+const (
+	KindDir       = "dir"
+	KindFile      = "file"
+	KindSymlink   = "symlink"
+	KindOther     = "other"     // FIFO, device, socket
+	KindSensitive = "sensitive" // matched the sensitive-name matcher; not stat'ed
+	KindForeign   = "foreign"   // on another device than the root
+)
+
+// DirEntry is one name from a confined directory listing. Nothing under it is opened.
+type DirEntry struct {
+	Name string
+	Kind string
+	ID   string
 }
 
 // FS is a root-confined reader. It does not write, follow linked-path
@@ -272,6 +293,91 @@ func (f *FS) ReadRel(rel string) ([]byte, error) {
 	f.files++
 	f.bytes += int64(n)
 	return buf[:n], nil
+}
+
+// ListDir lists one directory under the root without following symlinks.
+// It returns entries in byte order of name. A symlinked, non-directory or
+// foreign target is unsafe; more than MaxDirEntries entries is a limit error;
+// a directory that changes during the listing is reported as changed.
+// Sensitive names are reported without being stat'ed.
+func (f *FS) ListDir(rel string) ([]DirEntry, error) {
+	full, err := f.prepare(rel)
+	if err != nil {
+		return nil, err
+	}
+	clean, _ := NormalizeRel(rel)
+	before, err := os.Lstat(full)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, errCode(CodeNotFound)
+		}
+		return nil, errCode(CodeUnavailable)
+	}
+	if before.Mode()&os.ModeSymlink != 0 || !before.IsDir() {
+		return nil, errCode(CodeUnsafe)
+	}
+	if dev, ok := deviceOf(before); !ok || dev != f.dev {
+		return nil, errCode(CodeUnsafe)
+	}
+	dir, err := openDirNoFollow(full)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+	opened, err := dir.Stat()
+	if err != nil || !opened.IsDir() || fileID(opened) != fileID(before) {
+		return nil, errCode(CodeChanged)
+	}
+	if err := confirmOpened(dir, f.root); err != nil {
+		return nil, err
+	}
+	names, err := dir.Readdirnames(MaxDirEntries + 1)
+	if err != nil && len(names) == 0 && err != io.EOF {
+		return nil, errCode(CodeUnavailable)
+	}
+	if len(names) > MaxDirEntries {
+		return nil, errCode(CodeLimit)
+	}
+	sort.Strings(names)
+	out := make([]DirEntry, 0, len(names))
+	for _, name := range names {
+		if Sensitive(clean + "/" + name) {
+			out = append(out, DirEntry{Name: name, Kind: KindSensitive})
+			continue
+		}
+		info, err := os.Lstat(filepath.Join(full, name))
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil, errCode(CodeChanged)
+			}
+			return nil, errCode(CodeUnavailable)
+		}
+		e := DirEntry{Name: name, ID: fileID(info)}
+		switch {
+		case info.Mode()&os.ModeSymlink != 0:
+			e.Kind = KindSymlink
+		case info.IsDir():
+			e.Kind = KindDir
+		case info.Mode().IsRegular():
+			e.Kind = KindFile
+		default:
+			e.Kind = KindOther
+		}
+		if e.Kind != KindSymlink {
+			if dev, ok := deviceOf(info); !ok || dev != f.dev {
+				e.Kind = KindForeign
+			}
+		}
+		out = append(out, e)
+	}
+	if f.afterRead != nil {
+		f.afterRead(full)
+	}
+	after, err := os.Lstat(full)
+	if err != nil || !sameIdentity(before, after) || fileID(before) != fileID(after) {
+		return nil, errCode(CodeChanged)
+	}
+	return out, nil
 }
 
 func (f *FS) prepare(rel string) (string, error) {

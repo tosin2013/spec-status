@@ -313,6 +313,11 @@ func summaryLines(p *painter, s *Summary, roadmap string, inner int, build strin
 	lines = append(lines, wrapText(ctx, inner)...)
 	scope := "task files read " + itoa(s.Tasks.FilesRead) + "  missing " + itoa(s.Tasks.FilesMissing) + "  skipped " + itoa(s.Tasks.FilesSkipped)
 	lines = append(lines, wrapText(scope, inner)...)
+	if s.TotalItems == 0 {
+		// Only a recognized roadmap reaches a complete report, so zero items
+		// means the template's ledger heading with no entries (feature 006).
+		lines = append(lines, wrapText("roadmap explicitly empty (Planned Specs heading, no items)", inner)...)
+	}
 	lines = append(lines, wrapText("source "+sanitizeTerminal(roadmap), inner)...)
 	return lines
 }
