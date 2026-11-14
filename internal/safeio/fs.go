@@ -81,8 +81,9 @@ type FS struct {
 }
 
 // SetAfterReadHook is a test seam. Production leaves it unset.
-// The hook runs after a successful open and before the second stat,
-// so tests can observe source-change detection.
+// The hook runs after a successful open and before the second stat, both
+// in ReadRel (after reading the file) and in ListDir (after reading the
+// names), so tests can observe source-change detection.
 func (f *FS) SetAfterReadHook(fn func(path string)) { f.afterRead = fn }
 
 // New canonicalizes root once. Later reads must stay under that directory.
