@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.6.0 → 1.6.1
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 008 status: planned → specced (specs/006-two-mode-inventory)
+
+Specs affected: 006-two-mode-inventory
+Open questions added/resolved: none
+
+Previous revision (1.6.0, 2026-11-14):
 Version change: 1.5.3 → 1.6.0
 Bump rationale: MINOR — new items.
 
@@ -417,7 +427,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   is decided and the contracts match; the toolchain, runners and release
   workflow belong to 004.
 
-### 008 — Two-mode roadmap and feature inventory [status: planned]
+### 008 — Two-mode roadmap and feature inventory [status: specced]
 
 - **Description:** TASK-24–26: distinguish an empty supported roadmap from an
   unrecognized file, and add a separate, explicit inventory of feature folders
@@ -432,12 +442,13 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   folders; counting requirements checklists; network or upstream lookups.
 - **Depends on:** 001
 - **Governed by:** C-01, C-02, C-08, C-09
+- **Spec dir:** specs/006-two-mode-inventory
 - **Notes:** Q6 resolved on 2026-11-12 (D-2026-11-12-08): `spec inventory` command;
   missing roadmap stays exit 2 and suggests inventory; recognition by item
   headings or `## Planned Specs`, otherwise fatal SS_ROADMAP_UNRECOGNIZED;
   Spec Kit feature-folder names; existing checkbox rules; separate inventory
-  JSON schema 1.0. Targets v0.3.0. Next: a feature spec. README Limits records
-  today's zero-item result until then.
+  JSON schema 1.0. Targets v0.3.0. Specced on 2026-11-14 (feature 006). README
+  Limits records today's zero-item result until it is implemented.
 
 ### 014 — Status/tasks consistency diagnostics [status: planned]
 
@@ -714,4 +725,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.6.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
+**Version**: 1.6.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
