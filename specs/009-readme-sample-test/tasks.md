@@ -52,7 +52,7 @@ description: "Tasks for feature 009: README sample test"
 - [X] T011 Run the quickstart drift and coverage checks by hand (change one character in a sample; add an unlabeled `╭` block) and confirm each fails with a clear message, then restore `README.md`; record the result in the PR description
 - [X] T012 Add a row for feature 009 to the "Implementation record" table in `specs/001-spec-status/tasks.md` (implemented, executed by the implementer, not independently verified)
 - [X] T013 Doomer review on the change (prepare before editing, submit, answer every Quick lead, finish) before handing off the PR
-- [ ] T014 Propose roadmap 011 `specced` → `implemented` through `/speckit.roadmap.write` after the owner approves; `verified` after the v0.3.0 release checks
+- [X] T014 Propose roadmap 011 `specced` → `implemented` through `/speckit.roadmap.write` after the owner approves; `verified` after the v0.3.0 release checks
 
 ---
 
