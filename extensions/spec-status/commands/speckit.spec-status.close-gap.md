@@ -33,7 +33,7 @@ A low `recorded verified X/Y` has several different causes, and each needs a dif
    2. **missing artifacts**: an **error** `SS_STAGE_FILE_MISSING`, `SS_SPEC_REFERENCE_MISSING` or `SS_SPEC_DIRECTORY_MISSING` for the item.
    3. **status ahead of tasks**: `SS_STATUS_AHEAD_OF_TASKS` [status `implemented`/`verified`, `tasks.state` `read`, `checked` < `total`].
    4. **tasks done, status early**: `SS_TASKS_DONE_STATUS_EARLY` [status before `implemented`, `tasks.state` `read`, `total` > 0, `checked` = `total`].
-   5. **blocked**: any dependency whose `state` is not `satisfied`. A dependency is satisfied only by a recorded `verified` item, so a blocked item cannot honestly be recorded `verified` yet, whatever its own evidence.
+   5. **blocked**: any dependency whose `state` is not `satisfied`. A dependency is satisfied only by a recorded `verified` item, so a blocked item cannot honestly be recorded `verified` yet, whatever its own evidence. Causes 1–4 are checked before this one on purpose: they are fixed in the item's own status or files, whatever its dependencies, so an item with every task checked and an unverified dependency is still "tasks done, status early" (advancing it to `implemented` is honest); a dependency only stops an item from being recorded `verified`.
    6. **ready for debrief**: status `implemented`, `tasks.state` `read`, `checked` = `total` > 0, every dependency satisfied, and no error diagnostic for the item.
    Not part of the gap (report them apart): **not started** (`planned`, `undecided` or `needs-info` with none of the above) and **in progress** (anything else, such as `specced` or `in-progress` with partial tasks and no recorded inconsistency).
 4. Report, before any proposal:
