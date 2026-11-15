@@ -56,4 +56,4 @@ Feature docs live in `specs/001-spec-status/` (spec, CLI/JSON/diagnostics contra
 
 Spec Kit scaffolding (`.specify/templates`, `.specify/scripts`, `.specify/extensions/roadmap`, and the `/speckit-*` / `speckit.roadmap.*` skills under `.claude/`) is development tooling only. The `spec` CLI must never depend on it at runtime (constitution Art. II). `/speckit-constitution` would overwrite the hand-written constitution, so don't run it without owner approval.
 
-`testdata/example-roadmap` is the synthetic fixture used in README examples; if output changes, update the README sample.
+`testdata/example-roadmap` is the synthetic fixture used in README examples; if output changes, update the README sample. Every README output block is labeled `<!-- spec-sample: <command> -->`, and `TestReadmeSamples` (`internal/cli/readme_samples_test.go`) fails until each labeled block matches real output byte for byte; an output-looking block without a label also fails.
