@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.6.5 → 1.6.6
+Bump rationale: PATCH — status transitions.
+
+Changes this revision:
+  - 015 status: specced → implemented (feature 008 merged in PR #58)
+  - 016 status: specced → implemented (feature 008 merged in PR #58)
+
+Specs affected: 008-field-forms-and-fixes
+Open questions added/resolved: none
+
+Previous revision (1.6.5, 2026-11-14):
 Version change: 1.6.4 → 1.6.5
 Bump rationale: PATCH — status transitions.
 
@@ -516,7 +527,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   specs/001-spec-status/tasks.md). Not verified until the v0.3.0 release
   checks.
 
-### 015 — Real-world field forms [status: specced]
+### 015 — Real-world field forms [status: implemented]
 
 - **Description:** Accept two forms real speckit-roadmap files contain:
   the bold, capitalized, spaced "Superseded by" label read as `superseded-by`, and a
@@ -535,8 +546,11 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   spellings; bracketed or single-emphasis placeholders in Spec dir and
   Depends on as not set, with SS_FIELD_PLACEHOLDER (info), never dropping a
   real ID.
+  Implemented on 2026-11-15 (PR #58, spec in #57; implementation record in
+  specs/001-spec-status/tasks.md). Not verified until the v0.3.0 release
+  checks.
 
-### 016 — Small defect fixes [status: specced]
+### 016 — Small defect fixes [status: implemented]
 
 - **Description:** Open non-blocking defects from README Limits: duplicate ID
   in one `Depends on` list; human text missing status counts, invalid
@@ -553,6 +567,9 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   Specced on 2026-11-14 with 015 (feature 008): SS_DEPENDENCY_DUPLICATE
   (warning), human-text status counts, invalid supersession and shared-tasks
   attribution, --json=false, empty --root/--roadmap, fail_on in error JSON.
+  Implemented on 2026-11-15 (PR #58, spec in #57; implementation record in
+  specs/001-spec-status/tasks.md). Not verified until the v0.3.0 release
+  checks.
 
 ### Evidence and distribution
 
@@ -784,4 +801,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.6.5 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-14
+**Version**: 1.6.6 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-15
