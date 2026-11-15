@@ -146,15 +146,24 @@ func checkSampleArgs(cmd string) string {
 }
 
 // sampleDocs are the files whose spec output samples must stay true:
-// README.md and every Markdown page under docs/ (feature 009, extended when
-// usage detail moved from the README to docs/usage.md).
+// README.md and every Markdown page under docs/, including subfolders
+// (feature 009, extended when usage detail moved to docs/usage.md).
 func sampleDocs(t *testing.T, repo string) []string {
 	t.Helper()
-	docs, err := filepath.Glob(filepath.Join(repo, "docs", "*.md"))
+	files := []string{filepath.Join(repo, "README.md")}
+	err := filepath.WalkDir(filepath.Join(repo, "docs"), func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(path, ".md") {
+			files = append(files, path)
+		}
+		return nil
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	return append([]string{filepath.Join(repo, "README.md")}, docs...)
+	return files
 }
 
 func TestReadmeSamples(t *testing.T) {
@@ -232,7 +241,9 @@ func TestReadmeSampleGuards(t *testing.T) {
 // TestDocsInstallCommandsAreNotPinned keeps install commands in README.md and
 // docs/ on the latest release, so they cannot go stale between releases:
 // the version comes from the releases/latest redirect or go install @latest.
-// Mentioning a version in prose ("such as @v0.2.0", "since v0.1.2") is fine.
+// Any "cmd/spec@v<digit>" counts as a pinned install command, even in prose;
+// to name a version in prose, write it without the module path ("such as
+// @v0.2.0", "since v0.1.2"), as README.md and docs/usage.md do.
 func TestDocsInstallCommandsAreNotPinned(t *testing.T) {
 	repo, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
