@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.6.6 → 1.6.7
+Bump rationale: PATCH — status transitions.
+
+Changes this revision:
+  - 011 status: planned → specced (specs/009-readme-sample-test)
+  - 013 status: planned → specced (specs/010-close-gap-skill)
+
+Specs affected: 009-readme-sample-test, 010-close-gap-skill
+Open questions added/resolved: none
+
+Previous revision (1.6.6, 2026-11-15):
 Version change: 1.6.5 → 1.6.6
 Bump rationale: PATCH — status transitions.
 
@@ -689,7 +700,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** Deferred from feature 003 by the owner on 2026-11-11. Needs its own
   spec; reporting by issue would need write permission.
 
-### 011 — README sample test [status: planned]
+### 011 — README sample test [status: specced]
 
 - **Description:** A Go test that compares the README's example output with
   `spec status` on `testdata/example-roadmap`.
@@ -698,8 +709,11 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** other documentation checks.
 - **Depends on:** 001
 - **Governed by:** C-01
+- **Spec dir:** specs/009-readme-sample-test
 - **Notes:** Deferred from feature 003 by the owner on 2026-11-11. Ships in
-  v0.3.0 (D-2026-11-14-01).
+  v0.3.0 (D-2026-11-14-01). Specced on 2026-11-15 (feature 009): every README
+  output sample labeled with its command and checked byte for byte; the
+  stale --human-review --explain sample is corrected.
 
 ### 012 — Agent skills extension [status: verified]
 
@@ -729,7 +743,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   recorded verified the same day after installing from the release archive.
   Submitted to the Spec Kit community catalog (github/spec-kit#5413).
 
-### 013 — Close-gap skill [status: planned]
+### 013 — Close-gap skill [status: specced]
 
 - **Description:** A sixth extension command, `speckit.spec-status.close-gap`,
   that works through items whose recorded status lags their evidence (for
@@ -745,8 +759,11 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   per-change approval or outside Spec Kit commands.
 - **Depends on:** 012, 014
 - **Governed by:** C-01, C-06
+- **Spec dir:** specs/010-close-gap-skill
 - **Notes:** Owner choice of 2026-11-14 (D-2026-11-14-01). Targets v0.3.0 with
   extension version 0.3.0.
+  Specced on 2026-11-15 (feature 010): read-only gap breakdown by cause,
+  then one approved change at a time; verification-gap section for pm.
 
 ### Future
 
@@ -801,4 +818,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.6.6 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-15
+**Version**: 1.6.7 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-15
