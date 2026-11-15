@@ -603,20 +603,60 @@ func fail(jsonMode bool, failOn, code, message string, stdout, stderr io.Writer)
 	return 2
 }
 
+// invocationJSON renders the status-shaped (schema 1.0) document for an
+// invocation error. It is built with encoding/json, never by joining
+// strings, so no value can break out of its quotes (CodeQL "potentially
+// unsafe quoting"). Struct field order is the key order.
 func invocationJSON(failOn, code, message string) string {
 	if failOn == "" {
 		failOn = "error"
 	}
-	msg := jsonEscape(message)
-	return `{"schema_version":"1.0","outcome":"fatal","complete":false,"source":{"roadmap":null,"input_format":null},"configuration":{"fail_on":"` + failOn + `","dependency_policy":"verified","task_scope":"unique_linked_task_files"},"summary":null,"items":[],"diagnostics":[{"code":"` + code + `","severity":"error","message":"` + msg + `","source":null,"item_id":null,"related":[]}],"error":{"code":"` + code + `","message":"` + msg + `","source":null}}` + "\n"
-}
-
-func jsonEscape(s string) string {
-	b, err := json.Marshal(s)
-	if err != nil || len(b) < 2 {
-		return "invalid message"
+	type source struct {
+		Roadmap     any `json:"roadmap"`
+		InputFormat any `json:"input_format"`
 	}
-	return string(b[1 : len(b)-1])
+	type config struct {
+		FailOn           string `json:"fail_on"`
+		DependencyPolicy string `json:"dependency_policy"`
+		TaskScope        string `json:"task_scope"`
+	}
+	type diag struct {
+		Code     string `json:"code"`
+		Severity string `json:"severity"`
+		Message  string `json:"message"`
+		Source   any    `json:"source"`
+		ItemID   any    `json:"item_id"`
+		Related  []any  `json:"related"`
+	}
+	type errDoc struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		Source  any    `json:"source"`
+	}
+	doc := struct {
+		SchemaVersion string `json:"schema_version"`
+		Outcome       string `json:"outcome"`
+		Complete      bool   `json:"complete"`
+		Source        source `json:"source"`
+		Configuration config `json:"configuration"`
+		Summary       any    `json:"summary"`
+		Items         []any  `json:"items"`
+		Diagnostics   []diag `json:"diagnostics"`
+		Error         errDoc `json:"error"`
+	}{
+		SchemaVersion: "1.0",
+		Outcome:       "fatal",
+		Source:        source{},
+		Configuration: config{FailOn: failOn, DependencyPolicy: "verified", TaskScope: "unique_linked_task_files"},
+		Items:         []any{},
+		Diagnostics:   []diag{{Code: code, Severity: "error", Message: message, Related: []any{}}},
+		Error:         errDoc{Code: code, Message: message},
+	}
+	b, err := json.Marshal(doc)
+	if err != nil {
+		return `{"schema_version":"1.0","outcome":"fatal","complete":false,"source":{"roadmap":null,"input_format":null},"configuration":{"fail_on":"error","dependency_policy":"verified","task_scope":"unique_linked_task_files"},"summary":null,"items":[],"diagnostics":[{"code":"SS_INVOCATION_INVALID","severity":"error","message":"Invocation error could not be serialized.","source":null,"item_id":null,"related":[]}],"error":{"code":"SS_INVOCATION_INVALID","message":"Invocation error could not be serialized.","source":null}}` + "\n"
+	}
+	return string(b) + "\n"
 }
 
 // rootLong is the root help text; its first sentence of the second paragraph

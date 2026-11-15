@@ -313,3 +313,24 @@ func TestInvocationEdgeCases(t *testing.T) {
 		t.Errorf("--root --json: exit %d out %q err %q", code, out, errs)
 	}
 }
+
+// invocationJSON must stay valid JSON whatever its inputs contain (CodeQL
+// "potentially unsafe quoting"): values cannot break out of their quotes.
+func TestInvocationJSONQuotesAreSafe(t *testing.T) {
+	hostile := `x","severity":"info","injected":"1`
+	out := invocationJSON(hostile, hostile, hostile+"\\\n<>&")
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(out), &doc); err != nil {
+		t.Fatalf("invalid JSON: %v\n%s", err, out)
+	}
+	if _, ok := doc["injected"]; ok || strings.Count(out, `"severity"`) != 1 {
+		t.Fatalf("value broke out of its quotes: %s", out)
+	}
+	cfg := doc["configuration"].(map[string]any)
+	if cfg["fail_on"] != hostile {
+		t.Fatalf("fail_on round trip: %v", cfg["fail_on"])
+	}
+	if !strings.HasSuffix(out, "}\n") {
+		t.Fatal("missing trailing newline")
+	}
+}
