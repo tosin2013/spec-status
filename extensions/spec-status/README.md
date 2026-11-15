@@ -56,7 +56,7 @@ specify extension add --dev /path/to/spec-status/extensions/spec-status
 
 `--dev` copies the folder at install time, so after changing it, run the command again with `--force`.
 
-Check that it worked: your agent's skill list should show five `speckit-spec-status-*` skills, and `specify extension list` should list `spec-status`.
+Check that it worked: your agent's skill list should show six `speckit-spec-status-*` skills, and `specify extension list` should list `spec-status`.
 
 - **Upgrade:** run the `add` command again with the new version and `--force`.
 - **Remove:** `specify extension remove spec-status`. Nothing else in your project changes.
@@ -132,7 +132,7 @@ Review a community extension yourself before installing it. Exact versions and c
 
 These describe how the skills handle the example projects in [`testdata/skills/`](https://github.com/tosin2013/spec-status/tree/main/testdata/skills) of this repository. The facts come from real `spec status` output; the skill steps are paraphrased.
 
-**1. Status ahead of tasks** (`implemented-unchecked`). Item 001 "Import data" is `implemented`, but `specs/001-import/tasks.md` has 1 of 3 tasks checked; lines 4 and 5 are unchecked. `spec status` reports no diagnostics.
+**1. Status ahead of tasks** (`implemented-unchecked`). Item 001 "Import data" is `implemented`, but `specs/001-import/tasks.md` has 1 of 3 tasks checked; lines 4 and 5 are unchecked. `spec status` v0.3.0 and later reports `SS_STATUS_AHEAD_OF_TASKS` (a warning); older versions report no diagnostic, and reconcile works it out from the counts.
 1. `reconcile` reports a "status ahead of tasks" mismatch, citing the roadmap line and the two unchecked boxes.
 2. It asks which is true: the work is unfinished, so lower 001 to `in-progress` via `/speckit.roadmap.write`; or the boxes are stale, so finish or tick the tasks via `/speckit-implement`.
 3. Nothing changes until you choose. Then it applies your choice and re-runs `spec status`.
@@ -179,7 +179,7 @@ These describe how the skills handle the example projects in [`testdata/skills/`
 ## How it is built and tested
 
 The extension is part of [spec-status](https://github.com/tosin2013/spec-status) (feature 005, `specs/005-agent-skills/`):
-- **Repository tests** (`internal/extension`) check that the reference matches `spec`'s diagnostic and JSON contracts, that all five commands exist with the required sections, that every command link points to a real command, that roles and partners are well formed, and that the 12 example projects still produce the signals they expect.
+- **Repository tests** (`internal/extension`) check that the reference matches `spec`'s diagnostic and JSON contracts, that all six commands exist with the required sections, that every command link points to a real command, that roles and partners are well formed, and that the 12 example projects still produce the signals they expect.
 - **Install check:** `scripts/check-extension-install.sh` installs the extension into a throwaway project and checks that exactly six skills appear.
 - **Agent runs:** before release, an agent ran the installed skills on every example project without approving any change. The facts matched, and no file was modified.
 
