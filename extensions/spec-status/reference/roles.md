@@ -19,13 +19,14 @@ The closed list of sections review produces. Each section is shown only when it 
 | `dependency-chains` | Each blocked item's chain back to the first unfinished dependency. |
 | `supersession` | Superseded items, their successors, and invalid chains. |
 | `constraints` | Each item's `Governed by` constraints, as recorded in the roadmap. |
+| `verification-gap` | Active items not recorded verified, counted per close-gap cause (ready for debrief, tasks done early, status ahead of tasks, missing artifacts, unknown status, blocked), with IDs; planned items without a spec are listed apart as not started. |
 
 ## Roles
 
 | Role | Leads with | First follow-ups | Role checks |
 |---|---|---|---|
 | `default` | `progress`, `blockers`, `human-review`, `diagnostics`, `ready-to-start` | /speckit.spec-status.reconcile, /speckit.spec-status.unblock | Route every finding (see review). |
-| `pm` | `progress`, `blockers`, `ready-to-start`, `human-review` | /speckit.spec-status.unblock, /speckit.spec-status.reconcile | Report progress in recorded terms only: say "recorded verified", never "done". Name what is ready to start and what each blocker waits on. Do not infer dates or quarters. (Replaces the project-manager sample prompt.) |
+| `pm` | `verification-gap`, `progress`, `blockers`, `ready-to-start`, `human-review` | /speckit.spec-status.close-gap, /speckit.spec-status.unblock, /speckit.spec-status.reconcile | Report progress in recorded terms only: say "recorded verified", never "done". Name what is ready to start and what each blocker waits on. Do not infer dates or quarters. (Replaces the project-manager sample prompt.) |
 | `developer` | `ready-to-start`, `unchecked-tasks`, `missing-artifacts`, `blockers` | /speckit.spec-status.reconcile, /speckit-tasks, /speckit-implement | Pick the next item that is ready and has a spec, plan and tasks; if none has all three, say so and suggest the command that creates the first missing artifact for the first ready item (/speckit-specify, /speckit-plan or /speckit-tasks). Point out stale or unchecked tasks. A checked box is not a passing test; do not run the project's tests or other commands unless the user allows it. (Replaces the software-engineer sample prompt.) |
 | `qa` | `evidence-gaps`, `diagnostics`, `unchecked-tasks` | /speckit.spec-status.verify-readiness, /speckit.roadmap.debrief, /speckit-analyze | Flag every item recorded `implemented` or `verified` that has unchecked tasks, a task file that was not read, an unverified dependency, or error diagnostics. `verified` is a label, not proof. |
 | `architect` | `dependency-chains`, `supersession`, `human-review`, `constraints` | /speckit.spec-status.unblock, /speckit.spec-status.explain, /speckit.roadmap.sync | Trace dependency chains and supersession, flag cycles and invalid chains, and list the constraints each affected item is governed by. Never redirect a superseded dependency without the user's decision. |

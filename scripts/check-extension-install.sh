@@ -2,7 +2,7 @@
 # Install check for the spec-status Spec Kit extension (feature 005, FR-018).
 # Development tooling only: creates a throwaway Spec Kit project in a temporary
 # directory, installs extensions/spec-status into it with `specify extension
-# add --dev`, and checks that exactly the five skills are rendered for Claude.
+# add --dev`, and checks that exactly the six skills are rendered for Claude.
 # It never touches this repository's own .specify/ or .claude/.
 #
 # Usage: scripts/check-extension-install.sh
@@ -27,7 +27,7 @@ skills_dir="$tmp/.claude/skills"
 # Portable to bash 3.2 (macOS): no mapfile.
 found="$(find "$skills_dir" -maxdepth 2 -path '*speckit-spec-status-*/SKILL.md' 2>/dev/null | sort)"
 count="$(printf '%s' "$found" | grep -c . || true)"
-want=(review explain reconcile unblock verify-readiness)
+want=(review explain reconcile unblock verify-readiness close-gap)
 if [ "$count" -ne "${#want[@]}" ]; then
   echo "FAIL: expected ${#want[@]} spec-status skills, found $count:" >&2
   printf '%s\n' "$found" >&2
@@ -49,5 +49,5 @@ grep -q 'reference/rules.md' "$skills_dir/speckit-spec-status-review/SKILL.md" \
   || { echo "FAIL: reference files were not installed" >&2; exit 1; }
 
 elapsed=$(( $(date +%s) - start ))
-echo "OK: 5 spec-status skills rendered (review, explain, reconcile, unblock, verify-readiness); roles named; reference files installed; ${elapsed}s"
+echo "OK: 6 spec-status skills rendered (review, explain, reconcile, unblock, verify-readiness, close-gap); roles named; reference files installed; ${elapsed}s"
 specify --version 2>/dev/null | head -1

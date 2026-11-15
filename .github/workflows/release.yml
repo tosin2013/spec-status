@@ -192,7 +192,7 @@ jobs:
           mkdir ext && cd ext && unzip -q "../$zipname"
           [ -f spec-status/extension.yml ] || { echo "::error::extension.yml missing from $zipname"; exit 1; }
           n="$(ls spec-status/commands/*.md | wc -l | tr -d ' ')"
-          [ "$n" = 5 ] || { echo "::error::expected 5 command files, found $n"; exit 1; }
+          [ "$n" = 6 ] || { echo "::error::expected 6 command files, found $n"; exit 1; }
           grep -q "version: $VERSION\$" spec-status/extension.yml || { echo "::error::extension version is not $VERSION"; exit 1; }
           echo "extension archive ok"
 
@@ -253,7 +253,7 @@ jobs:
             echo
             echo "### Use it as Spec Kit skills"
             echo
-            echo "Install the spec-status extension (Spec Kit 1.2.0 or newer). It adds five agent skills: review (roles pm, developer, qa, architect), explain, reconcile, unblock and verify-readiness. They propose changes and apply them only through Spec Kit commands after you approve each one."
+            echo "Install the spec-status extension (Spec Kit 1.2.0 or newer). It adds six agent skills: review (roles pm, developer, qa, architect), explain, reconcile, unblock, verify-readiness and close-gap. They propose changes and apply them only through Spec Kit commands after you approve each one."
             echo
             echo '```sh'
             echo "specify extension add spec-status --from https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/spec-status-extension_${VERSION}.zip"
