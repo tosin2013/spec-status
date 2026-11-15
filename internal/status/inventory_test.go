@@ -157,32 +157,3 @@ func TestInventoryHumanText(t *testing.T) {
 		t.Errorf("fatal text %q", got)
 	}
 }
-
-// TestReadmeInventorySample keeps the README's inventory sample identical
-// to real output for testdata/two-mode/no-roadmap (feature 006, T035).
-func TestReadmeInventorySample(t *testing.T) {
-	raw, err := os.ReadFile(filepath.Join("..", "..", "README.md"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	const marker = "This is `spec inventory --color=never --root testdata/two-mode/no-roadmap`:"
-	text := string(raw)
-	i := strings.Index(text, marker)
-	if i < 0 {
-		t.Fatal("README inventory sample marker not found")
-	}
-	rest := text[i+len(marker):]
-	open := strings.Index(rest, "```\n")
-	if open < 0 {
-		t.Fatal("README inventory sample fence not found")
-	}
-	body := rest[open+4:]
-	end := strings.Index(body, "```\n")
-	if end < 0 {
-		t.Fatal("README inventory sample is not closed")
-	}
-	want := InventoryText(EvaluateInventory(InventoryOption{Root: twoModeRoot("no-roadmap")}), View{Width: 80})
-	if body[:end] != want {
-		t.Fatalf("README inventory sample differs from output:\n--- README\n%s--- output\n%s", body[:end], want)
-	}
-}

@@ -82,6 +82,7 @@ That binary reports `label: module build`, not `label: release build`. A checkou
 
 This is `spec status --color=never --root testdata/example-roadmap`, run on the small example roadmap in this repository. In a terminal the same words appear with restrained color; color is never the only signal.
 
+<!-- spec-sample: status --color=never --root testdata/example-roadmap -->
 ```
 ╭──────────────────────────────────────────────────────────────────────────────╮
 │ Spec Status  development build                                               │
@@ -155,6 +156,7 @@ Filters narrow the item rows in the text report. The summary panel always descri
 
 Flags combine with AND. This is `--human-review --explain` on the same example:
 
+<!-- spec-sample: status --color=never --root testdata/example-roadmap --human-review --explain -->
 ```
 ╭──────────────────────────────────────────────────────────────────────────────╮
 │ Spec Status  development build                                               │
@@ -163,6 +165,7 @@ Flags combine with AND. This is `--human-review --explain` on the same example:
 │ active blockers     1                                                        │
 │ human review        1  warning                                               │
 │ items 3 active 2 historical 1 superseded 1                                   │
+│ statuses implemented 1 planned 1 verified 1                                  │
 │ task files read 2 missing 0 skipped 0                                        │
 │ source .specify/memory/roadmap.md                                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
@@ -215,6 +218,7 @@ A folder counts as a feature folder when its name has one of the two forms Spec 
 
 This is `spec inventory --color=never --root testdata/two-mode/no-roadmap`:
 
+<!-- spec-sample: inventory --color=never --root testdata/two-mode/no-roadmap -->
 ```
 ╭──────────────────────────────────────────────────────────────────────────────╮
 │ Spec Inventory  development build                                            │
