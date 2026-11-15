@@ -51,7 +51,7 @@ Fail the build when the roadmap has an error-level finding, such as a dependency
 
 ```yaml
 # GitHub Actions steps, after actions/setup-go with Go 1.26+
-- run: go install github.com/tosin2013/spec-status/cmd/spec@v0.1.2
+- run: go install github.com/tosin2013/spec-status/cmd/spec@latest   # pin a version you tested, such as @v0.2.0, for reproducible builds
 - run: spec status --color=never --fail-on error
 ```
 

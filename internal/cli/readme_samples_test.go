@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -225,5 +226,30 @@ func TestReadmeSampleGuards(t *testing.T) {
 	samples, problems := parseReadmeSamples(ok)
 	if len(problems) != 0 || len(samples) != 1 || samples[0].body != "╭──╮\n" || len(samples[0].args) != 6 {
 		t.Fatalf("valid sample: %+v %v", samples, problems)
+	}
+}
+
+// TestDocsInstallCommandsAreNotPinned keeps install commands in README.md and
+// docs/ on the latest release, so they cannot go stale between releases:
+// the version comes from the releases/latest redirect or go install @latest.
+// Mentioning a version in prose ("such as @v0.2.0", "since v0.1.2") is fine.
+func TestDocsInstallCommandsAreNotPinned(t *testing.T) {
+	repo, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+	pinnedV := regexp.MustCompile(`^\s*V=[0-9]`)
+	pinnedGo := regexp.MustCompile(`cmd/spec@v[0-9]`)
+	for _, path := range sampleDocs(t, repo) {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		rel, _ := filepath.Rel(repo, path)
+		for i, line := range strings.Split(string(raw), "\n") {
+			if pinnedV.MatchString(line) || pinnedGo.MatchString(line) {
+				t.Errorf("%s line %d pins a release in an install command; use the releases/latest lookup or @latest: %s", rel, i+1, strings.TrimSpace(line))
+			}
+		}
 	}
 }

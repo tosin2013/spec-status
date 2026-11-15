@@ -56,6 +56,7 @@ Click **Publish release**. After publishing, never edit or replace its assets. A
 ## 6. After publishing
 
 - [ ] Check `go install github.com/tosin2013/spec-status/cmd/spec@v<v>`. `spec version` should show the module-build label. The module proxy can take a few minutes to see a new tag.
+- [ ] The README and `docs/` install commands look up the latest release themselves (the `releases/latest` redirect and `go install …@latest`), so they need no edit. Confirm the lookup now prints the new version: `curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/tosin2013/spec-status/releases/latest | sed 's#.*/tag/v##'`. `TestDocsInstallCommandsAreNotPinned` keeps pinned install commands out of README.md and `docs/`.
 - [ ] For the first stable release, on each platform whose smoke test passed: update the README "Install" section from "chosen but not yet proven" to supported for that version, citing the smoke-run links (FR-016).
 - [ ] Add an implementation-record row in `specs/001-spec-status/tasks.md` with the run and release URLs, and update the roadmap.
 
