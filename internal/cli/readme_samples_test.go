@@ -166,8 +166,17 @@ func TestReadmeSamples(t *testing.T) {
 		var out, errb bytes.Buffer
 		code := Run(s.args, repo, &out, &errb)
 		got := out.String()
-		if code == 2 {
+		switch {
+		case code == 2:
+			// Fatal runs print plain text to stderr only.
 			got = errb.String()
+		case errb.Len() != 0:
+			t.Errorf("README line %d (spec %s): unexpected stderr on exit %d: %q", s.blockLine, strings.Join(s.args, " "), code, errb.String())
+		}
+		if strings.TrimSpace(got) == "" || strings.TrimSpace(s.body) == "" {
+			// Never let an empty sample match empty output.
+			t.Errorf("README line %d (spec %s): empty sample or empty output (exit %d)", s.blockLine, strings.Join(s.args, " "), code)
+			continue
 		}
 		if got != s.body {
 			t.Errorf("README line %d (spec %s) differs from real output\n--- README\n%s--- spec output\n%s", s.blockLine, strings.Join(s.args, " "), s.body, got)
