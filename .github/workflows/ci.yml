@@ -87,12 +87,16 @@ jobs:
       - name: go mod verify
         run: go mod verify
 
-      - name: agent prompt in README matches docs/agent-prompt.md
+      - name: agent prompt is in docs/agent-prompt.md and linked from README
         shell: bash
         run: |
           extract() { sed -n '/<!-- agent-prompt:start -->/,/<!-- agent-prompt:end -->/p' "$1"; }
           [ -n "$(extract docs/agent-prompt.md)" ] || { echo "::error::no agent-prompt block in docs/agent-prompt.md"; exit 1; }
-          diff <(extract docs/agent-prompt.md) <(extract README.md) || { echo "::error::README agent prompt differs from docs/agent-prompt.md"; exit 1; }
+          grep -q '(docs/agent-prompt.md)' README.md || { echo "::error::README must link docs/agent-prompt.md"; exit 1; }
+          # A copy in README is optional; if present it must match exactly.
+          if [ -n "$(extract README.md)" ]; then
+            diff <(extract docs/agent-prompt.md) <(extract README.md) || { echo "::error::README agent prompt differs from docs/agent-prompt.md"; exit 1; }
+          fi
 
       - name: spec status on this repository's roadmap
         env:

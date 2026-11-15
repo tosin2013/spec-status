@@ -2,7 +2,7 @@
 
 Paste this into an AI coding agent (for example Claude Code, Cursor or Codex) that runs in the repository you want reviewed. It installs the latest `spec` release, after asking you first, and then reviews the project's Spec Kit roadmap without changing any files. If `spec` itself misbehaves, it drafts a GitHub issue using the repository's issue forms and files it only with your approval.
 
-The same text is in the [README](../README.md#use-it-with-an-ai-coding-agent) and on each [release page](https://github.com/tosin2013/spec-status/releases).
+This file is the single copy; the [README](../README.md#use-it-with-an-ai-coding-agent) links here, and each [release page](https://github.com/tosin2013/spec-status/releases) includes the same text.
 
 <!-- agent-prompt:start -->
 ```text

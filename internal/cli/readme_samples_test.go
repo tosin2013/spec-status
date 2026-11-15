@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -51,7 +52,7 @@ func parseReadmeSamples(md string) ([]readmeSample, []string) {
 			info := strings.TrimSpace(strings.TrimPrefix(line, "```"))
 			if pending != nil {
 				if info != "" {
-					problems = append(problems, fmt.Sprintf("README line %d: label is followed by a fenced block with info string %q; samples use a bare fence", pending.labelLine, info))
+					problems = append(problems, fmt.Sprintf("line %d: label is followed by a fenced block with info string %q; samples use a bare fence", pending.labelLine, info))
 					pending = nil
 					continue
 				}
@@ -62,7 +63,7 @@ func parseReadmeSamples(md string) ([]readmeSample, []string) {
 					body.WriteByte('\n')
 				}
 				if j == len(lines) {
-					problems = append(problems, fmt.Sprintf("README line %d: sample block is not closed", n))
+					problems = append(problems, fmt.Sprintf("line %d: sample block is not closed", n))
 				}
 				pending.blockLine, pending.body = n, body.String()
 				samples = append(samples, *pending)
@@ -73,7 +74,7 @@ func parseReadmeSamples(md string) ([]readmeSample, []string) {
 			if info == "" && i+1 < len(lines) && !labeled[n] {
 				first := lines[i+1]
 				if strings.HasPrefix(first, "╭") || strings.HasPrefix(first, "spec: ") {
-					problems = append(problems, fmt.Sprintf("README line %d: block looks like spec output but has no %s … --> label", n, sampleLabelPrefix))
+					problems = append(problems, fmt.Sprintf("line %d: block looks like spec output but has no %s … --> label", n, sampleLabelPrefix))
 				}
 			}
 			continue
@@ -83,16 +84,16 @@ func parseReadmeSamples(md string) ([]readmeSample, []string) {
 		}
 		if strings.HasPrefix(trim, sampleLabelPrefix) {
 			if pending != nil {
-				problems = append(problems, fmt.Sprintf("README line %d: label has no fenced block after it", pending.labelLine))
+				problems = append(problems, fmt.Sprintf("line %d: label has no fenced block after it", pending.labelLine))
 			}
 			if !strings.HasSuffix(trim, "-->") {
-				problems = append(problems, fmt.Sprintf("README line %d: label is not closed with -->", n))
+				problems = append(problems, fmt.Sprintf("line %d: label is not closed with -->", n))
 				pending = nil
 				continue
 			}
 			cmd := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(trim, sampleLabelPrefix), "-->"))
 			if msg := checkSampleArgs(cmd); msg != "" {
-				problems = append(problems, fmt.Sprintf("README line %d: %s", n, msg))
+				problems = append(problems, fmt.Sprintf("line %d: %s", n, msg))
 				pending = nil
 				continue
 			}
@@ -100,12 +101,12 @@ func parseReadmeSamples(md string) ([]readmeSample, []string) {
 			continue
 		}
 		if pending != nil && trim != "" {
-			problems = append(problems, fmt.Sprintf("README line %d: label has no fenced block after it", pending.labelLine))
+			problems = append(problems, fmt.Sprintf("line %d: label has no fenced block after it", pending.labelLine))
 			pending = nil
 		}
 	}
 	if pending != nil {
-		problems = append(problems, fmt.Sprintf("README line %d: label has no fenced block after it", pending.labelLine))
+		problems = append(problems, fmt.Sprintf("line %d: label has no fenced block after it", pending.labelLine))
 	}
 	return samples, problems
 }
@@ -144,43 +145,69 @@ func checkSampleArgs(cmd string) string {
 	return ""
 }
 
+// sampleDocs are the files whose spec output samples must stay true:
+// README.md and every Markdown page under docs/, including subfolders
+// (feature 009, extended when usage detail moved to docs/usage.md).
+func sampleDocs(t *testing.T, repo string) []string {
+	t.Helper()
+	files := []string{filepath.Join(repo, "README.md")}
+	err := filepath.WalkDir(filepath.Join(repo, "docs"), func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(path, ".md") {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return files
+}
+
 func TestReadmeSamples(t *testing.T) {
 	repo, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	raw, err := os.ReadFile(filepath.Join(repo, "README.md"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	samples, problems := parseReadmeSamples(string(raw))
-	for _, p := range problems {
-		t.Error(p)
-	}
-	if len(samples) == 0 {
-		t.Fatal("README has no labeled spec output samples")
-	}
 	withBuild(t, resolveBuild("", "0.0.0-dev", "unknown", nil, false))
 	t.Setenv("COLUMNS", "80")
-	for _, s := range samples {
-		var out, errb bytes.Buffer
-		code := Run(s.args, repo, &out, &errb)
-		got := out.String()
-		switch {
-		case code == 2:
-			// Fatal runs print plain text to stderr only.
-			got = errb.String()
-		case errb.Len() != 0:
-			t.Errorf("README line %d (spec %s): unexpected stderr on exit %d: %q", s.blockLine, strings.Join(s.args, " "), code, errb.String())
+	total := 0
+	for _, path := range sampleDocs(t, repo) {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
 		}
-		if strings.TrimSpace(got) == "" || strings.TrimSpace(s.body) == "" {
-			// Never let an empty sample match empty output.
-			t.Errorf("README line %d (spec %s): empty sample or empty output (exit %d)", s.blockLine, strings.Join(s.args, " "), code)
-			continue
+		rel, _ := filepath.Rel(repo, path)
+		samples, problems := parseReadmeSamples(string(raw))
+		for _, p := range problems {
+			t.Errorf("%s %s", rel, p)
 		}
-		if got != s.body {
-			t.Errorf("README line %d (spec %s) differs from real output\n--- README\n%s--- spec output\n%s", s.blockLine, strings.Join(s.args, " "), s.body, got)
+		total += len(samples)
+		for _, s := range samples {
+			var out, errb bytes.Buffer
+			code := Run(s.args, repo, &out, &errb)
+			got := out.String()
+			switch {
+			case code == 2:
+				// Fatal runs print plain text to stderr only.
+				got = errb.String()
+			case errb.Len() != 0:
+				t.Errorf("%s line %d (spec %s): unexpected stderr on exit %d: %q", rel, s.blockLine, strings.Join(s.args, " "), code, errb.String())
+			}
+			if strings.TrimSpace(got) == "" || strings.TrimSpace(s.body) == "" {
+				// Never let an empty sample match empty output.
+				t.Errorf("%s line %d (spec %s): empty sample or empty output (exit %d)", rel, s.blockLine, strings.Join(s.args, " "), code)
+				continue
+			}
+			if got != s.body {
+				t.Errorf("%s line %d (spec %s) differs from real output\n--- document\n%s--- spec output\n%s", rel, s.blockLine, strings.Join(s.args, " "), s.body, got)
+			}
 		}
+	}
+	if total == 0 {
+		t.Fatal("no labeled spec output samples in README.md or docs/")
 	}
 }
 
@@ -208,5 +235,32 @@ func TestReadmeSampleGuards(t *testing.T) {
 	samples, problems := parseReadmeSamples(ok)
 	if len(problems) != 0 || len(samples) != 1 || samples[0].body != "╭──╮\n" || len(samples[0].args) != 6 {
 		t.Fatalf("valid sample: %+v %v", samples, problems)
+	}
+}
+
+// TestDocsInstallCommandsAreNotPinned keeps install commands in README.md and
+// docs/ on the latest release, so they cannot go stale between releases:
+// the version comes from the releases/latest redirect or go install @latest.
+// Any "cmd/spec@v<digit>" counts as a pinned install command, even in prose;
+// to name a version in prose, write it without the module path ("such as
+// @v0.2.0", "since v0.1.2"), as README.md and docs/usage.md do.
+func TestDocsInstallCommandsAreNotPinned(t *testing.T) {
+	repo, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+	pinnedV := regexp.MustCompile(`^\s*V=[0-9]`)
+	pinnedGo := regexp.MustCompile(`cmd/spec@v[0-9]`)
+	for _, path := range sampleDocs(t, repo) {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		rel, _ := filepath.Rel(repo, path)
+		for i, line := range strings.Split(string(raw), "\n") {
+			if pinnedV.MatchString(line) || pinnedGo.MatchString(line) {
+				t.Errorf("%s line %d pins a release in an install command; use the releases/latest lookup or @latest: %s", rel, i+1, strings.TrimSpace(line))
+			}
+		}
 	}
 }
