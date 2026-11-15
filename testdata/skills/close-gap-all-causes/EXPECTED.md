@@ -1,0 +1,9 @@
+# close-gap-all-causes
+
+- Command: /speckit.spec-status.close-gap
+- Signals: item 001 status=verified tasks=2/2 state=read; item 002 status=implemented tasks=2/2 state=read; item 003 status=planned tasks=2/2 state=read; item 004 status=implemented tasks=1/3 state=read; item 006 status=implemented tasks=2/2 state=read; diag SS_TASKS_DONE_STATUS_EARLY item=003; diag SS_STATUS_AHEAD_OF_TASKS item=004; diag SS_STAGE_FILE_MISSING item=005; diag SS_STATUS_UNKNOWN item=008; dep 006->004 state=unfinished; summary active=8 verified=1 blocked=1 human_review=0; outcome=report
+- Expected finding: recorded verified 1/8. Gap of 6 items, one cause each: 002 ready for debrief (implemented, 2/2 tasks, no dependency, no error); 003 tasks done, status early (`SS_TASKS_DONE_STATUS_EARLY`); 004 status ahead of tasks (`SS_STATUS_AHEAD_OF_TASKS`, 1/3); 005 missing artifacts (`SS_STAGE_FILE_MISSING` for plan.md and tasks.md); 008 unknown status (`done`, `SS_STATUS_UNKNOWN`); 006 blocked (depends on 004, which is not verified), even though its own evidence is complete. 007 is planned with no spec: not started, outside the gap.
+- Expected order of work: 002, 003, 004, 005, 008, 006 (006 only after 004 has been handled or skipped).
+- Evidence: items at .specify/memory/roadmap.md:1 (001), :7 (002), :13 (003), :19 (004), :25 (005), :31 (006), :38 (007), :43 (008)
+- Expected proposal: 002 first: run /speckit.roadmap.debrief for 002; record `verified` via /speckit.roadmap.write only if the debrief has no must-address finding and the user agrees. If the user declines, the next proposal is 003: confirm the work is really done, then advance to `implemented` (never `verified`) via /speckit.roadmap.write.
+- Must not: change any file before the user approves the specific change; propose `verified` for any item other than a ready-for-debrief one, or without a debrief; treat 006 as ready; redirect any dependency

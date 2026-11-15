@@ -2,7 +2,7 @@ schema_version: '1.0'
 extension:
   id: spec-status
   name: Spec Status
-  version: 0.2.0
+  version: 0.3.0
   description: >-
     Agent skills that read `spec status` output: review a roadmap (with pm,
     developer, qa and architect views), explain findings, reconcile recorded
@@ -36,6 +36,9 @@ provides:
     - name: speckit.spec-status.verify-readiness
       file: commands/speckit.spec-status.verify-readiness.md
       description: Check what evidence is still missing before an item can honestly be recorded verified
+    - name: speckit.spec-status.close-gap
+      file: commands/speckit.spec-status.close-gap.md
+      description: Explain a low recorded-verified share by cause and close the gap one approved change at a time
 hooks:
   after_implement:
     command: speckit.spec-status.reconcile

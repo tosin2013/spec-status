@@ -1,11 +1,11 @@
-# spec-status extension v0.2.0
+# spec-status extension v0.3.0
 
-**Agent skills that turn `spec status` output into next actions.** This [Spec Kit](https://github.com/github/spec-kit) extension adds five skills to your AI coding agent (Claude Code, Cursor, Codex, Copilot and the others Spec Kit supports). They read your roadmap through the read-only [`spec status`](https://github.com/tosin2013/spec-status) CLI, explain what it found, catch records that disagree with each other, and help you fix them. Every change is proposed and needs your approval.
+**Agent skills that turn `spec status` output into next actions.** This [Spec Kit](https://github.com/github/spec-kit) extension adds six skills to your AI coding agent (Claude Code, Cursor, Codex, Copilot and the others Spec Kit supports). They read your roadmap through the read-only [`spec status`](https://github.com/tosin2013/spec-status) CLI, explain what it found, catch records that disagree with each other, and help you fix them. Every change is proposed and needs your approval.
 
 - [Why use it](#why-use-it)
 - [Requirements](#requirements)
 - [Install, upgrade, remove](#install-upgrade-remove)
-- [The five skills](#the-five-skills)
+- [The six skills](#the-six-skills)
 - [Roles: pm, developer, qa, architect](#roles)
 - [How changes are made (approval)](#how-changes-are-made)
 - [Partner extensions](#partner-extensions)
@@ -56,14 +56,14 @@ specify extension add --dev /path/to/spec-status/extensions/spec-status
 
 `--dev` copies the folder at install time, so after changing it, run the command again with `--force`.
 
-Check that it worked: your agent's skill list should show five `speckit-spec-status-*` skills, and `specify extension list` should list `spec-status`.
+Check that it worked: your agent's skill list should show six `speckit-spec-status-*` skills, and `specify extension list` should list `spec-status`.
 
 - **Upgrade:** run the `add` command again with the new version and `--force`.
 - **Remove:** `specify extension remove spec-status`. Nothing else in your project changes.
 
 The extension also registers one **optional** hook. After `/speckit-implement`, Spec Kit offers to run `reconcile`, and you can decline.
 
-## The five skills
+## The six skills
 
 Start with **review**. It routes every finding to the skill that can deal with it.
 
@@ -74,6 +74,7 @@ Start with **review**. It routes every finding to the skill that can deal with i
 | `/speckit.spec-status.explain [SS_CODE \| item]` | A diagnostic code is unfamiliar | Meaning, severity, when it is fatal, typical cause, the fixing command, and where it occurs in your project | Nothing |
 | `/speckit.spec-status.unblock [item]` | Work is blocked | Blockers in the order to clear them (depended-on items first), what each needs to reach `verified`, and a question for each superseded dependency | Dependency or supersession edits you approve, through `/speckit.roadmap.write` |
 | `/speckit.spec-status.verify-readiness [item]` | You are about to record an item `verified` | A consistency check covering tasks, dependencies, error diagnostics and spec files, with every gap and its fix | Nothing. It never records a status |
+| `/speckit.spec-status.close-gap [item]` | The recorded-verified share is low and you want to know why, and work through it | Every active item that is not recorded `verified`, under one cause each (ready for debrief, tasks done early, status ahead of tasks, missing artifacts, unknown status, blocked), with evidence and an order of work; then one proposal at a time | Only what you approve, one change at a time, through the named command, then re-checked. It proposes `verified` only after a debrief and your agreement |
 
 **What reconcile detects:**
 - **Tasks all checked, status early:** every task is checked but the status is `planned`, `specced` or `in-progress`.
@@ -83,6 +84,8 @@ Start with **review**. It routes every finding to the skill that can deal with i
 - **Unknown status word:** for example `done`. It suggests the highest status the evidence supports, never `verified`.
 - **Missing link target:** a checked task links to a file that is missing.
 
+**How close-gap works.** It answers "why is recorded verified only 2 of 12?" before changing anything. Each active item that is not recorded `verified` gets exactly one cause, checked in this order: unknown status, missing artifacts, status ahead of tasks, tasks done but status early, blocked, ready for debrief. Blocked comes before ready because a dependency counts as satisfied only when it is recorded `verified`, so an item waiting on one cannot honestly be recorded `verified` yet. Planned items without a spec are listed apart as not started. Then it works in this order: ready for debrief, tasks done early, ahead of tasks, missing artifacts, unknown status, blocked (after their dependency). For each item it proposes one change with its evidence and command, waits for your yes, applies it, re-runs `spec status` and reports whether the change took effect and the new recorded-verified figure. "Skip" moves on; "stop" ends with a summary. It never records `verified` without a debrief, never redirects a superseded dependency, and never treats `spec inventory` output as evidence.
+
 ## Roles
 
 `review` can take a role. The role changes **what comes first** and which skills it recommends first. It never changes the facts: every role sees the same counts, findings and citations.
@@ -90,7 +93,7 @@ Start with **review**. It routes every finding to the skill that can deal with i
 | Role | Leads with | Recommends first |
 |---|---|---|
 | (none) | progress, blockers, human review, diagnostics, ready to start | reconcile, unblock |
-| `as pm` | progress, blockers, ready to start | unblock, reconcile |
+| `as pm` | verification gap (causes, see close-gap), progress, blockers, ready to start | close-gap, unblock, reconcile |
 | `as developer` | ready to start, unchecked tasks, missing spec/plan/tasks | reconcile, `/speckit-tasks`, `/speckit-implement` |
 | `as qa` | evidence gaps: `implemented`/`verified` items with unchecked tasks, unread task files, unverified dependencies or errors | verify-readiness, `/speckit.roadmap.debrief`, `/speckit-analyze` |
 | `as architect` | dependency chains, supersession, human review, governing constraints | unblock, explain, `/speckit.roadmap.sync` |
@@ -129,7 +132,7 @@ Review a community extension yourself before installing it. Exact versions and c
 
 These describe how the skills handle the example projects in [`testdata/skills/`](https://github.com/tosin2013/spec-status/tree/main/testdata/skills) of this repository. The facts come from real `spec status` output; the skill steps are paraphrased.
 
-**1. Status ahead of tasks** (`implemented-unchecked`). Item 001 "Import data" is `implemented`, but `specs/001-import/tasks.md` has 1 of 3 tasks checked; lines 4 and 5 are unchecked. `spec status` reports no diagnostics.
+**1. Status ahead of tasks** (`implemented-unchecked`). Item 001 "Import data" is `implemented`, but `specs/001-import/tasks.md` has 1 of 3 tasks checked; lines 4 and 5 are unchecked. `spec status` v0.3.0 and later reports `SS_STATUS_AHEAD_OF_TASKS` (a warning); older versions report no diagnostic, and reconcile works it out from the counts.
 1. `reconcile` reports a "status ahead of tasks" mismatch, citing the roadmap line and the two unchecked boxes.
 2. It asks which is true: the work is unfinished, so lower 001 to `in-progress` via `/speckit.roadmap.write`; or the boxes are stale, so finish or tick the tasks via `/speckit-implement`.
 3. Nothing changes until you choose. Then it applies your choice and re-runs `spec status`.
@@ -148,6 +151,11 @@ These describe how the skills handle the example projects in [`testdata/skills/`
 - `as developer` leads with ready work and unchecked tasks, and notes that 003 has every task checked but is still `planned`.
 - `as qa` leads with 002: recorded `verified` with 1 of 2 tasks checked.
 - `as architect` leads with the dependency chain 004 → 005 and the supersession 006 → 007.
+
+**5. Closing a verification gap** (`close-gap-all-causes`). Only 1 of 8 active items is recorded `verified`; each of the other seven shows a different reason.
+1. `close-gap` reports `recorded verified 1/8`, then: 002 ready for debrief (implemented, all tasks checked, no dependency); 003 tasks done, status early (`SS_TASKS_DONE_STATUS_EARLY`); 004 status ahead of tasks (1 of 3, `SS_STATUS_AHEAD_OF_TASKS`); 005 missing plan and tasks (`SS_STAGE_FILE_MISSING`); 008 unknown status `done`; 006 blocked on 004, although its own tasks are all checked. 007 is planned with no spec, so it is not part of the gap.
+2. Order of work: 002, 003, 004, 005, 008, 006. Nothing has changed yet.
+3. First proposal: run `/speckit.roadmap.debrief` for 002, and record `verified` only if the debrief finds nothing that must be addressed and you agree. Decline, and it moves to 003 and asks whether the work is really done before proposing `implemented`.
 
 ## Troubleshooting
 
@@ -171,8 +179,8 @@ These describe how the skills handle the example projects in [`testdata/skills/`
 ## How it is built and tested
 
 The extension is part of [spec-status](https://github.com/tosin2013/spec-status) (feature 005, `specs/005-agent-skills/`):
-- **Repository tests** (`internal/extension`) check that the reference matches `spec`'s diagnostic and JSON contracts, that all five commands exist with the required sections, that every command link points to a real command, that roles and partners are well formed, and that the 12 example projects still produce the signals they expect.
-- **Install check:** `scripts/check-extension-install.sh` installs the extension into a throwaway project and checks that exactly five skills appear.
+- **Repository tests** (`internal/extension`) check that the reference matches `spec`'s diagnostic and JSON contracts, that all six commands exist with the required sections, that every command link points to a real command, that roles and partners are well formed, and that the 12 example projects still produce the signals they expect.
+- **Install check:** `scripts/check-extension-install.sh` installs the extension into a throwaway project and checks that exactly six skills appear.
 - **Agent runs:** before release, an agent ran the installed skills on every example project without approving any change. The facts matched, and no file was modified.
 
 Release archives carry a SHA-256 checksum. The extension version always equals the spec-status release version.

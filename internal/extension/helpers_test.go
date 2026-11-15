@@ -216,6 +216,7 @@ var (
 		"speckit.spec-status.reconcile",
 		"speckit.spec-status.unblock",
 		"speckit.spec-status.verify-readiness",
+		"speckit.spec-status.close-gap",
 	}
 	allowedLinks = func() map[string]bool {
 		m := map[string]bool{}

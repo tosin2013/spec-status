@@ -12,7 +12,7 @@ import (
 var reviewSections = []string{
 	"progress", "blockers", "human-review", "diagnostics", "ready-to-start",
 	"unchecked-tasks", "missing-artifacts", "evidence-gaps",
-	"dependency-chains", "supersession", "constraints",
+	"dependency-chains", "supersession", "constraints", "verification-gap",
 }
 
 var roleNames = []string{"default", "pm", "developer", "qa", "architect"}

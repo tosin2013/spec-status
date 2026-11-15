@@ -341,7 +341,7 @@ RULES
 
 ### As Spec Kit skills
 
-If the project uses [Spec Kit](https://github.com/github/spec-kit) 1.2.0 or newer, install the **spec-status extension**. It adds five skills to your AI coding agent:
+If the project uses [Spec Kit](https://github.com/github/spec-kit) 1.2.0 or newer, install the **spec-status extension**. It adds six skills to your AI coding agent:
 
 | Skill | What it does |
 |---|---|
@@ -350,6 +350,7 @@ If the project uses [Spec Kit](https://github.com/github/spec-kit) 1.2.0 or newe
 | `/speckit.spec-status.explain [code]` | Explains any `SS_*` finding and the command that fixes it |
 | `/speckit.spec-status.unblock` | Lists blockers and superseded dependencies in the order to clear them |
 | `/speckit.spec-status.verify-readiness [item]` | Lists the evidence still missing before an item can honestly be recorded `verified` |
+| `/speckit.spec-status.close-gap [item]` | Explains a low recorded-verified share item by item, by cause, then works through it one approved change at a time (`verified` only after a debrief and your agreement) |
 
 The skills never change a file on their own. Each change is proposed, applied through a Spec Kit command such as `/speckit.roadmap.write` only after you approve it, and then confirmed by running `spec status` again. When the project has them installed, the roles also recommend partner extensions:
 - architect: arch-governance (ADRs);

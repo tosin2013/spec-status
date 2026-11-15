@@ -41,6 +41,7 @@ Give the user an accurate, short picture of the roadmap: what is recorded verifi
    - `dependency-chains`: for each blocked item, follow `dependencies` back to the first item that is not satisfied.
    - `supersession`: items with `superseded_by`, their successors, and `supersession.valid` false.
    - `constraints`: each affected item's `Governed by` line from the roadmap (cite it).
+   - `verification-gap`: active items not recorded `verified`, each counted under one cause using the classification in `/speckit.spec-status.close-gap` (ready for debrief, tasks done early, status ahead of tasks, missing artifacts, unknown status, blocked); list not-started planned items apart.
 5. Order the sections by the selected role's "Leads with" list, then the remaining sections in the order above. Keep every fact identical across roles.
 6. Give every finding one **primary** follow-up (see Follow-ups), and at most one secondary: a status that disagrees with tasks, files or dependencies → reconcile (primary), with verify-readiness as secondary when the item is recorded `implemented` or `verified`; a blocker or human-review dependency → unblock; an item the user wants to record `verified` with no mismatch → verify-readiness; a diagnostic the user may not understand → explain.
 7. Partner extensions (only for roles that have rows in `roles.md` "Partners"; `default` and `pm` have none, so they show no partner lines at all): read `.specify/extensions/.registry` (JSON). For each partner row in `roles.md` for the selected role, if `extensions.<id>.enabled` is true, recommend only those of its commands that appear in `registered_commands`, an object keyed by agent integration (for example `{"claude": [...]}`), so use the current agent's list or any list. Give the row's "Adds" sentence. If a role's partner is not installed, mention it once with its install command and requirements, plus the "not vetted" note for community partners. If the registry is missing or unreadable, do both: say once that installed partners could not be detected, **and** give each of the role's partners its one install hint. Never install or run a partner.
@@ -52,5 +53,6 @@ Give the user an accurate, short picture of the roadmap: what is recorded verifi
 - `/speckit.spec-status.unblock`: blockers and dependencies on superseded items.
 - `/speckit.spec-status.explain`: what a diagnostic code means and how to fix it.
 - `/speckit.spec-status.verify-readiness`: before recording an item `verified`, or for any evidence gap.
+- `/speckit.spec-status.close-gap`: the recorded-verified share is low and the user wants to work through it, one approved change at a time.
 - `/speckit-specify`, `/speckit-plan`, `/speckit-tasks`, `/speckit-implement`: create or finish the work for an item.
 - `/speckit.roadmap.sync`: check the roadmap against the spec folders on disk.
