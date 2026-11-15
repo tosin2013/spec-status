@@ -25,7 +25,7 @@ The development CLI uses Cobra for commands, help, and flags. The owner approved
 | `--historical` | Human-text view. Items outside the active set, including deferred, abandoned, and valid supersession |
 | `--explain` | Human text only. Under each shown item, print mechanical reasons and file:line evidence. Does not filter items by itself |
 
-Working identity commands `spec version` and `spec --version` report CLI version, commit, Go version, and target; development builds are clearly labelled. Version and help are metadata operations, not a roadmap report. Mixing help or version with status, inventory or JSON is an invocation error. `--json` requires the `status` or `inventory` command. The development build is not a release.
+Working identity commands `spec version` and `spec --version` report CLI version, commit, Go version, and target; development builds are clearly labelled. Version and help are metadata operations, not a roadmap report. Mixing help or version with status, inventory or JSON is an invocation error. `--json=false` (or another false value) means text mode for every outcome, including invocation errors. An empty `--root` or `--roadmap` value is an invocation error (`--root needs a non-empty value`). Status invocation-error JSON carries the requested `--fail-on` when its value is valid, else `error` (feature 008). `--json` requires the `status` or `inventory` command. The development build is not a release.
 
 No quarter option exists. `--as-of` is not part of the interface; the owner rejected it under DC-04 (D-2026-11-11-02). No inferred date or inert compatibility flag. `--format=json` is not an approved alias. No write/agent/sync/Git/network option belongs to status.
 

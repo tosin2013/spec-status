@@ -2,6 +2,7 @@ package status
 
 import (
 	"io"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -311,6 +312,12 @@ func summaryLines(p *painter, s *Summary, roadmap string, inner int, build strin
 	lines = append(lines, countLine(p, "human review", reviewValue, reviewKind, inner)...)
 	ctx := "items " + itoa(s.TotalItems) + "  active " + itoa(s.ActiveItems) + "  historical " + itoa(s.TotalItems-s.ActiveItems) + "  superseded " + itoa(s.SupersededItems)
 	lines = append(lines, wrapText(ctx, inner)...)
+	// Feature 008: the per-status counts JSON already carries, in the same
+	// (byte) key order, and invalid supersessions when there are any.
+	lines = append(lines, wrapText(statusesLine(s.StatusCounts), inner)...)
+	if s.InvalidSupersessionItems > 0 {
+		lines = append(lines, wrapText("invalid supersession "+itoa(s.InvalidSupersessionItems), inner)...)
+	}
 	scope := "task files read " + itoa(s.Tasks.FilesRead) + "  missing " + itoa(s.Tasks.FilesMissing) + "  skipped " + itoa(s.Tasks.FilesSkipped)
 	lines = append(lines, wrapText(scope, inner)...)
 	if s.TotalItems == 0 {
@@ -320,6 +327,22 @@ func summaryLines(p *painter, s *Summary, roadmap string, inner int, build strin
 	}
 	lines = append(lines, wrapText("source "+sanitizeTerminal(roadmap), inner)...)
 	return lines
+}
+
+func statusesLine(counts map[string]int) string {
+	if len(counts) == 0 {
+		return "statuses none"
+	}
+	keys := make([]string, 0, len(counts))
+	for k := range counts {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	parts := make([]string, 0, len(keys))
+	for _, k := range keys {
+		parts = append(parts, sanitizeTerminal(k)+" "+itoa(counts[k]))
+	}
+	return "statuses " + strings.Join(parts, "  ")
 }
 
 func metricLines(p *painter, label string, num, den int, percent, kind string, inner int) []string {
@@ -606,12 +629,25 @@ func writeItemRow(b *strings.Builder, p *painter, it Item, idW, statusW, scopeW,
 }
 
 func writeRelations(b *strings.Builder, p *painter, it Item, width int) {
-	if it.SupersededBy != "" {
-		rel := "superseded-by " + sanitizeTerminal(it.SupersededBy)
+	invalid := it.Supersession.Supplied && it.Supersession.Valid != nil && !*it.Supersession.Valid
+	if it.SupersededBy != "" || invalid {
+		ref := it.SupersededBy
+		if ref == "" {
+			ref = it.Supersession.RawReference
+		}
+		rel := "superseded-by " + sanitizeTerminal(ref)
 		if it.Supersession.Valid != nil && *it.Supersession.Valid && it.Supersession.TerminalID != "" && it.Supersession.TerminalID != it.SupersededBy {
 			rel += " terminal " + sanitizeTerminal(it.Supersession.TerminalID)
 		}
-		b.WriteString("  " + p.paint(truncate(rel, width-2), "historical") + "\n")
+		kind := "historical"
+		if invalid {
+			rel += " (invalid)"
+			kind = "warning"
+		}
+		b.WriteString("  " + p.paint(truncate(rel, width-2), kind) + "\n")
+	}
+	if it.TasksSharedWith != "" {
+		b.WriteString("  " + truncate("tasks shared with "+sanitizeTerminal(it.TasksSharedWith)+"; counted once", width-2) + "\n")
 	}
 	if len(it.Dependencies) == 0 {
 		return

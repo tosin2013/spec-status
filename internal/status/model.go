@@ -120,6 +120,10 @@ type Item struct {
 	Supersession Supersession
 	Dependencies []Dependency
 	Tasks        ItemTasks
+	// TasksSharedWith is the ID of an earlier item that read the same tasks
+	// file, which the summary counts once. Human text only; not in JSON
+	// (feature 008).
+	TasksSharedWith string
 }
 
 type Supersession struct {

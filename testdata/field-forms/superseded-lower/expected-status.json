@@ -1,0 +1,20 @@
+{
+  "note": "Hand-written expectation (feature 008, contracts/changes.md §6); not generated from spec output.",
+  "exit": 0,
+  "items": {
+    "001": {
+      "superseded_by": "002",
+      "dependencies": []
+    }
+  },
+  "diagnostics": [
+    {
+      "item": "001",
+      "code": "SS_SPEC_REFERENCE_MISSING"
+    },
+    {
+      "item": "002",
+      "code": "SS_SPEC_REFERENCE_MISSING"
+    }
+  ]
+}

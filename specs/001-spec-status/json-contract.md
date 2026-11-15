@@ -66,7 +66,7 @@ Supersession raw_reference, duplicate fields and malformed values must be preser
 
 Diagnostic fields: `code`, `severity` (info/warning/error), `message`, `source` (`{path,line}` or null), `item_id` nullable, `related` array of safe source references. Codes carry semantics; messages are stable generic human explanations, not the only machine contract. `related` may show original dependency/replacement locations, never infer scope equivalence. A malformed source with no physical line uses null source or null line; do not fabricate line 1.
 
-Sorting: path (null first, forward-slash normalized), line (null before positive), code, item_id (null first), safe related-reference ordering, then message. Status map keys lexicographic by raw UTF-8 bytes; items remain occurrence document order; dependency arrays preserve declared order. Exact tie-break behavior and cross-platform path-case treatment require fixtures. Do not rely on unspecified Go map iteration.
+Sorting: path (null first, forward-slash normalized), line (null before positive), code, item_id (null first), safe related-reference ordering, then message. Status map keys lexicographic by raw UTF-8 bytes; items remain occurrence document order; dependency arrays preserve declared order, with each ID listed once (a repeated ID keeps its first position; feature 008). Exact tie-break behavior and cross-platform path-case treatment require fixtures. Do not rely on unspecified Go map iteration.
 
 ## Canonical serialization and rounding
 

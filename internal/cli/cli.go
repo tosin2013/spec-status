@@ -14,6 +14,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -56,10 +57,10 @@ func Run(args []string, cwd string, stdout, stderr io.Writer) int {
 	defer completionDebugMu.Unlock()
 	restore, hideErr := hideCompletionDebugFile()
 	if hideErr != nil {
-		return failFor(args, countFlag(args, "--json") > 0, "SS_INVOCATION_INVALID", "Completion debug file setting could not be ignored.", stdout, stderr)
+		return failFor(args, jsonRequested(args), "SS_INVOCATION_INVALID", "Completion debug file setting could not be ignored.", stdout, stderr)
 	}
 	defer restore()
-	jsonMode := countFlag(args, "--json") > 0
+	jsonMode := jsonRequested(args)
 	if msg := precheck(args); msg != "" {
 		return failFor(args, jsonMode, "SS_INVOCATION_INVALID", msg, stdout, stderr)
 	}
@@ -372,6 +373,10 @@ func (s *singleString) Set(v string) error {
 		return fmt.Errorf("option --%s is repeated", s.name)
 	}
 	switch s.name {
+	case "root", "roadmap":
+		if v == "" {
+			return fmt.Errorf("--%s needs a non-empty value", s.name)
+		}
 	case "fail-on":
 		switch v {
 		case "info", "warning", "error", "none":
@@ -423,7 +428,7 @@ func precheck(args []string) string {
 	if flag := repeated(args); flag != "" {
 		return "Option " + flag + " is repeated."
 	}
-	jsonMode := countFlag(args, "--json") > 0
+	jsonMode := jsonRequested(args)
 	help := countFlag(args, "--help")+countFlag(args, "-h") > 0
 	version := countFlag(args, "--version")+countFlag(args, "-V") > 0
 	statusCmd := hasCommand(args, "status")
@@ -510,7 +515,7 @@ func failFor(args []string, jsonMode bool, code, message string, stdout, stderr 
 		fmt.Fprint(stdout, string(status.InventoryInvocationJSON(requestedFailOn(args), message)))
 		return 2
 	}
-	return fail(jsonMode, code, message, stdout, stderr)
+	return fail(jsonMode, requestedFailOn(args), code, message, stdout, stderr)
 }
 
 // valueFlags take a separate value token when written without "=", the way
@@ -569,26 +574,89 @@ func requestedFailOn(args []string) string {
 	return got
 }
 
-func fail(jsonMode bool, code, message string, stdout, stderr io.Writer) int {
+// jsonRequested reports whether the last --json flag asks for JSON:
+// "--json" and true values do, "--json=false" and false values do not, and
+// an unparsable value does not (Cobra then reports it as plain text). A
+// --root value spelled --json is skipped by walkArgs (feature 008).
+func jsonRequested(args []string) bool {
+	on := false
+	walkArgs(args, func(name, value string, hasValue bool) {
+		if name != "--json" {
+			return
+		}
+		if !hasValue {
+			on = true
+			return
+		}
+		b, err := strconv.ParseBool(value)
+		on = err == nil && b
+	})
+	return on
+}
+
+func fail(jsonMode bool, failOn, code, message string, stdout, stderr io.Writer) int {
 	if jsonMode {
-		fmt.Fprint(stdout, invocationJSON(code, message))
+		fmt.Fprint(stdout, invocationJSON(failOn, code, message))
 		return 2
 	}
 	fmt.Fprintf(stderr, "spec: %s: %s\n", code, message)
 	return 2
 }
 
-func invocationJSON(code, message string) string {
-	msg := jsonEscape(message)
-	return `{"schema_version":"1.0","outcome":"fatal","complete":false,"source":{"roadmap":null,"input_format":null},"configuration":{"fail_on":"error","dependency_policy":"verified","task_scope":"unique_linked_task_files"},"summary":null,"items":[],"diagnostics":[{"code":"` + code + `","severity":"error","message":"` + msg + `","source":null,"item_id":null,"related":[]}],"error":{"code":"` + code + `","message":"` + msg + `","source":null}}` + "\n"
-}
-
-func jsonEscape(s string) string {
-	b, err := json.Marshal(s)
-	if err != nil || len(b) < 2 {
-		return "invalid message"
+// invocationJSON renders the status-shaped (schema 1.0) document for an
+// invocation error. It is built with encoding/json, never by joining
+// strings, so no value can break out of its quotes (CodeQL "potentially
+// unsafe quoting"). Struct field order is the key order.
+func invocationJSON(failOn, code, message string) string {
+	if failOn == "" {
+		failOn = "error"
 	}
-	return string(b[1 : len(b)-1])
+	type source struct {
+		Roadmap     any `json:"roadmap"`
+		InputFormat any `json:"input_format"`
+	}
+	type config struct {
+		FailOn           string `json:"fail_on"`
+		DependencyPolicy string `json:"dependency_policy"`
+		TaskScope        string `json:"task_scope"`
+	}
+	type diag struct {
+		Code     string `json:"code"`
+		Severity string `json:"severity"`
+		Message  string `json:"message"`
+		Source   any    `json:"source"`
+		ItemID   any    `json:"item_id"`
+		Related  []any  `json:"related"`
+	}
+	type errDoc struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		Source  any    `json:"source"`
+	}
+	doc := struct {
+		SchemaVersion string `json:"schema_version"`
+		Outcome       string `json:"outcome"`
+		Complete      bool   `json:"complete"`
+		Source        source `json:"source"`
+		Configuration config `json:"configuration"`
+		Summary       any    `json:"summary"`
+		Items         []any  `json:"items"`
+		Diagnostics   []diag `json:"diagnostics"`
+		Error         errDoc `json:"error"`
+	}{
+		SchemaVersion: "1.0",
+		Outcome:       "fatal",
+		Source:        source{},
+		Configuration: config{FailOn: failOn, DependencyPolicy: "verified", TaskScope: "unique_linked_task_files"},
+		Items:         []any{},
+		Diagnostics:   []diag{{Code: code, Severity: "error", Message: message, Related: []any{}}},
+		Error:         errDoc{Code: code, Message: message},
+	}
+	b, err := json.Marshal(doc)
+	if err != nil {
+		return `{"schema_version":"1.0","outcome":"fatal","complete":false,"source":{"roadmap":null,"input_format":null},"configuration":{"fail_on":"error","dependency_policy":"verified","task_scope":"unique_linked_task_files"},"summary":null,"items":[],"diagnostics":[{"code":"SS_INVOCATION_INVALID","severity":"error","message":"Invocation error could not be serialized.","source":null,"item_id":null,"related":[]}],"error":{"code":"SS_INVOCATION_INVALID","message":"Invocation error could not be serialized.","source":null}}` + "\n"
+	}
+	return string(b) + "\n"
 }
 
 // rootLong is the root help text; its first sentence of the second paragraph
