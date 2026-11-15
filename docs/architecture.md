@@ -71,21 +71,21 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-  main[cmd/spec/main.go]
+  main["cmd/spec/main.go"]
   subgraph cli [internal/cli]
-    cmd[Cobra commands: status, inventory, version, completion]
-    pre[flag prechecks and invocation errors]
+    cmd["Cobra commands: status, inventory, version, completion"]
+    pre["flag prechecks and invocation errors"]
   end
   subgraph status [internal/status]
-    run[run.go: root discovery, roadmap resolution, recognition]
-    parse[parse.go: roadmap and tasks.md parser]
-    analyze[analyze.go: report model, diagnostics]
-    inv[inventory.go: feature folders]
-    render[render.go and inventory_json.go: JSON]
-    style[style.go: human text]
+    run["run.go: root discovery, roadmap resolution, recognition"]
+    parse["parse.go: roadmap and tasks.md parser"]
+    analyze["analyze.go: report model, diagnostics"]
+    inv["inventory.go: feature folders"]
+    render["render.go and inventory_json.go: JSON"]
+    txt["style.go: human text"]
   end
   subgraph safeio [internal/safeio]
-    fs[confined reads and directory listing]
+    fs["confined reads and directory listing"]
   end
   main --> cmd
   cmd --> pre
@@ -98,9 +98,9 @@ flowchart TB
   inv --> fs
   inv --> parse
   analyze --> render
-  analyze --> style
+  analyze --> txt
   inv --> render
-  inv --> style
+  inv --> txt
 ```
 
 | Component | Rule it keeps |
@@ -131,7 +131,7 @@ sequenceDiagram
   S->>F: read roadmap, then each linked tasks.md
   F-->>S: bytes, or a confinement error code
   S-->>C: Report (items, summary, diagnostics)
-  C-->>U: one JSON document; exit 0, 1 or 2
+  C-->>U: one JSON document, then exit 0, 1 or 2
 ```
 
 Exit 0 means no finding reached `--fail-on`. Exit 1 means one did. Exit 2 means a fatal or invocation error, and `--fail-on none` never hides it. `spec inventory` follows the same path with `EvaluateInventory` and its own JSON document.
@@ -145,14 +145,14 @@ Exit 0 means no finding reached `--fail-on`. Exit 1 means one did. Exit 2 means 
 ```mermaid
 flowchart LR
   owner([Owner]) -->|push tag vX.Y.Z on main| rel[release.yml]
-  rel --> verify[verify: SemVer, on main, no release yet, extension version = tag]
-  verify --> ci[ci.yml tests]
-  ci --> build[build: linux/amd64, darwin/arm64 tar.gz, extension zip, checksums]
+  rel --> verify["verify: SemVer, on main, no release yet, extension version = tag"]
+  verify --> ci["ci.yml tests"]
+  ci --> build["build: linux/amd64, darwin/arm64 tar.gz, extension zip, checksums"]
   build --> smoke[smoke tests on each runner]
   smoke --> draft[draft GitHub release]
   owner -->|review and publish| draft
-  draft --> users([Users: download and verify checksum, or go install])
-  draft --> sk([Spec Kit: specify extension add --from the zip])
+  draft --> users(["Users: download and verify checksum, or go install"])
+  draft --> sk(["Spec Kit: specify extension add from the zip"])
 ```
 
 | Channel | What users get | Build identity |

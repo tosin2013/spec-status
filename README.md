@@ -15,6 +15,8 @@ It does **not**:
 
 A file name does not prove the bytes match that template. A missing roadmap stops with `SS_ROADMAP_UNAVAILABLE`. A layout the reader will not guess, such as an item-like table, stops with `SS_LAYOUT_UNSUPPORTED`. A file with neither an item heading nor the template's `## Planned Specs` heading stops with `SS_ROADMAP_UNRECOGNIZED`; a file with that heading and no items is reported as explicitly empty.
 
+**New here?** Start with the ten-minute [getting started guide](docs/getting-started.md).
+
 ## Contents
 
 - [Quick start](#quick-start)

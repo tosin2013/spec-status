@@ -1,6 +1,6 @@
 # Development
 
-How to build and test `spec`, what CI checks, and where the project's design documents are. The system overview is in [architecture.md](architecture.md).
+How to build and test `spec`, what CI checks, and where the project's design documents are. The system overview is in [architecture.md](architecture.md); a first-time walkthrough is in [getting-started.md](getting-started.md).
 
 ## Build from source
 
