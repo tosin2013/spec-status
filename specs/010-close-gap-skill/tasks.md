@@ -85,7 +85,7 @@ description: "Tasks for feature 010: close-gap skill"
 - [X] T019 Add a row for feature 010 to the "Implementation record" table in `specs/001-spec-status/tasks.md`, and update the feature-005 row's skill count if it states five
 - [X] T020 Draft the v0.3.0 release-note entry in the PR description (close-gap skill; extension 0.3.0 with six skills; pm review's verification-gap section)
 - [X] T021 Doomer review on the change (prepare before editing, submit, answer every Quick lead, finish) before handing off the PR
-- [ ] T022 Propose roadmap 013 `specced` → `implemented` through `/speckit.roadmap.write` after the owner approves; `verified` only after 014 is recorded verified and the v0.3.0 release checks pass
+- [X] T022 Propose roadmap 013 `specced` → `implemented` through `/speckit.roadmap.write` after the owner approves; `verified` only after 014 is recorded verified and the v0.3.0 release checks pass
 
 ---
 
