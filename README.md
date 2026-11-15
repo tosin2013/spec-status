@@ -37,6 +37,7 @@ Install the latest release binary. You do not need Go, a git checkout, or root. 
 
 ```sh
 V=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/tosin2013/spec-status/releases/latest | sed 's#.*/tag/v##')   # latest release, without the v
+printf '%s\n' "$V" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || echo "Could not look up the latest version (got '$V'); set it yourself, for example V=0.2.0" >&2
 OS_ARCH=linux_amd64          # or darwin_arm64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
@@ -215,6 +216,7 @@ You need neither root nor Go. The first line looks up the latest release; to ins
 
 ```sh
 V=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/tosin2013/spec-status/releases/latest | sed 's#.*/tag/v##')   # latest release, without the v
+printf '%s\n' "$V" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || echo "Could not look up the latest version (got '$V'); set it yourself, for example V=0.2.0" >&2
 OS_ARCH=linux_amd64          # or darwin_arm64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
