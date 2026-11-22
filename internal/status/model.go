@@ -153,6 +153,19 @@ type ItemTasks struct {
 	Source  string
 	State   string
 	Checks  []TaskCheck
+	// Phases lists the tasks file's `## Phase …` sections (feature 011). Set
+	// only when the file was read.
+	Phases []Phase
+}
+
+// Phase is the recorded checkboxes under one `## Phase …` heading of a tasks
+// file (feature 011). It says nothing about status or verification.
+type Phase struct {
+	Heading string
+	Line    int
+	Story   *int
+	Checked int
+	Total   int
 }
 
 // TaskCheck is text-only evidence. It is not part of the JSON schema.

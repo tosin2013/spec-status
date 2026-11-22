@@ -3,7 +3,7 @@
     "speckit-roadmap@v0.1.0"
   ],
   "origin": "upstream-generated",
-  "counted_by": "implementer (Claude Code), hand count from the snapshot (roadmap 1.1.0 written with speckit.roadmap.write), 2026-11-07",
+  "counted_by": "implementer (Claude Code), hand count from the snapshot (roadmap 1.1.0 written with speckit.roadmap.write), 2026-11-07; phases (feature 011) hand-counted 2026-11-21 from each tasks.md: checkbox lines between ## Phase headings and the next level-1/2 heading, fenced lines excluded, headings copied from the file",
   "outcome": "report",
   "exit": 0,
   "items": [
@@ -14,7 +14,8 @@
       "dependencies": [],
       "tasks": {
         "checked": 0,
-        "total": 0
+        "total": 0,
+        "phases": []
       },
       "spec_dir": "specs/001-spec-status",
       "superseded_by": null
