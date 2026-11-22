@@ -160,22 +160,3 @@ func TestInventoryTaskTotalLimitIsFatal(t *testing.T) {
 		t.Fatalf("task total limit: %+v", rep.Fatal)
 	}
 }
-
-func TestInventoryDeterminism(t *testing.T) {
-	for _, name := range inventoryFixtures {
-		root := twoModeRoot(name)
-		a, b := EvaluateInventory(InventoryOption{Root: root}), EvaluateInventory(InventoryOption{Root: root})
-		ja, jb := string(InventoryJSON(a)), string(InventoryJSON(b))
-		if ja != jb {
-			t.Fatalf("%s: JSON differs between runs", name)
-		}
-		ta, tb := InventoryText(a, View{Width: 80}), InventoryText(b, View{Width: 80})
-		if ta != tb {
-			t.Fatalf("%s: text differs between runs", name)
-		}
-		abs, _ := filepath.Abs(root)
-		if strings.Contains(ja, abs) || strings.Contains(ta, abs) || strings.Contains(ja, "as_of") || strings.Contains(ja, "timestamp\":") {
-			t.Fatalf("%s: absolute path or timestamp in output", name)
-		}
-	}
-}

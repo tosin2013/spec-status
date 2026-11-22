@@ -274,7 +274,7 @@ func TestDeferredAreNotActive(t *testing.T) {
 	body := "### 001 — Done [status: deferred]\n### 002 — Left [status: abandoned]\n"
 	dir := project(t, body, nil)
 	rep := Evaluate(Option{Root: dir, CWD: dir})
-	if rep.Summary.ActiveItems != 0 || rep.Summary.VerifiedPercent.ok {
+	if rep.Summary.ActiveItems != 0 || rep.Summary.VerifiedPercent.Valid() {
 		t.Fatalf("inactive roadmap got a percentage: %+v", rep.Summary)
 	}
 }

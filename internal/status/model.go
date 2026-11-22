@@ -4,7 +4,7 @@
 // It is not an owner-approved decision. See specs/001-spec-status/decisions.md.
 package status
 
-import "strconv"
+import "github.com/tosin2013/spec-status/internal/schema"
 
 const (
 	schemaVersion = "1.0"
@@ -24,49 +24,11 @@ var knownStatus = map[string]bool{
 	"in-progress": true, "implemented": true, "verified": true, "deferred": true, "abandoned": true,
 }
 
-// Percent is a half-up percentage to two decimal places, or null when the denominator is zero.
-type Percent struct {
-	ok         bool
-	hundredths int
-}
+// Percent is a half-up percentage to two decimal places, or null when the
+// denominator is zero. It is the schema type, so text and JSON share it.
+type Percent = schema.Percent
 
-func percentOf(num, den int) Percent {
-	if den <= 0 || num < 0 {
-		return Percent{}
-	}
-	scaled := num * 10000
-	q := scaled / den
-	r := scaled % den
-	if r*2 >= den {
-		q++
-	}
-	return Percent{ok: true, hundredths: q}
-}
-
-func (p Percent) Text() string {
-	if !p.ok {
-		return "N/A"
-	}
-	whole := p.hundredths / 100
-	frac := p.hundredths % 100
-	if frac == 0 {
-		return strconv.Itoa(whole)
-	}
-	if frac%10 == 0 {
-		return strconv.Itoa(whole) + "." + strconv.Itoa(frac/10)
-	}
-	if frac < 10 {
-		return strconv.Itoa(whole) + ".0" + strconv.Itoa(frac)
-	}
-	return strconv.Itoa(whole) + "." + strconv.Itoa(frac/10) + strconv.Itoa(frac%10)
-}
-
-func (p Percent) MarshalJSON() ([]byte, error) {
-	if !p.ok {
-		return []byte("null"), nil
-	}
-	return []byte(p.Text()), nil
-}
+func percentOf(num, den int) Percent { return schema.PercentOf(num, den) }
 
 // Report is the single result used for text and JSON.
 type Report struct {

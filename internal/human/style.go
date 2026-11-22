@@ -1,6 +1,7 @@
-package status
+package human
 
 import (
+	"github.com/tosin2013/spec-status/internal/status"
 	"io"
 	"sort"
 	"strings"
@@ -11,7 +12,7 @@ import (
 	"github.com/rivo/uniseg"
 )
 
-// View controls human text only. JSON does not use it.
+// View controls human text only. status.JSON does not use it.
 // Color is an explicit choice made by the caller. Width is a character budget.
 type View struct {
 	Color       bool
@@ -23,7 +24,7 @@ type View struct {
 	Historical  bool
 	Explain     bool
 	// Build is the panel heading label after "Spec Status"; empty means
-	// "development build". It never affects JSON (feature 004).
+	// "development build". It never affects status.JSON (feature 004).
 	Build string
 }
 
@@ -38,7 +39,7 @@ func normalizeWidth(n int) int {
 }
 
 // sanitizeTerminal removes terminal controls from repository-supplied text
-// before it is placed in human output. JSON keeps the original strings.
+// before it is placed in human output. status.JSON keeps the original strings.
 func sanitizeTerminal(s string) string {
 	var b strings.Builder
 	b.Grow(len(s))
@@ -185,7 +186,7 @@ func (p *painter) paint(s, kind string) string {
 	return st.Render(s)
 }
 
-func renderHuman(rep Report, view View) string {
+func renderHuman(rep status.Report, view View) string {
 	if rep.Outcome == "fatal" {
 		return fatalText(rep)
 	}
@@ -280,7 +281,7 @@ func wrapText(s string, width int) []string {
 
 const summaryLabelWidth = 18
 
-func summaryPanel(p *painter, rep Report, width int, build string) string {
+func summaryPanel(p *painter, rep status.Report, width int, build string) string {
 	s := rep.Summary
 	padX := 1
 	if width < 48 {
@@ -294,7 +295,7 @@ func summaryPanel(p *painter, rep Report, width int, build string) string {
 	return frame(p, lines, inner, padX)
 }
 
-func summaryLines(p *painter, s *Summary, roadmap string, inner int, build string) []string {
+func summaryLines(p *painter, s *status.Summary, roadmap string, inner int, build string) []string {
 	if build == "" {
 		build = "development build"
 	}
@@ -312,7 +313,7 @@ func summaryLines(p *painter, s *Summary, roadmap string, inner int, build strin
 	lines = append(lines, countLine(p, "human review", reviewValue, reviewKind, inner)...)
 	ctx := "items " + itoa(s.TotalItems) + "  active " + itoa(s.ActiveItems) + "  historical " + itoa(s.TotalItems-s.ActiveItems) + "  superseded " + itoa(s.SupersededItems)
 	lines = append(lines, wrapText(ctx, inner)...)
-	// Feature 008: the per-status counts JSON already carries, in the same
+	// Feature 008: the per-status counts status.JSON already carries, in the same
 	// (byte) key order, and invalid supersessions when there are any.
 	lines = append(lines, wrapText(statusesLine(s.StatusCounts), inner)...)
 	if s.InvalidSupersessionItems > 0 {
@@ -451,7 +452,7 @@ func stripANSI(s string) string {
 	return b.String()
 }
 
-func writeTable(b *strings.Builder, p *painter, items []Item, view View, width int) {
+func writeTable(b *strings.Builder, p *painter, items []status.Item, view View, width int) {
 	idW, statusW, scopeW := 4, 12, 11
 	titleW := width - (idW + statusW + scopeW + 3)
 	if titleW < 8 {
@@ -467,7 +468,7 @@ func writeTable(b *strings.Builder, p *painter, items []Item, view View, width i
 	}
 }
 
-func writeStacked(b *strings.Builder, p *painter, items []Item, view View, width int) {
+func writeStacked(b *strings.Builder, p *painter, items []status.Item, view View, width int) {
 	for _, it := range items {
 		scope := "active"
 		scopeKind := ""
@@ -494,11 +495,11 @@ func (v View) filtering() bool {
 	return len(v.Statuses) > 0 || v.Blocked || v.HumanReview || v.Active || v.Historical
 }
 
-func filterItems(items []Item, view View) []Item {
+func filterItems(items []status.Item, view View) []status.Item {
 	if !view.filtering() {
 		return items
 	}
-	out := make([]Item, 0, len(items))
+	out := make([]status.Item, 0, len(items))
 	for _, it := range items {
 		if itemMatches(it, view) {
 			out = append(out, it)
@@ -507,7 +508,7 @@ func filterItems(items []Item, view View) []Item {
 	return out
 }
 
-func itemMatches(it Item, view View) bool {
+func itemMatches(it status.Item, view View) bool {
 	if len(view.Statuses) > 0 {
 		ok := false
 		for _, status := range view.Statuses {
@@ -535,7 +536,7 @@ func itemMatches(it Item, view View) bool {
 	return true
 }
 
-func itemBlocked(it Item) bool {
+func itemBlocked(it status.Item) bool {
 	for _, d := range it.Dependencies {
 		if !d.Satisfied {
 			return true
@@ -544,7 +545,7 @@ func itemBlocked(it Item) bool {
 	return false
 }
 
-func itemReview(it Item) bool {
+func itemReview(it status.Item) bool {
 	for _, d := range it.Dependencies {
 		if d.State == "human_review" {
 			return true
@@ -553,7 +554,7 @@ func itemReview(it Item) bool {
 	return false
 }
 
-func writeExplain(b *strings.Builder, it Item, width int) {
+func writeExplain(b *strings.Builder, it status.Item, width int) {
 	for _, line := range explainLines(it) {
 		for _, wrapped := range wrapText(line, width-2) {
 			b.WriteString("  " + wrapped + "\n")
@@ -561,7 +562,7 @@ func writeExplain(b *strings.Builder, it Item, width int) {
 	}
 }
 
-func explainLines(it Item) []string {
+func explainLines(it status.Item) []string {
 	var lines []string
 	excluded := it.Supersession.Supplied && it.Supersession.Valid != nil && *it.Supersession.Valid
 	if excluded {
@@ -613,7 +614,7 @@ func explainLines(it Item) []string {
 	return lines
 }
 
-func writeItemRow(b *strings.Builder, p *painter, it Item, idW, statusW, scopeW, titleW int) {
+func writeItemRow(b *strings.Builder, p *painter, it status.Item, idW, statusW, scopeW, titleW int) {
 	scope := "active"
 	scopeKind := ""
 	if !it.Active {
@@ -628,7 +629,7 @@ func writeItemRow(b *strings.Builder, p *painter, it Item, idW, statusW, scopeW,
 	writeRelations(b, p, it, idW+statusW+scopeW+titleW+3)
 }
 
-func writeRelations(b *strings.Builder, p *painter, it Item, width int) {
+func writeRelations(b *strings.Builder, p *painter, it status.Item, width int) {
 	invalid := it.Supersession.Supplied && it.Supersession.Valid != nil && !*it.Supersession.Valid
 	if it.SupersededBy != "" || invalid {
 		ref := it.SupersededBy
@@ -670,7 +671,7 @@ func writeRelations(b *strings.Builder, p *painter, it Item, width int) {
 	b.WriteString("  " + p.paint(truncate(line, width-2), kind) + "\n")
 }
 
-func statusKind(it Item) string {
+func statusKind(it status.Item) string {
 	if !it.StatusKnown {
 		return ""
 	}
@@ -709,9 +710,9 @@ func itoa(n int) string {
 // InventoryText renders spec inventory human text
 // (specs/006-two-mode-inventory/contracts/inventory-text.md). It uses the
 // same plain-surface rules as the roadmap report; fatal text stays plain.
-func InventoryText(rep InventoryReport, view View) string {
+func InventoryText(rep status.InventoryReport, view View) string {
 	if rep.Outcome == "fatal" || rep.Summary == nil {
-		d := Diagnostic{Code: "SS_ROOT_UNAVAILABLE", Message: "Required input is unavailable."}
+		d := status.Diagnostic{Code: "SS_ROOT_UNAVAILABLE", Message: "Required input is unavailable."}
 		if rep.Fatal != nil {
 			d = *rep.Fatal
 		}
@@ -739,7 +740,7 @@ func InventoryText(rep InventoryReport, view View) string {
 	total := s.FeatureFolders + s.OtherFolders + s.SkippedEntries
 	lines = append(lines, wrapText("folders "+itoa(total)+"  feature "+itoa(s.FeatureFolders)+"  other "+itoa(s.OtherFolders)+"  skipped "+itoa(s.SkippedEntries), inner)...)
 	lines = append(lines, wrapText("task files read "+itoa(s.Tasks.FilesRead)+"  missing "+itoa(s.Tasks.FilesMissing)+"  skipped "+itoa(s.Tasks.FilesSkipped), inner)...)
-	source := "source " + inventorySpecsDir
+	source := "source " + status.InventorySpecsDir
 	if rep.SpecsState != "present" {
 		source += " (" + rep.SpecsState + ")"
 	}
@@ -778,7 +779,7 @@ func InventoryText(rep InventoryReport, view View) string {
 	return b.String()
 }
 
-func inventoryTasksCell(t *TaskState) string {
+func inventoryTasksCell(t *status.TaskState) string {
 	if t == nil {
 		return "-"
 	}
@@ -791,7 +792,7 @@ func inventoryTasksCell(t *TaskState) string {
 	return t.State
 }
 
-func inventoryFileCell(f *FileState) string {
+func inventoryFileCell(f *status.FileState) string {
 	if f == nil {
 		return "-"
 	}
@@ -801,7 +802,7 @@ func inventoryFileCell(f *FileState) string {
 	return f.State
 }
 
-func inventoryRowNote(f Folder) string {
+func inventoryRowNote(f status.Folder) string {
 	switch {
 	case f.Skipped:
 		return "skipped (not examined)"
@@ -811,7 +812,7 @@ func inventoryRowNote(f Folder) string {
 	return ""
 }
 
-func writeInventoryFolders(b *strings.Builder, p *painter, folders []Folder, width int) {
+func writeInventoryFolders(b *strings.Builder, p *painter, folders []status.Folder, width int) {
 	cellW := 8
 	nameW := displayWidth("Folder")
 	for _, f := range folders {
@@ -842,4 +843,24 @@ func writeInventoryFolders(b *strings.Builder, p *painter, folders []Folder, wid
 		b.WriteString("  " + truncate("spec "+inventoryFileCell(f.Spec)+"  plan "+inventoryFileCell(f.Plan), width-2) + "\n")
 		b.WriteString("  " + truncate("tasks "+inventoryTasksCell(f.Tasks), width-2) + "\n")
 	}
+}
+
+// Text renders the human report. Null quantities are N/A.
+// view.Color adds restrained ANSI labels. It does not change the facts.
+// Fatal text stays plain so error output is stable.
+func Text(rep status.Report, view View) string {
+	if rep.Outcome == "fatal" {
+		return fatalText(rep)
+	}
+	return renderHuman(rep, view)
+}
+
+func fatalText(rep status.Report) string {
+	d := status.Diagnostic{Code: "SS_ROADMAP_UNAVAILABLE", Message: "Required input is unavailable."}
+	if rep.Fatal != nil {
+		d = *rep.Fatal
+	} else if len(rep.Diagnostics) > 0 {
+		d = rep.Diagnostics[0]
+	}
+	return "spec: " + d.Code + ": " + d.Message + "\n"
 }

@@ -40,7 +40,10 @@ func TestProductCodeDoesNotImportSideEffectPackages(t *testing.T) {
 			return err
 		}
 		cliSurface := strings.HasPrefix(rel, "internal/cli/") || strings.HasPrefix(rel, "cmd/")
-		styleSurface := rel == "internal/status/style.go"
+		styleSurface := rel == "internal/human/style.go"
+		// The public library and its schema stay standard-library-only
+		// (feature 012); they may import this module's internal packages.
+		libSurface := strings.HasPrefix(rel, "internal/schema/") || strings.HasPrefix(rel, "pkg/status/")
 		for _, imp := range f.Imports {
 			p := strings.Trim(imp.Path.Value, `"`)
 			if banned[p] || strings.HasPrefix(p, "net/") {
@@ -55,11 +58,19 @@ func TestProductCodeDoesNotImportSideEffectPackages(t *testing.T) {
 				continue
 			}
 			if strings.HasPrefix(p, "github.com/tosin2013/spec-status/") {
+				if libSurface && !strings.HasPrefix(p, "github.com/tosin2013/spec-status/internal/") {
+					t.Errorf("%s imports %s; the library may import only internal packages of this module", rel, p)
+				}
+				if libSurface && (p == "github.com/tosin2013/spec-status/internal/cli" || p == "github.com/tosin2013/spec-status/internal/human") {
+					t.Errorf("%s imports %s, which links third-party modules", rel, p)
+				}
 				continue
 			}
 			switch {
 			case cliSurface && allowedCLI[p]:
 			case styleSurface && allowedStyle[p]:
+			case libSurface:
+				t.Errorf("%s imports dependency %s; the library is standard library only", rel, p)
 			default:
 				t.Errorf("%s imports dependency %s outside the approved command or style exception", rel, p)
 			}
@@ -78,5 +89,50 @@ func TestProductCodeDoesNotImportSideEffectPackages(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestLibraryDependencyClosureIsStandardLibrary checks that pkg/status and
+// everything it imports from this module (transitively) import only the
+// standard library and this module, so library users link no third-party
+// code (feature 012, SC-005).
+func TestLibraryDependencyClosureIsStandardLibrary(t *testing.T) {
+	const module = "github.com/tosin2013/spec-status/"
+	root := filepath.Join("..", "..")
+	seen := map[string]bool{}
+	var visit func(pkg string)
+	visit = func(pkg string) {
+		if seen[pkg] {
+			return
+		}
+		seen[pkg] = true
+		dir := filepath.Join(root, filepath.FromSlash(strings.TrimPrefix(pkg, module)))
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			t.Fatalf("%s: %v", pkg, err)
+		}
+		for _, e := range entries {
+			name := e.Name()
+			if e.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+				continue
+			}
+			f, err := parser.ParseFile(token.NewFileSet(), filepath.Join(dir, name), nil, parser.ImportsOnly)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, imp := range f.Imports {
+				p := strings.Trim(imp.Path.Value, `"`)
+				switch {
+				case strings.HasPrefix(p, module):
+					visit(p)
+				case strings.Contains(strings.SplitN(p, "/", 2)[0], "."):
+					t.Errorf("%s/%s imports %s; pkg/status must link only the standard library and this module", pkg, name, p)
+				}
+			}
+		}
+	}
+	visit(module + "pkg/status")
+	if !seen[module+"internal/status"] || !seen[module+"internal/schema"] {
+		t.Fatalf("walk did not reach the core: %v", seen)
 	}
 }

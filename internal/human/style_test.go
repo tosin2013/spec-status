@@ -1,11 +1,11 @@
-package status
+package human
 
 import (
+	"github.com/rivo/uniseg"
+	"github.com/tosin2013/spec-status/internal/status"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/rivo/uniseg"
 )
 
 func TestSanitizeDropsTerminalControls(t *testing.T) {
@@ -52,7 +52,7 @@ func TestHumanTextColorIsLabelsNotJSON(t *testing.T) {
 	if Text(rep, View{Width: 80, Color: true}) != color {
 		t.Fatal("styled text is not deterministic")
 	}
-	js := string(JSON(rep))
+	js := string(status.JSON(rep))
 	if strings.Contains(js, "\x1b[") {
 		t.Fatal("JSON gained styling")
 	}
@@ -70,7 +70,7 @@ func TestSummaryKeepsZeroDenominatorsUnadorned(t *testing.T) {
 	rep.Summary.ActiveItems = 0
 	rep.Summary.VerifiedActiveItems = 0
 	rep.Summary.VerifiedPercent = percentOf(0, 0)
-	rep.Summary.Tasks = TaskSummary{Checked: 0, Total: 0, Percent: percentOf(0, 0), Scope: taskScope}
+	rep.Summary.Tasks = status.TaskSummary{Checked: 0, Total: 0, Percent: percentOf(0, 0), Scope: taskScope}
 	rep.Summary.BlockedCount = 0
 	rep.Summary.HumanReviewCount = 0
 	rep.Items = nil
@@ -97,29 +97,29 @@ func TestEscapeInTitleStaysRawInJSONOnly(t *testing.T) {
 	if !strings.Contains(stripANSI(text), "SafeNO") && !strings.Contains(stripANSI(text), "Safe NO") && !strings.Contains(stripANSI(text), "Safe") {
 		t.Fatal(stripANSI(text))
 	}
-	js := string(JSON(rep))
+	js := string(status.JSON(rep))
 	if !strings.Contains(js, `\u001b`) && !strings.Contains(js, `\u001B`) {
 		t.Fatalf("JSON lost the raw escape: %s", js)
 	}
 }
 
-func sampleReport() Report {
+func sampleReport() status.Report {
 	valid := true
-	return Report{
+	return status.Report{
 		Outcome: "report", Complete: true, Roadmap: ".specify/memory/roadmap.md", FailOn: "error",
-		Summary: &Summary{
+		Summary: &status.Summary{
 			TotalItems: 3, ActiveItems: 2, VerifiedActiveItems: 1,
 			VerifiedPercent: percentOf(1, 2), SupersededItems: 1,
 			BlockedCount: 1, HumanReviewCount: 1,
 			StatusCounts: map[string]int{"implemented": 1, "planned": 1, "verified": 1},
-			Tasks:        TaskSummary{Checked: 1, Total: 2, Percent: percentOf(1, 2), Scope: taskScope, FilesRead: 2},
+			Tasks:        status.TaskSummary{Checked: 1, Total: 2, Percent: percentOf(1, 2), Scope: taskScope, FilesRead: 2},
 		},
-		Items: []Item{
-			{ID: "001", Title: "Preserve original feature", Status: "implemented", StatusKnown: true, SupersededBy: "002", Active: false, Supersession: Supersession{Supplied: true, Valid: &valid, TerminalID: "002"}},
+		Items: []status.Item{
+			{ID: "001", Title: "Preserve original feature", Status: "implemented", StatusKnown: true, SupersededBy: "002", Active: false, Supersession: status.Supersession{Supplied: true, Valid: &valid, TerminalID: "002"}},
 			{ID: "002", Title: "Replacement feature", Status: "verified", StatusKnown: true, Active: true},
-			{ID: "003", Title: "Follow-on work", Status: "planned", StatusKnown: true, Active: true, Dependencies: []Dependency{{ID: "001", State: "human_review"}}},
+			{ID: "003", Title: "Follow-on work", Status: "planned", StatusKnown: true, Active: true, Dependencies: []status.Dependency{{ID: "001", State: "human_review"}}},
 		},
-		Diagnostics: []Diagnostic{{Severity: "warning", Code: "SS_DEPENDENCY_HUMAN_REVIEW", Message: "Dependency on a superseded item requires human review.", ItemID: "003", Path: ".specify/memory/roadmap.md", Line: 18}},
+		Diagnostics: []status.Diagnostic{{Severity: "warning", Code: "SS_DEPENDENCY_HUMAN_REVIEW", Message: "Dependency on a superseded item requires human review.", ItemID: "003", Path: ".specify/memory/roadmap.md", Line: 18}},
 	}
 }
 
@@ -152,7 +152,7 @@ func TestInventoryTextSanitizesAndStaysPlain(t *testing.T) {
 	writeFile(t, filepath.Join(dir, ".specify", ".gitkeep"), "")
 	evil := "001-x\x1b[31mred\x1b]0;title\x07"
 	writeFile(t, filepath.Join(dir, "specs", evil, "spec.md"), "# x\n")
-	rep := EvaluateInventory(InventoryOption{Root: dir})
+	rep := status.EvaluateInventory(status.InventoryOption{Root: dir})
 	plain := InventoryText(rep, View{Width: 80})
 	if strings.ContainsRune(plain, 0x1b) || strings.ContainsRune(plain, 0x07) {
 		t.Fatalf("terminal escapes leaked: %q", plain)
@@ -167,23 +167,23 @@ func TestInventoryTextSanitizesAndStaysPlain(t *testing.T) {
 }
 
 // Feature 008 US4: human text shows status counts, invalid supersession and
-// shared tasks; JSON is unchanged.
+// shared tasks; status.JSON is unchanged.
 func TestHumanTextStatusesInvalidAndShared(t *testing.T) {
 	root := filepath.Join("..", "..", "testdata", "example-roadmap")
-	text := Text(Evaluate(Option{Root: root}), View{Width: 80})
+	text := Text(status.Evaluate(status.Option{Root: root}), View{Width: 80})
 	if !strings.Contains(text, "statuses implemented 1 planned 1 verified 1") {
 		t.Errorf("statuses line missing:\n%s", text)
 	}
 	if strings.Contains(text, "invalid supersession") || strings.Contains(text, "(invalid)") {
 		t.Errorf("invalid supersession shown without one:\n%s", text)
 	}
-	empty := Text(Evaluate(Option{Root: filepath.Join("..", "..", "testdata", "two-mode", "explicit-empty")}), View{Width: 80})
+	empty := Text(status.Evaluate(status.Option{Root: filepath.Join("..", "..", "testdata", "two-mode", "explicit-empty")}), View{Width: 80})
 	if !strings.Contains(empty, "statuses none") {
 		t.Errorf("empty roadmap statuses line:\n%s", empty)
 	}
 	base := "- Description: d\n- Outcome: o\n- Scope: s\n"
 	dir := project(t, "### 001 — A [status: planned]\n"+base+"- superseded-by: 009\n\n### 002 — B [status: planned]\n"+base+"- superseded-by: soon\n\n### 003 — C [status: wip\x1b[31m]\n"+base, nil)
-	rep := Evaluate(Option{Root: dir, CWD: dir})
+	rep := status.Evaluate(status.Option{Root: dir, CWD: dir})
 	text = Text(rep, View{Width: 80})
 	for _, want := range []string{"invalid supersession 2", "superseded-by 009 (invalid)", "superseded-by soon (invalid)", "statuses planned 2 wip 1"} {
 		if !strings.Contains(text, want) {
@@ -196,12 +196,12 @@ func TestHumanTextStatusesInvalidAndShared(t *testing.T) {
 	shared := project(t, "### 001 — A [status: in-progress]\n"+base+"- Spec dir: specs/001-x\n\n### 002 — B [status: in-progress]\n"+base+"- Spec dir: specs/001-x\n", map[string]string{
 		"specs/001-x/spec.md": "# s\n", "specs/001-x/plan.md": "# p\n", "specs/001-x/tasks.md": "- [x] T001 a\n- [ ] T002 b\n",
 	})
-	srep := Evaluate(Option{Root: shared, CWD: shared})
+	srep := status.Evaluate(status.Option{Root: shared, CWD: shared})
 	stext := Text(srep, View{Width: 80})
 	if strings.Count(stext, "tasks shared with 001; counted once") != 1 {
 		t.Errorf("shared tasks note:\n%s", stext)
 	}
-	if strings.Contains(string(JSON(srep)), "shared") || strings.Contains(string(JSON(rep)), "(invalid)") {
-		t.Error("display additions leaked into JSON")
+	if strings.Contains(string(status.JSON(srep)), "shared") || strings.Contains(string(status.JSON(rep)), "(invalid)") {
+		t.Error("display additions leaked into status.JSON")
 	}
 }

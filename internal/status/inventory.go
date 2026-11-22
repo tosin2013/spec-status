@@ -12,8 +12,11 @@ import (
 // tasks.md checkboxes with the roadmap-mode rules. It never reads the
 // roadmap and never infers status, priority or dependencies.
 
+// InventorySpecsDir is the folder spec inventory lists, relative to the root.
+const InventorySpecsDir = "specs"
+
 const (
-	inventorySpecsDir  = "specs"
+	inventorySpecsDir  = InventorySpecsDir
 	inventoryTaskScope = "feature_folder_tasks_md"
 	inventoryRoadmap   = ".specify/memory/roadmap.md"
 )
