@@ -3,6 +3,8 @@ package status
 import (
 	"bytes"
 	"encoding/json"
+
+	"github.com/tosin2013/spec-status/internal/schema"
 )
 
 // Inventory JSON document, inventory_schema_version 1.0
@@ -12,16 +14,16 @@ import (
 const inventorySchemaVersion = "1.0"
 
 type invDocView struct {
-	SchemaVersion string          `json:"inventory_schema_version"`
-	Outcome       string          `json:"outcome"`
-	Complete      bool            `json:"complete"`
-	Mode          string          `json:"mode"`
-	Source        invSourceView   `json:"source"`
-	Configuration invConfigView   `json:"configuration"`
-	Summary       *invSummaryView `json:"summary"`
-	Folders       []invFolderView `json:"folders"`
-	Diagnostics   []diagView      `json:"diagnostics"`
-	Error         *errView        `json:"error"`
+	SchemaVersion string              `json:"inventory_schema_version"`
+	Outcome       string              `json:"outcome"`
+	Complete      bool                `json:"complete"`
+	Mode          string              `json:"mode"`
+	Source        invSourceView       `json:"source"`
+	Configuration invConfigView       `json:"configuration"`
+	Summary       *invSummaryView     `json:"summary"`
+	Folders       []invFolderView     `json:"folders"`
+	Diagnostics   []schema.Diagnostic `json:"diagnostics"`
+	Error         *errView            `json:"error"`
 }
 
 type invSourceView struct {
@@ -85,7 +87,7 @@ func InventoryJSON(rep InventoryReport) []byte {
 		Source:        invSourceView{SpecsDir: inventorySpecsDir, SpecsState: nullString(rep.SpecsState), RoadmapFile: nullString(rep.RoadmapFile)},
 		Configuration: invConfigView{FailOn: or(rep.FailOn, "error"), TaskScope: inventoryTaskScope},
 		Folders:       []invFolderView{},
-		Diagnostics:   []diagView{},
+		Diagnostics:   []schema.Diagnostic{},
 	}
 	if rep.Outcome != "fatal" && rep.Summary != nil {
 		s := rep.Summary
@@ -101,7 +103,7 @@ func InventoryJSON(rep InventoryReport) []byte {
 		}
 	}
 	for _, d := range rep.Diagnostics {
-		view.Diagnostics = append(view.Diagnostics, diagToView(d))
+		view.Diagnostics = append(view.Diagnostics, diagToSchema(d))
 	}
 	if rep.Outcome == "fatal" {
 		d := Diagnostic{Code: "SS_ROOT_UNAVAILABLE", Severity: "error", Message: "Required input is unavailable."}

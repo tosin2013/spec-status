@@ -1,7 +1,7 @@
 # Architecture document
 
 **System:** Spec Status (`spec` CLI and the `spec-status` Spec Kit extension)  
-**Version:** 0.3.0 (development; not yet released)  
+**Version:** 0.4.0 (development; not yet released)  
 **Status:** Accepted  
 **Audience:** Engineers who change the CLI, the extension or the release workflow  
 **Voice:** STE100
@@ -49,6 +49,7 @@ The CLI never writes. The only path that changes project files goes through Spec
 | Container | Tech | Role |
 |-----------|------|------|
 | `spec` binary | Go 1.26, `CGO_ENABLED=0`; Cobra/pflag in the CLI layer; Lip Gloss only for human text | Reads files, builds one report, prints text or JSON, sets the exit code |
+| `pkg/status` library | Go package, standard library and this module only; experimental until 1.0 | `Load` evaluates a project in-process; returns the schema 1.0 report, the exact `--json` bytes and the exit code |
 | `spec-status` extension | Spec Kit 1.2.0 extension: six Markdown commands and three reference files | Agent skills: review, explain, reconcile, unblock, verify-readiness, close-gap |
 | Test suites | Go tests in `internal/*`, hand-counted fixtures in `testdata/` | Contracts, conformance with pinned upstream templates, README samples, extension structure |
 | CI and release workflows | GitHub Actions (`.github/workflows/ci.yml`, `release.yml`) | Tests on linux/amd64 and darwin/arm64, govulncheck, hygiene; tag-driven release drafts |
@@ -82,8 +83,14 @@ flowchart TB
     analyze["analyze.go: report model, diagnostics"]
     inv["inventory.go: feature folders"]
     render["render.go and inventory_json.go: JSON"]
-    txt["style.go: human text"]
   end
+  subgraph human [internal/human]
+    txt["style.go: human text (Lip Gloss)"]
+  end
+  subgraph schema [internal/schema]
+    types["schema 1.0 report types, Marshal, ExitCode"]
+  end
+  lib["pkg/status: Load, Marshal, ExitCode"]
   subgraph safeio [internal/safeio]
     fs["confined reads and directory listing"]
   end
@@ -98,9 +105,12 @@ flowchart TB
   inv --> fs
   inv --> parse
   analyze --> render
-  analyze --> txt
+  cmd --> txt
+  txt --> analyze
   inv --> render
-  inv --> txt
+  analyze --> types
+  lib --> run
+  lib --> types
 ```
 
 | Component | Rule it keeps |
@@ -110,9 +120,12 @@ flowchart TB
 | `internal/status` `parse.go` | Narrow, line-based grammar ([roadmap-format.md](../specs/001-spec-status/roadmap-format.md)). Unsupported item-like input is a fatal error, not a guess. |
 | `internal/status` `analyze.go` | Builds one `Report`: supersession, dependency states, stage files, status/tasks consistency, sorted diagnostics. Text and JSON are two views of it. |
 | `internal/status` `inventory.go` | One listing of `specs/`; three named files per feature folder; never reads the roadmap; separate JSON (`inventory_schema_version` 1.0). |
+| `internal/human` | Human text, filters and `--explain` (Lip Gloss). Separate from `internal/status` so that `pkg/status` links no third-party module. Text and JSON stay two views of one report. |
+| `internal/schema` | The schema 1.0 report types, the `--json` encoder and the exit-code rule. The CLI (`status.JSON`, `status.ExitCode`) and `pkg/status` both use it, so their output cannot drift; a test compares them on every fixture. Standard library only. |
+| `pkg/status` | The public Go API: type aliases of `internal/schema`, `Load`, `Marshal`, `ExitCode`. Fatal problems are in the report; a Go error means invalid input. Experimental until 1.0 (Art. V). |
 | `internal/safeio` | The only filesystem boundary. It rejects `..`, symlinks, non-regular files and sensitive names, bounds sizes and counts, and detects files that change during a read. |
 
-Imports are restricted and tested: no `os/exec`, `net/*` or write calls outside tests; Cobra only in `internal/cli` and `cmd/`; Lip Gloss only in `style.go`.
+Imports are restricted and tested: no `os/exec`, `net/*` or write calls outside tests; Cobra only in `internal/cli` and `cmd/`; Lip Gloss only in `internal/human/style.go`; `pkg/status` and everything it imports from this module use only the standard library.
 
 ---
 

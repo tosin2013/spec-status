@@ -17,7 +17,7 @@
 See [CONTRIBUTING.md](../CONTRIBUTING.md) and `.specify/memory/constitution.md`.
 
 - [ ] No runtime side effects: no network, subprocess, Git, file writes, caches, or telemetry
-- [ ] No new dependency outside the allowlist (Cobra/pflag in `internal/cli`, Lip Gloss in `style.go`, standard library elsewhere)
+- [ ] No new dependency outside the allowlist (Cobra/pflag in `internal/cli`, Lip Gloss in `internal/human/style.go`, standard library elsewhere, including `pkg/status`)
 - [ ] All file reads go through `internal/safeio`
 - [ ] JSON output, exit codes, and diagnostics are unchanged, or the change is listed below with its decision ID
 - [ ] Unsupported input still fails visibly. Nothing is guessed.

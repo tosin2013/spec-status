@@ -36,6 +36,6 @@ func ExitCode(r Report) int
 **Guarantees:**
 - For every root and options, `Marshal(Load(...))` equals the CLI's `--json` bytes, and `ExitCode` equals the CLI's exit code. This is tested on every fixture root at every threshold.
 - Decoding CLI JSON into `Report` with `encoding/json` and calling `Marshal` reproduces the bytes.
-- No writes, network, subprocesses or environment reads. Root-confined reads with the core's limits. Imports are the standard library and this module only.
+- No writes, network or subprocesses; no environment variable changes the result. Root-confined reads with the core's limits. Imports are the standard library and this module only.
 - Safe for concurrent use.
 - Report text (titles, headings, messages) is raw, untrusted project content. Sanitize it before printing it to a terminal.

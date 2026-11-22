@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/tosin2013/spec-status/internal/safeio"
+	"github.com/tosin2013/spec-status/internal/schema"
 )
 
 const (
@@ -165,18 +166,5 @@ func resolveRoot(cwd, explicit string) (string, string, *rootErr) {
 
 // ExitCode applies the threshold. Fatal reports always return 2.
 func ExitCode(rep Report) int {
-	if rep.Outcome == "fatal" || !rep.Complete {
-		return 2
-	}
-	if rep.FailOn == "none" {
-		return 0
-	}
-	need := map[string]int{"info": 1, "warning": 2, "error": 3}[rep.FailOn]
-	rank := map[string]int{"info": 1, "warning": 2, "error": 3}
-	for _, d := range rep.Diagnostics {
-		if rank[d.Severity] >= need && need > 0 {
-			return 1
-		}
-	}
-	return 0
+	return schema.ExitCode(toSchema(rep))
 }

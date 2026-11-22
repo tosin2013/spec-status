@@ -99,8 +99,13 @@ specs/001-spec-status/{json-contract.md,tasks.md}
 
 **Structure Decision**: The layout is a leaf `internal/schema` package with type aliases in `pkg/status` (research R1). It has no import cycle: `pkg/status` imports `internal/status`, which imports `internal/schema`.
 
+## Implementation note (R8)
+
+During implementation, `go list -deps ./pkg/status` showed Lip Gloss and its modules linked through `internal/status/style.go`. Human text moved to a new package, `internal/human` (research R8). This adds tasks T023–T025. The CLI's output is byte-identical, and a transitive dependency test now guards the library.
+
 ## Complexity Tracking
 
 | Addition | Why needed | Simpler alternative rejected because |
 |---|---|---|
+| New `internal/human` package | Keeps Lip Gloss out of what `pkg/status` links (R8) | A painter injection still needs a default renderer in `internal/status` |
 | New `internal/schema` package | Breaks the cycle between `pkg/status` (needs `Evaluate`) and the shared types (needed by `internal/status`) | Types in `pkg/status` would force `internal/status` to import a package that imports it. Moving `Evaluate` into `pkg/status` would put the whole core in the public API. |

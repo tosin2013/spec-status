@@ -24,6 +24,7 @@ A file name does not prove the bytes match that template. A missing roadmap stop
 - [Using it](#using-it)
 - [Without a roadmap: spec inventory](#without-a-roadmap-spec-inventory)
 - [Use it with an AI coding agent](#use-it-with-an-ai-coding-agent)
+- [Use it from Go](#use-it-from-go)
 - [Install](#install)
 - [What it reads](#what-it-reads)
 - [What it never does](#what-it-never-does)
@@ -200,6 +201,10 @@ specify extension add spec-status --from https://github.com/tosin2013/spec-statu
 ```
 
 The [extension guide](extensions/spec-status/README.md) explains each skill, the roles, the approval protocol and partner extensions.
+
+## Use it from Go
+
+`github.com/tosin2013/spec-status/pkg/status` runs the same evaluation inside a Go program, with no binary to install. `status.Load` returns the schema 1.0 report as Go values, `status.Marshal` gives the exact `--json` bytes, and `status.ExitCode` gives the exit code. The API is experimental until 1.0. See [docs/library.md](docs/library.md).
 
 ## Install
 

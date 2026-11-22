@@ -2,6 +2,9 @@
 
 **PROFILE-R1 schema 1.0, approved as built** (DC-02 and DC-04: D-2026-11-11-02; DC-03 code registry: D-2026-11-07-03). This Markdown contract describes one versioned result; it is not a machine-readable JSON Schema file. The two examples below match the development build's output for the stated inputs; the development build is not a release.
 
+
+**Go API (feature 012).** `github.com/tosin2013/spec-status/pkg/status` returns this document as Go values: `Load`, `Marshal` and `ExitCode`. The CLI and the package produce it through the same code (`internal/schema`). A test compares their bytes and exit codes on every fixture root at every `--fail-on` threshold, and checks that decoding the CLI's JSON into `status.Report` and re-encoding it gives the same bytes. The Go API is experimental until 1.0 (D-2026-11-21-01); this JSON schema's compatibility rules are unchanged. See `docs/library.md`.
+
 ## Version and compatibility
 
 Top-level `schema_version: "1.0"` (D-2026-11-11-02); not CLI SemVer or input v0.1.1. Within a stable schema major, additive optional fields may be non-breaking only if documented consumer rules permit ignoring them. Reinterpreting status, denominators, exit meanings or existing field types is breaking. Adding a diagnostic code requires documented unknown-code tolerance and does not silently change threshold meaning. Input compatibility matrix stays independently documented.

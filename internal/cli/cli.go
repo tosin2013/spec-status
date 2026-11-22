@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/tosin2013/spec-status/internal/human"
 	"github.com/tosin2013/spec-status/internal/status"
 )
 
@@ -204,18 +205,18 @@ This command does not run tests or Git, and it does not change files.`,
 				fmt.Fprint(cmd.OutOrStdout(), string(status.JSON(rep)))
 				return silentExit{status.ExitCode(rep)}
 			}
-			view := status.View{
+			view := human.View{
 				Width: textColumns(), Color: false,
 				Statuses: opts.statusFlag.values, Blocked: opts.blocked, HumanReview: opts.humanReview,
 				Active: opts.active, Historical: opts.historical, Explain: opts.explain,
 				Build: currentBuild().heading,
 			}
 			if rep.Outcome == "fatal" {
-				fmt.Fprint(cmd.ErrOrStderr(), status.Text(rep, view))
+				fmt.Fprint(cmd.ErrOrStderr(), human.Text(rep, view))
 				return silentExit{2}
 			}
 			view.Color = wantColor(cmd.OutOrStdout(), opts.color)
-			fmt.Fprint(cmd.OutOrStdout(), status.Text(rep, view))
+			fmt.Fprint(cmd.OutOrStdout(), human.Text(rep, view))
 			code := status.ExitCode(rep)
 			if code == 0 {
 				return nil
@@ -262,13 +263,13 @@ and it does not change files.`,
 				fmt.Fprint(cmd.OutOrStdout(), string(status.InventoryJSON(rep)))
 				return silentExit{status.InventoryExitCode(rep)}
 			}
-			view := status.View{Width: textColumns(), Build: currentBuild().heading}
+			view := human.View{Width: textColumns(), Build: currentBuild().heading}
 			if rep.Outcome == "fatal" {
-				fmt.Fprint(cmd.ErrOrStderr(), status.InventoryText(rep, view))
+				fmt.Fprint(cmd.ErrOrStderr(), human.InventoryText(rep, view))
 				return silentExit{2}
 			}
 			view.Color = wantColor(cmd.OutOrStdout(), opts.color)
-			fmt.Fprint(cmd.OutOrStdout(), status.InventoryText(rep, view))
+			fmt.Fprint(cmd.OutOrStdout(), human.InventoryText(rep, view))
 			if code := status.InventoryExitCode(rep); code != 0 {
 				return silentExit{code}
 			}

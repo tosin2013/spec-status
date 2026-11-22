@@ -1,49 +1,57 @@
 package status
 
 import (
-	"bytes"
-	"encoding/json"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/tosin2013/spec-status/internal/schema"
 )
 
-// JSON renders one UTF-8 document and a trailing newline.
+// JSON renders one UTF-8 document and a trailing newline. The CLI and
+// pkg/status both produce it through toSchema and schema.Marshal.
 func JSON(rep Report) []byte {
-	view := docView{
+	return schema.Marshal(toSchema(rep))
+}
+
+// Schema returns the schema 1.0 view of a report, as `--json` prints it. It
+// is the bridge used by pkg/status.
+func Schema(rep Report) schema.Report {
+	return toSchema(rep)
+}
+
+func toSchema(rep Report) schema.Report {
+	out := schema.Report{
 		SchemaVersion: schemaVersion,
 		Outcome:       rep.Outcome,
 		Complete:      rep.Complete,
-		Source: sourceView{
-			Roadmap:     nullString(rep.Roadmap),
-			InputFormat: nullString(rep.InputFormat),
-		},
-		Configuration: configView{FailOn: or(rep.FailOn, "error"), DependencyPolicy: depPolicy, TaskScope: taskScope},
-		Items:         []itemView{},
-		Diagnostics:   []diagView{},
-		Error:         nil,
+		Source:        schema.Source{Roadmap: strPtr(rep.Roadmap), InputFormat: strPtr(rep.InputFormat)},
+		Configuration: schema.Configuration{FailOn: or(rep.FailOn, "error"), DependencyPolicy: depPolicy, TaskScope: taskScope},
+		Items:         []schema.Item{},
+		Diagnostics:   []schema.Diagnostic{},
 	}
 	if rep.Complete && rep.Summary != nil {
 		s := rep.Summary
-		view.Summary = &summaryView{
-			TotalItems: s.TotalItems, StatusCounts: s.StatusCounts, ActiveItems: s.ActiveItems,
+		counts := s.StatusCounts
+		if counts == nil {
+			counts = map[string]int{}
+		}
+		out.Summary = &schema.Summary{
+			TotalItems: s.TotalItems, StatusCounts: counts, ActiveItems: s.ActiveItems,
 			VerifiedActiveItems: s.VerifiedActiveItems, VerifiedPercent: s.VerifiedPercent,
 			SupersededItems: s.SupersededItems, InvalidSupersessionItems: s.InvalidSupersessionItems,
 			BlockedCount: s.BlockedCount, HumanReviewCount: s.HumanReviewCount,
-			Tasks: taskSummaryView{
+			Tasks: schema.TaskSummary{
 				Checked: s.Tasks.Checked, Total: s.Tasks.Total, Percent: s.Tasks.Percent, Scope: s.Tasks.Scope,
 				FilesRead: s.Tasks.FilesRead, FilesMissing: s.Tasks.FilesMissing, FilesSkipped: s.Tasks.FilesSkipped,
 			},
 		}
-		if view.Summary.StatusCounts == nil {
-			view.Summary.StatusCounts = map[string]int{}
-		}
 		for _, it := range rep.Items {
-			view.Items = append(view.Items, itemToView(it))
+			out.Items = append(out.Items, itemToSchema(it))
 		}
 	}
 	for _, d := range rep.Diagnostics {
-		view.Diagnostics = append(view.Diagnostics, diagToView(d))
+		out.Diagnostics = append(out.Diagnostics, diagToSchema(d))
 	}
 	if rep.Outcome == "fatal" {
 		d := Diagnostic{Code: "SS_ROADMAP_UNAVAILABLE", Severity: "error", Message: "Required input is unavailable."}
@@ -52,40 +60,14 @@ func JSON(rep Report) []byte {
 		} else if len(rep.Diagnostics) > 0 {
 			d = rep.Diagnostics[0]
 		}
-		view.Error = &errView{Code: d.Code, Message: d.Message, Source: sourceRef(d.Path, d.Line)}
-		view.Summary = nil
-		view.Items = []itemView{}
-		view.Complete = false
-		view.Outcome = "fatal"
-		view.Source.InputFormat = nil
+		out.Error = &schema.Error{Code: d.Code, Message: d.Message, Source: locationOf(d.Path, d.Line)}
+		out.Summary = nil
+		out.Items = []schema.Item{}
+		out.Complete = false
+		out.Outcome = "fatal"
+		out.Source.InputFormat = nil
 	}
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	if err := enc.Encode(view); err != nil {
-		return []byte("{\"schema_version\":\"1.0\",\"outcome\":\"fatal\",\"complete\":false,\"source\":{\"roadmap\":null,\"input_format\":null},\"configuration\":{\"fail_on\":\"error\",\"dependency_policy\":\"verified\",\"task_scope\":\"unique_linked_task_files\"},\"summary\":null,\"items\":[],\"diagnostics\":[{\"code\":\"SS_INVOCATION_INVALID\",\"severity\":\"error\",\"message\":\"Report could not be serialized.\",\"source\":null,\"item_id\":null,\"related\":[]}],\"error\":{\"code\":\"SS_INVOCATION_INVALID\",\"message\":\"Report could not be serialized.\",\"source\":null}}\n")
-	}
-	return buf.Bytes()
-}
-
-// Text renders the human report. Null quantities are N/A.
-// view.Color adds restrained ANSI labels. It does not change the facts.
-// Fatal text stays plain so error output is stable.
-func Text(rep Report, view View) string {
-	if rep.Outcome == "fatal" {
-		return fatalText(rep)
-	}
-	return renderHuman(rep, view)
-}
-
-func fatalText(rep Report) string {
-	d := Diagnostic{Code: "SS_ROADMAP_UNAVAILABLE", Message: "Required input is unavailable."}
-	if rep.Fatal != nil {
-		d = *rep.Fatal
-	} else if len(rep.Diagnostics) > 0 {
-		d = rep.Diagnostics[0]
-	}
-	return "spec: " + d.Code + ": " + d.Message + "\n"
+	return out
 }
 
 func formatCounts(m map[string]int) string {
@@ -104,12 +86,12 @@ func formatCounts(m map[string]int) string {
 	return strings.Join(parts, ", ")
 }
 
-func itemToView(it Item) itemView {
-	deps := make([]depView, 0, len(it.Dependencies))
+func itemToSchema(it Item) schema.Item {
+	deps := make([]schema.Dependency, 0, len(it.Dependencies))
 	for _, d := range it.Dependencies {
-		deps = append(deps, depView{
+		deps = append(deps, schema.Dependency{
 			ID: d.ID, Satisfied: d.Satisfied, State: d.State,
-			ReplacementID: nullString(d.ReplacementID), Source: srcView{Path: d.Path, Line: d.Line},
+			ReplacementID: strPtr(d.ReplacementID), Source: schema.Ref{Path: d.Path, Line: d.Line},
 		})
 	}
 	var checked, total *int
@@ -117,48 +99,80 @@ func itemToView(it Item) itemView {
 		c, t := it.Tasks.Checked, it.Tasks.Total
 		checked, total = &c, &t
 	}
-	valid := any(nil)
+	var valid *bool
 	if it.Supersession.Valid != nil {
 		v := *it.Supersession.Valid
-		valid = v
+		valid = &v
 	}
-	raw := any(nil)
+	var raw *string
 	if it.Supersession.RawSet {
-		raw = it.Supersession.RawReference
+		r := it.Supersession.RawReference
+		raw = &r
 	}
-	return itemView{
+	return schema.Item{
 		ID: it.ID, Title: it.Title, Status: it.Status, StatusKnown: it.StatusKnown,
-		Source:      srcView{Path: it.Path, Line: it.Line},
+		Source:      schema.Ref{Path: it.Path, Line: it.Line},
 		Active:      it.Active,
-		Description: nullString(it.Description), Outcome: nullString(it.Outcome), Scope: nullString(it.Scope),
-		SpecDir: nullString(it.SpecDir), SupersededBy: nullString(it.SupersededBy),
-		Supersession: superView{Supplied: it.Supersession.Supplied, RawReference: raw, Valid: valid, TerminalID: nullString(it.Supersession.TerminalID)},
+		Description: strPtr(it.Description), Outcome: strPtr(it.Outcome), Scope: strPtr(it.Scope),
+		SpecDir: strPtr(it.SpecDir), SupersededBy: strPtr(it.SupersededBy),
+		Supersession: schema.Supersession{Supplied: it.Supersession.Supplied, RawReference: raw, Valid: valid, TerminalID: strPtr(it.Supersession.TerminalID)},
 		Dependencies: deps,
-		Tasks:        itemTaskView{Checked: checked, Total: total, Percent: it.Tasks.Percent, Source: nullString(it.Tasks.Source), State: or(it.Tasks.State, "not_linked"), Phases: phasesToView(it.Tasks)},
+		Tasks: schema.Tasks{Checked: checked, Total: total, Percent: it.Tasks.Percent, Source: strPtr(it.Tasks.Source),
+			State: or(it.Tasks.State, "not_linked"), Phases: phasesToSchema(it.Tasks)},
 	}
 }
 
-// phasesToView returns nil (JSON null) unless the tasks file was read.
-func phasesToView(t ItemTasks) *[]phaseView {
+// phasesToSchema returns nil (JSON null) unless the tasks file was read.
+func phasesToSchema(t ItemTasks) []schema.Phase {
 	if t.State != "read" {
 		return nil
 	}
-	out := make([]phaseView, 0, len(t.Phases))
+	out := make([]schema.Phase, 0, len(t.Phases))
 	for _, ph := range t.Phases {
-		out = append(out, phaseView{Heading: ph.Heading, Line: ph.Line, Story: ph.Story, Checked: ph.Checked, Total: ph.Total})
+		p := schema.Phase{Heading: ph.Heading, Line: ph.Line, Checked: ph.Checked, Total: ph.Total}
+		if ph.Story != nil {
+			v := *ph.Story
+			p.Story = &v
+		}
+		out = append(out, p)
 	}
-	return &out
+	return out
 }
 
-func diagToView(d Diagnostic) diagView {
-	rel := make([]srcView, 0, len(d.Related))
+func diagToSchema(d Diagnostic) schema.Diagnostic {
+	rel := make([]schema.Ref, 0, len(d.Related))
 	for _, r := range d.Related {
-		rel = append(rel, srcView{Path: r.Path, Line: r.Line})
+		rel = append(rel, schema.Ref{Path: r.Path, Line: r.Line})
 	}
-	return diagView{
+	return schema.Diagnostic{
 		Code: d.Code, Severity: d.Severity, Message: d.Message,
-		Source: sourceRef(d.Path, d.Line), ItemID: nullString(d.ItemID), Related: rel,
+		Source: locationOf(d.Path, d.Line), ItemID: strPtr(d.ItemID), Related: rel,
 	}
+}
+
+// locationOf is the schema form of sourceRef: nil when both parts are
+// absent, otherwise each absent part is null.
+func locationOf(path string, line int) *schema.Location {
+	if path == "" && line == 0 {
+		return nil
+	}
+	loc := &schema.Location{}
+	if path != "" {
+		p := path
+		loc.Path = &p
+	}
+	if line > 0 {
+		l := line
+		loc.Line = &l
+	}
+	return loc
+}
+
+func strPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
 
 func sourceRef(path string, line int) any {
@@ -195,114 +209,9 @@ func or(s, fallback string) string {
 	return s
 }
 
-type docView struct {
-	SchemaVersion string       `json:"schema_version"`
-	Outcome       string       `json:"outcome"`
-	Complete      bool         `json:"complete"`
-	Source        sourceView   `json:"source"`
-	Configuration configView   `json:"configuration"`
-	Summary       *summaryView `json:"summary"`
-	Items         []itemView   `json:"items"`
-	Diagnostics   []diagView   `json:"diagnostics"`
-	Error         *errView     `json:"error"`
-}
-
-type sourceView struct {
-	Roadmap     any `json:"roadmap"`
-	InputFormat any `json:"input_format"`
-}
-
-type configView struct {
-	FailOn           string `json:"fail_on"`
-	DependencyPolicy string `json:"dependency_policy"`
-	TaskScope        string `json:"task_scope"`
-}
-
-type summaryView struct {
-	TotalItems               int             `json:"total_items"`
-	StatusCounts             map[string]int  `json:"status_counts"`
-	ActiveItems              int             `json:"active_items"`
-	VerifiedActiveItems      int             `json:"verified_active_items"`
-	VerifiedPercent          Percent         `json:"verified_percent"`
-	SupersededItems          int             `json:"superseded_items"`
-	InvalidSupersessionItems int             `json:"invalid_supersession_items"`
-	BlockedCount             int             `json:"blocked_count"`
-	HumanReviewCount         int             `json:"human_review_count"`
-	Tasks                    taskSummaryView `json:"tasks"`
-}
-
-type taskSummaryView struct {
-	Checked      int     `json:"checked"`
-	Total        int     `json:"total"`
-	Percent      Percent `json:"percent"`
-	Scope        string  `json:"scope"`
-	FilesRead    int     `json:"files_read"`
-	FilesMissing int     `json:"files_missing"`
-	FilesSkipped int     `json:"files_skipped"`
-}
-
-type itemView struct {
-	ID           string       `json:"id"`
-	Title        string       `json:"title"`
-	Status       string       `json:"status"`
-	StatusKnown  bool         `json:"status_known"`
-	Source       srcView      `json:"source"`
-	Active       bool         `json:"active"`
-	Description  any          `json:"description"`
-	Outcome      any          `json:"outcome"`
-	Scope        any          `json:"scope"`
-	SpecDir      any          `json:"spec_dir"`
-	SupersededBy any          `json:"superseded_by"`
-	Supersession superView    `json:"supersession"`
-	Dependencies []depView    `json:"dependencies"`
-	Tasks        itemTaskView `json:"tasks"`
-}
-
 type srcView struct {
 	Path string `json:"path"`
 	Line int    `json:"line"`
-}
-
-type superView struct {
-	Supplied     bool `json:"supplied"`
-	RawReference any  `json:"raw_reference"`
-	Valid        any  `json:"valid"`
-	TerminalID   any  `json:"terminal_id"`
-}
-
-type depView struct {
-	ID            string  `json:"id"`
-	Satisfied     bool    `json:"satisfied"`
-	State         string  `json:"state"`
-	ReplacementID any     `json:"replacement_id"`
-	Source        srcView `json:"source"`
-}
-
-type itemTaskView struct {
-	Checked *int    `json:"checked"`
-	Total   *int    `json:"total"`
-	Percent Percent `json:"percent"`
-	Source  any     `json:"source"`
-	State   string  `json:"state"`
-	// Phases is null unless the tasks file was read (feature 011).
-	Phases *[]phaseView `json:"phases"`
-}
-
-type phaseView struct {
-	Heading string `json:"heading"`
-	Line    int    `json:"line"`
-	Story   *int   `json:"story"`
-	Checked int    `json:"checked"`
-	Total   int    `json:"total"`
-}
-
-type diagView struct {
-	Code     string    `json:"code"`
-	Severity string    `json:"severity"`
-	Message  string    `json:"message"`
-	Source   any       `json:"source"`
-	ItemID   any       `json:"item_id"`
-	Related  []srcView `json:"related"`
 }
 
 type errView struct {

@@ -62,3 +62,14 @@
   - `docs/library.md` covers `go get`, an example, the promise, the safety properties and `SchemaVersion`.
   - Update the README (one line and a link), `docs/architecture.md` (container and component tables, a pipeline note) and CLAUDE.md (pipeline).
 - **Rationale:** FR-007 and FR-010.
+
+## R8 — Human text moves to `internal/human` (found during implementation)
+
+- **Decision:** Move `internal/status/style.go`, together with `Text` and `fatalText`, into a new package `internal/human`. The CLI calls `human.Text`, `human.InventoryText` and `human.View`. The 16 test functions that render human text move with it, with copies of five small test helpers, and the test count is unchanged at 138. `InventorySpecsDir` is exported for the inventory text.
+- **Rationale:** `go list -deps ./pkg/status` showed that `pkg/status` linked Lip Gloss, termenv and about a dozen other modules through `internal/status/style.go`. That broke FR-007 and SC-005 and the docs' claim that the package links no third-party code, and termenv could probe the terminal inside a caller's program. Human text depends on the report, not the other way round, so it belongs in its own package.
+- **Alternatives considered:**
+  - Injecting a painter so `internal/status` builds without Lip Gloss: more moving parts, and `Text` would still need a default renderer.
+  - Build tags: the CLI and the library come from one module build.
+- **Verification:**
+  - `TestLibraryDependencyClosureIsStandardLibrary` walks everything `pkg/status` imports from this module, and fails on any non-standard import. A seeded `uniseg` import in `internal/status` failed it.
+  - CLI text, `--explain`, colored output, inventory text and JSON are byte-identical to the pre-change build on every fixture root.
