@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	driftProject   = flag.String("project", "", "drift check: upstream project (spec-kit or speckit-roadmap)")
+	driftProject   = flag.String("project", "", "drift check: upstream project, as named in testdata/upstream/pins.json")
 	driftCandidate = flag.String("candidate", "", "drift check: path to a downloaded candidate template")
+	driftTemplate  = flag.Int("template", 0, "drift check: index of the project's template in testdata/upstream/pins.json")
 )
 
 // pinsFile is the single list of upstream pins, shared with
@@ -307,13 +308,24 @@ func resolved(t *testing.T, project string) map[string]bool {
 	return out
 }
 
-func pinnedShapes(t *testing.T, project string) map[string]shape {
+// pinnedShapes returns the shape keys of a project's pinned template; index
+// selects the template in pins.json, so each candidate is compared with its
+// own pinned copy.
+func pinnedShapes(t *testing.T, project string, index int) map[string]shape {
 	t.Helper()
 	files, ok := pinnedTemplates[project]
 	if !ok {
-		t.Fatalf("unknown project %q; want spec-kit or speckit-roadmap", project)
+		names := make([]string, 0, len(pinnedTemplates))
+		for n := range pinnedTemplates {
+			names = append(names, n)
+		}
+		sort.Strings(names)
+		t.Fatalf("unknown project %q; want one of %s (testdata/upstream/pins.json)", project, strings.Join(names, ", "))
 	}
-	data, err := os.ReadFile(filepath.Join(repoRoot, "testdata", "upstream", files[0]))
+	if index < 0 || index >= len(files) {
+		t.Fatalf("project %q has %d template(s); -template=%d is out of range", project, len(files), index)
+	}
+	data, err := os.ReadFile(filepath.Join(repoRoot, "testdata", "upstream", files[index]))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,7 +336,7 @@ func pinnedShapes(t *testing.T, project string) map[string]shape {
 // (FR-008, FR-009). It reads local files only and is skipped unless
 // -candidate is given:
 //
-//	go test ./internal/conformance -run TestDrift -v -args -project=spec-kit -candidate=PATH
+//	go test ./internal/conformance -run TestDrift -v -args -project=spec-kit -candidate=PATH [-template=N]
 func TestDrift(t *testing.T) {
 	if *driftCandidate == "" {
 		t.Skip("no -candidate given; see specs/002-upstream-format-conformance/contracts/drift-report.md")
@@ -333,7 +345,7 @@ func TestDrift(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	changes := compareShapes(pinnedShapes(t, *driftProject), shapeKeys(string(data)))
+	changes := compareShapes(pinnedShapes(t, *driftProject, *driftTemplate), shapeKeys(string(data)))
 	done := resolved(t, *driftProject)
 	unresolved := 0
 	for _, c := range changes {
@@ -366,7 +378,7 @@ func TestDriftDetectsSimulatedChange(t *testing.T) {
 			t.Fatal(err)
 		}
 		got := map[string]bool{}
-		for _, ch := range compareShapes(pinnedShapes(t, c.project), shapeKeys(string(data))) {
+		for _, ch := range compareShapes(pinnedShapes(t, c.project, 0), shapeKeys(string(data))) {
 			got[ch.String()] = true
 		}
 		done := resolved(t, c.project)

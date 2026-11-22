@@ -20,7 +20,8 @@
 # change"; 1 when any project has drift, a missing template, a fetch error
 # or a check error (the drift test itself failed to run),
 # or on a usage error.
-# Needs: go, jq; plus gh and curl unless every project uses --candidate.
+# Needs: go and jq (pins.json is read with jq); plus gh and curl unless every
+# selected project uses --candidate.
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -62,10 +63,36 @@ if [ -n "$tag" ] && [ -z "$project" ]; then
   echo "--tag (or DRIFT_TAG) needs a single project" >&2
   exit 1
 fi
-if [ -n "$tag" ] && ! printf '%s' "$tag" | grep -Eq '^[A-Za-z0-9._/-]+$'; then
-  echo "tag has unsupported characters: $tag" >&2
-  exit 1
+if [ -n "$tag" ]; then
+  if ! printf '%s' "$tag" | grep -Eq '^[A-Za-z0-9._/-]+$'; then
+    echo "tag has unsupported characters: $tag" >&2
+    exit 1
+  fi
+  case "$tag" in
+    /*|*/|*..*|*//*) echo "tag must not contain '..', '//' or a leading or trailing '/': $tag" >&2; exit 1 ;;
+  esac
 fi
+
+# #6, #4: every --candidate and --path must name a selected, single-template
+# project, and --candidate cannot be combined with --tag for that project.
+check_overrides() {
+  local flag="$1"; shift
+  local kv n
+  for kv in "$@"; do
+    case "$kv" in *=*) ;; *) echo "$flag needs NAME=VALUE: $kv" >&2; exit 1 ;; esac
+    n="${kv%%=*}"
+    printf '%s\n' "$selected" | grep -qxF -- "$n" \
+      || { echo "$flag names a project that is not selected: $n" >&2; exit 1; }
+    if [ "$(jq -r --arg n "$n" '.projects[] | select(.name==$n) | .templates | length' "$pins")" != "1" ]; then
+      echo "$flag supports only projects with one template: $n" >&2; exit 1
+    fi
+    if [ "$flag" = "--candidate" ] && [ -n "$tag" ]; then
+      echo "--candidate and --tag cannot be combined: the local file has no tag" >&2; exit 1
+    fi
+  done
+}
+check_overrides --candidate ${candidates[@]+"${candidates[@]}"}
+check_overrides --path ${paths[@]+"${paths[@]}"}
 
 # lookup NAME KEY in a NAME=VALUE list; prints VALUE or nothing.
 lookup() {
@@ -131,11 +158,15 @@ for name in $selected; do
       fi
     fi
     out="$dir/drift-$i.log"
-    if (cd "$repo_root" && CGO_ENABLED=0 go test ./internal/conformance -run 'TestDrift$' -count=1 -v \
-          -args -project="$name" -candidate="$file") >"$out" 2>&1; then
-      :
-    elif ! grep -q 'unresolved shape changes' "$out"; then
-      result="check error: drift check did not run for $rpath ($(grep -m1 -E 'FAIL|panic|Error' "$out" | head -c 200 | tr '|' ' '))"; break
+    status=0
+    (cd "$repo_root" && CGO_ENABLED=0 go test ./internal/conformance -run 'TestDrift$' -count=1 -v \
+        -args -project="$name" -candidate="$file" -template="$i") >"$out" 2>&1 || status=$?
+    # The test must have run: "no tests to run" or a skip also exits 0.
+    if ! grep -Eq '^--- (PASS|FAIL): TestDrift ' "$out"; then
+      result="check error: TestDrift did not run for $rpath ($(grep -m1 -E 'no tests to run|SKIP|FAIL|panic|rror' "$out" | head -c 200 | tr '|' ' '))"; break
+    fi
+    if [ "$status" -ne 0 ] && ! grep -q 'unresolved shape changes' "$out"; then
+      result="check error: drift check failed for $rpath ($(grep -m1 -E 'FAIL|panic|rror' "$out" | head -c 200 | tr '|' ' '))"; break
     fi
     found="$(grep -E '(added|removed):.*\(unresolved\)$' "$out" | sed -E 's/^[[:space:]]*drift_test\.go:[0-9]+: //' || true)"
     if [ -n "$found" ]; then
@@ -149,7 +180,12 @@ for name in $selected; do
   if [ -z "$result" ]; then
     if [ "$unresolved" -gt 0 ]; then
       if [ "$unresolved" -eq 1 ]; then result="1 unresolved change"; else result="$unresolved unresolved changes"; fi
-      details="${details}"$'\n'"### $name: unresolved changes ($cand_tag)"$'\n\n''```'$'\n'"${lines}"'```'$'\n'
+      # Upstream text is untrusted: use a fence longer than any backtick run
+      # in it, so it cannot close the code block in the summary.
+      longest="$(printf '%s' "$lines" | grep -o '`*' | awk '{ if (length($0) > m) m = length($0) } END { print m + 0 }')"
+      fence='```'
+      while [ "${#fence}" -le "$longest" ]; do fence="${fence}\`"; done
+      details="${details}"$'\n'"### $name: unresolved changes ($cand_tag)"$'\n\n'"${fence}"$'\n'"${lines}${fence}"$'\n'
     elif [ "$cand_tag" = "$pinned_tag" ]; then
       result="same tag as the pin"
     else

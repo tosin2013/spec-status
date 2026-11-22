@@ -26,7 +26,7 @@ The pins are listed once, in `pins.json`: project name, GitHub repository, pinne
 | N unresolved change(s) | Shapes were added or removed; the summary lists each key with an example line. Start "Moving a pin" below | fails |
 | template not found: PATH | The template is not at that path in the release (renamed or removed upstream) | fails |
 | fetch error: … | The release, commit or file could not be fetched. Nothing was compared, so no drift is claimed | fails |
-| check error: … | The drift test itself did not run | fails |
+| check error: … | The drift test itself did not run, or did not report a result (for example, it was renamed) | fails |
 
 GitHub pauses scheduled workflows in a repository with no activity for 60 days. Re-enable it in the Actions tab or with `gh workflow enable drift.yml`.
 
@@ -46,5 +46,5 @@ The drift check is development tooling. It reads only files you have downloaded;
    - add or extend a fixture under `testdata/conformance/` with a hand-counted `expected.json`;
    - record a decision (support it, or reject it with a visible failure or a README limit) in `specs/001-spec-status/decisions.md`;
    - add a row to `PROJECT/resolutions.md` with the change exactly as reported, the fixture name, and the decision ID.
-4. When the drift check passes and `CGO_ENABLED=0 go test ./...` passes, copy the candidate templates into `PROJECT/TAG/templates/` with LICENSE and NOTICE, update the project's `tag` and `pinned` paths in `pins.json`, update the shape inventory, and update the "Supported input" section of README.md.
+4. When the drift check passes and `CGO_ENABLED=0 go test ./...` passes, copy the candidate templates into `PROJECT/TAG/templates/` with LICENSE and NOTICE, update the project's `tag` and `pinned` paths in `pins.json` (for a new project, also add its name to the `project` options in `.github/workflows/drift.yml`), update the shape inventory, and update the "Supported input" section of README.md.
 5. Shapes supported under the previous pin stay supported unless a recorded decision removes them (FR-010). Note any removal for users.

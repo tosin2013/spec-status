@@ -18,6 +18,8 @@ on:
       project:
         description: Upstream project to check
         type: choice
+        # Keep in step with testdata/upstream/pins.json (choice inputs cannot
+        # read a file); scheduled runs use pins.json alone.
         options: [all, spec-kit, speckit-roadmap]
         default: all
       tag:
