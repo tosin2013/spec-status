@@ -1,6 +1,18 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.7.2 → 1.7.3
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 010 status: planned → implemented (feature 013; spec PR #74,
+    implementation PR #75, review fixes PR #76; first CI run 44982112510);
+    Spec dir added
+
+Specs affected: 013-upstream-drift-workflow
+Open questions added/resolved: none
+
+Previous revision (1.7.2, 2026-11-21):
 Version change: 1.7.1 → 1.7.2
 Bump rationale: PATCH — status transition.
 
@@ -810,7 +822,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   feature's `reclassification.md`. Roadmap 1.3.4 is a hand-counted fixture
   (`testdata/conformance/this-repo-1.3.4`).
 
-### 010 — Upstream drift automation [status: planned]
+### 010 — Upstream drift automation [status: implemented]
 
 - **Description:** A scheduled workflow that fetches the latest spec-kit and
   speckit-roadmap templates and runs the conformance drift check (`TestDrift`)
@@ -821,8 +833,17 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** moving pins automatically; runtime network access.
 - **Depends on:** 007, 009
 - **Governed by:** C-02, C-08
+- **Spec dir:** specs/013-upstream-drift-workflow
 - **Notes:** Deferred from feature 003 by the owner on 2026-11-11. Needs its own
-  spec; reporting by issue would need write permission.
+  spec; reporting by issue would need write permission. Chosen for v0.4.0
+  (D-2026-11-21-01). Specced on 2026-11-21 (feature 013, PR #74): weekly and
+  manual, read-only, a failed run is the alert, pins listed once in
+  testdata/upstream/pins.json. Implemented on 2026-11-21 (PR #75; review
+  fixes in PR #76; implementation record in specs/001-spec-status/tasks.md).
+  First CI run 44982112510 succeeded: spec-kit v1.4.3 and speckit-roadmap
+  v0.1.1 show no unresolved change against the pins; no pin moved. The Doomer
+  review did not complete; a local code review of PR #75 found the issues
+  fixed in #76. Not verified until the v0.4.0 release checks.
 
 ### 011 — README sample test [status: verified]
 
@@ -955,4 +976,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.7.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-21
+**Version**: 1.7.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-22
