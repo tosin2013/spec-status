@@ -70,5 +70,6 @@
     - a copy with an added `[Pn]` marker line gives `1 unresolved change`;
     - `--path spec-kit=templates/nope.md` gives `template not found`;
     - `--tag v0.0.0-nope` gives `fetch error`.
-  - One real dispatch run on the feature branch with the current upstream releases. Record its result as found, whatever it is.
+  - A real run of the script against the current upstream releases, locally, before the merge.
+  - One real `workflow_dispatch` run after the merge. GitHub dispatches only workflows present on the default branch. Record its result as found, whatever it is.
 - **Rationale:** SC-003. There must be evidence for each result kind, and no false drift.

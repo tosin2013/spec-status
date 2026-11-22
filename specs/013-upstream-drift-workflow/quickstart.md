@@ -13,4 +13,4 @@ scripts/check-upstream-drift.sh                     # real upstream, all project
 4. `scripts/check-upstream-drift.sh --project spec-kit --tag v0.0.0-nope` gives `fetch error: …`, exit 1.
 5. `scripts/check-upstream-drift.sh --project spec-kit --tag v1.2.0` gives `same tag as the pin`, exit 0.
 
-**CI:** `gh workflow run drift.yml --ref 013-upstream-drift-workflow-impl`, then read the run summary. Record the real result.
+**CI:** GitHub dispatches only workflows that exist on the default branch, so the first real run happens after the merge: `gh workflow run drift.yml`, then read the run summary and record the real result. Before the merge, the same script runs locally against the real upstream releases, and `actionlint`, if installed, checks the YAML.
