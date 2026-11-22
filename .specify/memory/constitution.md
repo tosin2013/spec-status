@@ -46,7 +46,7 @@ Every dependency on a superseded item requires human review even if its successo
 
 Preserve `--json`, raw `superseded_by`, default failure threshold `error`, and exits 0/1/2. Exit 0 is below the chosen threshold, not proof of correctness; exit 1 is a finding outcome, not a runtime crash; exit 2 is fatal/invocation/configuration/required-input failure. `none` never hides fatal failure. JSON mode emits one JSON document, including fatal errors, with no log contamination on stdout.
 
-Version input dialect, JSON schema and CLI release identity separately. Document CLI/JSON breaking changes and test parity, ordering, null denominators and rounding. Draft field names or codes are not public compatibility promises before approval.
+Version input dialect, JSON schema, CLI release identity and the Go API (`pkg/status`) separately. The Go API is experimental until 1.0: its report types follow the JSON schema, and signature changes are called out in release notes (D-2026-11-21-01). Document CLI/JSON breaking changes and test parity, ordering, null denominators and rounding. Draft field names or codes are not public compatibility promises before approval.
 
 ## Article VI — No inferred quarters
 

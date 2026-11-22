@@ -48,6 +48,8 @@ From a release (v0.2.0 or later). Replace `<version>`:
 specify extension add spec-status --from https://github.com/tosin2013/spec-status/releases/download/v<version>/spec-status-extension_<version>.zip
 ```
 
+Spec Kit asks "Continue with installation?" for any extension installed from a URL. This is its trust prompt for external sources; answer `y` to continue.
+
 From a clone of this repository, for example to try an unreleased change:
 
 ```sh

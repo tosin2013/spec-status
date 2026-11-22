@@ -1,6 +1,34 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.6.9 → 1.7.0
+Bump rationale: MINOR — two new planned specs (017, 018); also status
+transitions.
+
+Changes this revision:
+  - 008, 011, 015, 016 status: implemented → verified (v0.3.0 published
+    2026-11-15; release run 43665689370; post-release checks; owner approval
+    2026-11-21)
+  - 013 status: implemented → verified (same evidence; 014 verified in 1.6.9)
+  - 017 Per-phase task counts added, planned (issue #66, D-2026-11-21-01)
+  - 018 Public Go package added, planned (issue #65, D-2026-11-21-01)
+
+Specs affected: 006-two-mode-inventory, 008-field-forms-and-fixes,
+  009-readme-sample-test, 010-close-gap-skill
+Open questions added/resolved: none
+
+Previous revision (1.6.9, 2026-11-21):
+Version change: 1.6.8 → 1.6.9
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 014 status: implemented → verified (v0.3.0 published 2026-11-15; release
+    run 43665689370; post-release checks; owner approval 2026-11-21)
+
+Specs affected: 007-status-tasks-diagnostics
+Open questions added/resolved: none
+
+Previous revision (1.6.8, 2026-11-15):
 Version change: 1.6.7 → 1.6.8
 Bump rationale: PATCH — status transitions.
 
@@ -502,7 +530,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   is decided and the contracts match; the toolchain, runners and release
   workflow belong to 004.
 
-### 008 — Two-mode roadmap and feature inventory [status: implemented]
+### 008 — Two-mode roadmap and feature inventory [status: verified]
 
 - **Description:** TASK-24–26: distinguish an empty supported roadmap from an
   unrecognized file, and add a separate, explicit inventory of feature folders
@@ -526,8 +554,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   Implemented on 2026-11-14 (PRs #50, #51; implementation record in
   specs/001-spec-status/tasks.md); constitution Art. II amended the same day
   (D-2026-11-14-02, PR #52). Not verified until the v0.3.0 release checks.
+  Verified on 2026-11-21 with owner approval: v0.3.0 published 2026-11-15
+  (release run 43665689370) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip with six
+  skills).
 
-### 014 — Status/tasks consistency diagnostics [status: implemented]
+### 014 — Status/tasks consistency diagnostics [status: verified]
 
 - **Description:** Mechanical findings when an item's recorded status
   disagrees with its tasks: `implemented` or `verified` with unchecked tasks or
@@ -548,8 +580,11 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   Implemented on 2026-11-14 (PRs #54, #55; implementation record in
   specs/001-spec-status/tasks.md). Not verified until the v0.3.0 release
   checks.
+  Verified on 2026-11-21 with owner approval: v0.3.0 published 2026-11-15
+  (release run 43665689370) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip).
 
-### 015 — Real-world field forms [status: implemented]
+### 015 — Real-world field forms [status: verified]
 
 - **Description:** Accept two forms real speckit-roadmap files contain:
   the bold, capitalized, spaced "Superseded by" label read as `superseded-by`, and a
@@ -571,8 +606,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   Implemented on 2026-11-15 (PR #58, spec in #57; implementation record in
   specs/001-spec-status/tasks.md). Not verified until the v0.3.0 release
   checks.
+  Verified on 2026-11-21 with owner approval: v0.3.0 published 2026-11-15
+  (release run 43665689370) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip with six
+  skills).
 
-### 016 — Small defect fixes [status: implemented]
+### 016 — Small defect fixes [status: verified]
 
 - **Description:** Open non-blocking defects from README Limits: duplicate ID
   in one `Depends on` list; human text missing status counts, invalid
@@ -592,6 +631,44 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   Implemented on 2026-11-15 (PR #58, spec in #57; implementation record in
   specs/001-spec-status/tasks.md). Not verified until the v0.3.0 release
   checks.
+  Verified on 2026-11-21 with owner approval: v0.3.0 published 2026-11-15
+  (release run 43665689370) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip with six
+  skills).
+
+### 017 — Per-phase task counts [status: planned]
+
+- **Description:** Each item's `tasks` object in `spec status --json` gains a
+  `phases` array: the level-2 `## Phase …` sections of its tasks.md, with
+  heading, line, user-story number, checked and total.
+- **Outcome:** A consumer such as specfoundry can gate and grade one phase of
+  an item from `spec status` JSON alone, without parsing tasks.md.
+- **Scope (in):** phase grammar (level-2 `Phase` headings, fences and comments
+  ignored), null vs empty rules, JSON (additive, schema 1.0), JSON contract,
+  fixtures for the Spec Kit tasks layout.
+- **Scope (out):** human-text phase output; inferring status from phases.
+- **Depends on:** 001, 014
+- **Governed by:** C-01, C-05
+- **Notes:** Issue #66. Owner choice of 2026-11-21 (D-2026-11-21-01). Targets
+  v0.4.0.
+
+### 018 — Public Go package [status: planned]
+
+- **Description:** A public package, `github.com/tosin2013/spec-status/pkg/status`,
+  that evaluates a project exactly as `spec status --json` does and returns the
+  schema 1.0 report as Go types.
+- **Outcome:** Go tools such as specfoundry's gate use the same logic
+  in-process, with no binary to install and no drift from the CLI.
+- **Scope (in):** `Load`, report types, exit-code helper, exact `--json` bytes
+  from shared code, a CLI/library byte-identity test, import guardrails,
+  library docs.
+- **Scope (out):** an inventory API; a stable (1.0) Go API promise; any write,
+  network or AI path.
+- **Depends on:** 001, 017
+- **Governed by:** C-02, C-05
+- **Notes:** Issue #65. Owner choice of 2026-11-21 (D-2026-11-21-01): the Go
+  API is experimental until 1.0; report fields follow schema 1.0. Targets
+  v0.4.0.
 
 ### Evidence and distribution
 
@@ -711,7 +788,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Notes:** Deferred from feature 003 by the owner on 2026-11-11. Needs its own
   spec; reporting by issue would need write permission.
 
-### 011 — README sample test [status: implemented]
+### 011 — README sample test [status: verified]
 
 - **Description:** A Go test that compares the README's example output with
   `spec status` on `testdata/example-roadmap`.
@@ -727,6 +804,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   stale --human-review --explain sample is corrected. Implemented on
   2026-11-15 (PR #61, spec in #60). Not verified until the v0.3.0 release
   checks.
+  Verified on 2026-11-21 with owner approval: v0.3.0 published 2026-11-15
+  (release run 43665689370) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip with six
+  skills).
 
 ### 012 — Agent skills extension [status: verified]
 
@@ -756,7 +837,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   recorded verified the same day after installing from the release archive.
   Submitted to the Spec Kit community catalog (github/spec-kit#5413).
 
-### 013 — Close-gap skill [status: implemented]
+### 013 — Close-gap skill [status: verified]
 
 - **Description:** A sixth extension command, `speckit.spec-status.close-gap`,
   that works through items whose recorded status lags their evidence (for
@@ -780,6 +861,10 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   Implemented on 2026-11-15 (PR #62, spec in #60): extension 0.3.0 with six
   skills. Not verified until 014 is recorded verified (C-07) and the v0.3.0
   release checks pass.
+  Verified on 2026-11-21 with owner approval: v0.3.0 published 2026-11-15
+  (release run 43665689370) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip with six
+  skills); 014 recorded verified the same day, so C-07 holds.
 
 ### Future
 
@@ -834,4 +919,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.6.8 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-15
+**Version**: 1.7.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-21
