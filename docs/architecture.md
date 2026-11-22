@@ -1,7 +1,7 @@
 # Architecture document
 
 **System:** Spec Status (`spec` CLI and the `spec-status` Spec Kit extension)  
-**Version:** 0.4.0 (development; not yet released)  
+**Version:** 0.4.0  
 **Status:** Accepted  
 **Audience:** Engineers who change the CLI, the extension or the release workflow  
 **Voice:** STE100
