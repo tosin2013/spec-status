@@ -1,0 +1,20 @@
+{
+  "projects": [
+    {
+      "name": "spec-kit",
+      "repo": "github/spec-kit",
+      "tag": "v1.2.0",
+      "templates": [
+        {"path": "templates/tasks-template.md", "pinned": "spec-kit/v1.2.0/templates/tasks-template.md"}
+      ]
+    },
+    {
+      "name": "speckit-roadmap",
+      "repo": "srobroek/speckit-roadmap",
+      "tag": "v0.1.0",
+      "templates": [
+        {"path": "templates/roadmap-template.md", "pinned": "speckit-roadmap/v0.1.0/templates/roadmap-template.md"}
+      ]
+    }
+  ]
+}

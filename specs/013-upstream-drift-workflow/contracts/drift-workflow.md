@@ -27,7 +27,7 @@ scripts/check-upstream-drift.sh [--project NAME] [--tag TAG] [--candidate NAME=F
 (added:/removed: lines from TestDrift, in a code block)
 ```
 
-Result values: `same tag as the pin`, `no unresolved change`, `N unresolved change(s)`, `template not found: PATH`, `fetch error: MESSAGE`.
+Result values: `same tag as the pin`, `no unresolved change`, `N unresolved change(s)`, `template not found: PATH`, `fetch error: MESSAGE`, and `check error: MESSAGE` (the drift test itself did not run, added during implementation so that a broken test is never reported as a fetch error or a drift). Downloads use the resolved commit, not the tag name, so the file matches the commit shown in the summary.
 
 ## `.github/workflows/drift.yml`
 

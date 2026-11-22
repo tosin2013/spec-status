@@ -30,3 +30,7 @@ result:  3 unresolved changes; the pin cannot move
 2. Run the drift check against each relevant template.
 3. For each change: add or extend a fixture with a hand-counted `expected.json`, record a decision (support, or reject with visible failure or a README limit), and list both in `resolutions.md`.
 4. When the drift check passes and `go test ./...` passes, copy the candidate templates into `testdata/upstream/<project>/<tag>/` with LICENSE and NOTICE, mark the old pin `previous`, and update README's supported-versions line.
+
+## Automated weekly check (feature 013)
+
+`.github/workflows/drift.yml` runs this check every week against the latest upstream releases, using the pins in `testdata/upstream/pins.json`. It reports through a failed run and the run summary, and never moves a pin. `scripts/check-upstream-drift.sh` runs the same check locally. Contract: [drift-workflow.md](../../013-upstream-drift-workflow/contracts/drift-workflow.md).

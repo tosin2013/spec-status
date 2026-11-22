@@ -1,0 +1,49 @@
+# Weekly upstream drift check (feature 013, roadmap 010;
+# contract: specs/013-upstream-drift-workflow/contracts/drift-workflow.md).
+# For each pinned upstream project in testdata/upstream/pins.json, it checks
+# the latest published, non-prerelease release (or a tag given by hand)
+# against the pin with the existing drift test. A failed run is the alert and
+# the run summary is the report. It is read-only: it publishes nothing,
+# writes nothing to the repository, opens no issues or pull requests and never
+# moves a pin. Pins move only through testdata/upstream/README.md.
+# GitHub pauses scheduled workflows after 60 days without repository activity;
+# re-enable with `gh workflow enable drift.yml`.
+name: drift
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Upstream project to check
+        type: choice
+        options: [all, spec-kit, speckit-roadmap]
+        default: all
+      tag:
+        description: Release tag to check (optional; needs a single project)
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    name: upstream drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.26.x'
+      - name: Check upstream templates against the pins
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRIFT_PROJECT: ${{ inputs.project }}
+          DRIFT_TAG: ${{ inputs.tag }}
+        run: scripts/check-upstream-drift.sh
