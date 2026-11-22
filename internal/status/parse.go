@@ -1424,23 +1424,24 @@ func phaseHeading(level int, text string) (string, bool) {
 
 // phaseStory returns N from the first "User Story N" in a phase heading,
 // where N has 1 to 9 decimal digits followed by a non-digit or the end.
+// Occurrences of "User Story " not followed by such a number are skipped.
 func phaseStory(h string) *int {
 	const key = "User Story "
-	i := strings.Index(h, key)
-	if i < 0 {
-		return nil
+	for rest := h; ; {
+		i := strings.Index(rest, key)
+		if i < 0 {
+			return nil
+		}
+		rest = rest[i+len(key):]
+		n := 0
+		for n < len(rest) && rest[n] >= '0' && rest[n] <= '9' {
+			n++
+		}
+		if n >= 1 && n <= 9 {
+			if v, err := strconv.Atoi(rest[:n]); err == nil {
+				return &v
+			}
+		}
+		// Not a "User Story N" match; look at the next occurrence.
 	}
-	rest := h[i+len(key):]
-	n := 0
-	for n < len(rest) && rest[n] >= '0' && rest[n] <= '9' {
-		n++
-	}
-	if n == 0 || n > 9 {
-		return nil
-	}
-	v, err := strconv.Atoi(rest[:n])
-	if err != nil {
-		return nil
-	}
-	return &v
 }

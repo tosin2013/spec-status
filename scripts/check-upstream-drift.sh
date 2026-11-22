@@ -63,14 +63,20 @@ if [ -n "$tag" ] && [ -z "$project" ]; then
   echo "--tag (or DRIFT_TAG) needs a single project" >&2
   exit 1
 fi
-if [ -n "$tag" ]; then
-  if ! printf '%s' "$tag" | grep -Eq '^[A-Za-z0-9._/-]+$'; then
-    echo "tag has unsupported characters: $tag" >&2
-    exit 1
+# tag_problem TAG prints why a tag is unsafe to use in an API path or URL,
+# or nothing when it is fine. Used for --tag and for the tag that
+# releases/latest returns (upstream-controlled text).
+tag_problem() {
+  if ! printf '%s' "$1" | grep -Eq '^[A-Za-z0-9._/-]+$'; then
+    echo "tag has unsupported characters"; return 0
   fi
-  case "$tag" in
-    /*|*/|*..*|*//*) echo "tag must not contain '..', '//' or a leading or trailing '/': $tag" >&2; exit 1 ;;
+  case "$1" in
+    /*|*/|*..*|*//*) echo "tag must not contain '..', '//' or a leading or trailing '/'" ;;
   esac
+}
+if [ -n "$tag" ]; then
+  problem="$(tag_problem "$tag")"
+  [ -z "$problem" ] || { echo "$problem: $tag" >&2; exit 1; }
 fi
 
 # #6, #4: every --candidate and --path must name a selected, single-template
@@ -132,7 +138,12 @@ for name in $selected; do
         failed=1; continue
       fi
     fi
-    if ! commit="$(gh api "repos/$repo/commits/$want" -q .sha 2>"$dir/err")" || [ -z "$commit" ]; then
+    problem="$(tag_problem "$want")"
+    if [ -n "$problem" ]; then
+      add_row "$name" "$pinned_tag" "(rejected)" "-" "fetch error: release tag of $repo rejected: $problem"
+      failed=1; continue
+    fi
+    if ! commit="$(gh api "repos/$repo/commits/$want" -q .sha 2>"$dir/err")" || ! printf '%s' "$commit" | grep -Eq '^[0-9a-f]{40}$'; then
       add_row "$name" "$pinned_tag" "$want" "-" "fetch error: tag $want of $repo: $(head -c 200 "$dir/err" | tr '\n|' '  ')"
       failed=1; continue
     fi

@@ -23,13 +23,13 @@ type invDocView struct {
 	Summary       *invSummaryView     `json:"summary"`
 	Folders       []invFolderView     `json:"folders"`
 	Diagnostics   []schema.Diagnostic `json:"diagnostics"`
-	Error         *errView            `json:"error"`
+	Error         *schema.Error       `json:"error"`
 }
 
 type invSourceView struct {
-	SpecsDir    string `json:"specs_dir"`
-	SpecsState  any    `json:"specs_state"`
-	RoadmapFile any    `json:"roadmap_file"`
+	SpecsDir    string  `json:"specs_dir"`
+	SpecsState  *string `json:"specs_state"`
+	RoadmapFile *string `json:"roadmap_file"`
 }
 
 type invConfigView struct {
@@ -57,7 +57,7 @@ type invFolderView struct {
 	Name     string        `json:"name"`
 	Path     string        `json:"path"`
 	Feature  bool          `json:"feature"`
-	NameForm any           `json:"name_form"`
+	NameForm *string       `json:"name_form"`
 	Skipped  bool          `json:"skipped"`
 	Spec     *invFileView  `json:"spec"`
 	Plan     *invFileView  `json:"plan"`
@@ -65,16 +65,16 @@ type invFolderView struct {
 }
 
 type invFileView struct {
-	State  string `json:"state"`
-	Reason any    `json:"reason"`
+	State  string  `json:"state"`
+	Reason *string `json:"reason"`
 }
 
 type invTasksView struct {
-	State   string `json:"state"`
-	Reason  any    `json:"reason"`
-	Checked any    `json:"checked"`
-	Total   any    `json:"total"`
-	Percent any    `json:"percent"`
+	State   string  `json:"state"`
+	Reason  *string `json:"reason"`
+	Checked any     `json:"checked"`
+	Total   any     `json:"total"`
+	Percent any     `json:"percent"`
 }
 
 // InventoryJSON renders one inventory document, newline-terminated.
@@ -84,7 +84,7 @@ func InventoryJSON(rep InventoryReport) []byte {
 		Outcome:       rep.Outcome,
 		Complete:      rep.Complete,
 		Mode:          "inventory",
-		Source:        invSourceView{SpecsDir: inventorySpecsDir, SpecsState: nullString(rep.SpecsState), RoadmapFile: nullString(rep.RoadmapFile)},
+		Source:        invSourceView{SpecsDir: inventorySpecsDir, SpecsState: strPtr(rep.SpecsState), RoadmapFile: strPtr(rep.RoadmapFile)},
 		Configuration: invConfigView{FailOn: or(rep.FailOn, "error"), TaskScope: inventoryTaskScope},
 		Folders:       []invFolderView{},
 		Diagnostics:   []schema.Diagnostic{},
@@ -112,7 +112,7 @@ func InventoryJSON(rep InventoryReport) []byte {
 		} else if len(rep.Diagnostics) > 0 {
 			d = rep.Diagnostics[0]
 		}
-		view.Error = &errView{Code: d.Code, Message: d.Message, Source: sourceRef(d.Path, d.Line)}
+		view.Error = &schema.Error{Code: d.Code, Message: d.Message, Source: locationOf(d.Path, d.Line)}
 		view.Complete = false
 		view.Summary = nil
 		view.Folders = []invFolderView{}
@@ -133,15 +133,15 @@ func InventoryInvocationJSON(failOn, message string) []byte {
 }
 
 func folderToView(f Folder) invFolderView {
-	v := invFolderView{Name: f.Name, Path: f.Path, Feature: f.Feature, NameForm: nullString(f.NameForm), Skipped: f.Skipped}
+	v := invFolderView{Name: f.Name, Path: f.Path, Feature: f.Feature, NameForm: strPtr(f.NameForm), Skipped: f.Skipped}
 	if f.Spec != nil {
-		v.Spec = &invFileView{State: f.Spec.State, Reason: nullString(f.Spec.Reason)}
+		v.Spec = &invFileView{State: f.Spec.State, Reason: strPtr(f.Spec.Reason)}
 	}
 	if f.Plan != nil {
-		v.Plan = &invFileView{State: f.Plan.State, Reason: nullString(f.Plan.Reason)}
+		v.Plan = &invFileView{State: f.Plan.State, Reason: strPtr(f.Plan.Reason)}
 	}
 	if f.Tasks != nil {
-		t := &invTasksView{State: f.Tasks.State, Reason: nullString(f.Tasks.Reason)}
+		t := &invTasksView{State: f.Tasks.State, Reason: strPtr(f.Tasks.Reason)}
 		if f.Tasks.State == "read" {
 			t.Checked, t.Total, t.Percent = f.Tasks.Checked, f.Tasks.Total, f.Tasks.Percent
 		}

@@ -1,7 +1,6 @@
 package human
 
 import (
-	"github.com/tosin2013/spec-status/internal/status"
 	"io"
 	"sort"
 	"strings"
@@ -10,9 +9,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	"github.com/rivo/uniseg"
+
+	"github.com/tosin2013/spec-status/internal/status"
 )
 
-// View controls human text only. status.JSON does not use it.
+// View controls human text only. JSON does not use it.
 // Color is an explicit choice made by the caller. Width is a character budget.
 type View struct {
 	Color       bool
@@ -24,7 +25,7 @@ type View struct {
 	Historical  bool
 	Explain     bool
 	// Build is the panel heading label after "Spec Status"; empty means
-	// "development build". It never affects status.JSON (feature 004).
+	// "development build". It never affects JSON (feature 004).
 	Build string
 }
 
@@ -39,7 +40,7 @@ func normalizeWidth(n int) int {
 }
 
 // sanitizeTerminal removes terminal controls from repository-supplied text
-// before it is placed in human output. status.JSON keeps the original strings.
+// before it is placed in human output. JSON keeps the original strings.
 func sanitizeTerminal(s string) string {
 	var b strings.Builder
 	b.Grow(len(s))
@@ -313,7 +314,7 @@ func summaryLines(p *painter, s *status.Summary, roadmap string, inner int, buil
 	lines = append(lines, countLine(p, "human review", reviewValue, reviewKind, inner)...)
 	ctx := "items " + itoa(s.TotalItems) + "  active " + itoa(s.ActiveItems) + "  historical " + itoa(s.TotalItems-s.ActiveItems) + "  superseded " + itoa(s.SupersededItems)
 	lines = append(lines, wrapText(ctx, inner)...)
-	// Feature 008: the per-status counts status.JSON already carries, in the same
+	// Feature 008: the per-status counts JSON already carries, in the same
 	// (byte) key order, and invalid supersessions when there are any.
 	lines = append(lines, wrapText(statusesLine(s.StatusCounts), inner)...)
 	if s.InvalidSupersessionItems > 0 {
@@ -511,8 +512,8 @@ func filterItems(items []status.Item, view View) []status.Item {
 func itemMatches(it status.Item, view View) bool {
 	if len(view.Statuses) > 0 {
 		ok := false
-		for _, status := range view.Statuses {
-			if it.Status == status {
+		for _, want := range view.Statuses {
+			if it.Status == want {
 				ok = true
 				break
 			}
@@ -622,10 +623,10 @@ func writeItemRow(b *strings.Builder, p *painter, it status.Item, idW, statusW, 
 		scopeKind = "historical"
 	}
 	id := pad(truncate(it.ID, idW), idW)
-	status := pad(truncate(it.Status, statusW), statusW)
+	statusCell := pad(truncate(it.Status, statusW), statusW)
 	scopeText := pad(truncate(scope, scopeW), scopeW)
 	title := truncate(it.Title, titleW)
-	b.WriteString(id + " " + p.paint(status, statusKind(it)) + " " + p.paint(scopeText, scopeKind) + " " + title + "\n")
+	b.WriteString(id + " " + p.paint(statusCell, statusKind(it)) + " " + p.paint(scopeText, scopeKind) + " " + title + "\n")
 	writeRelations(b, p, it, idW+statusW+scopeW+titleW+3)
 }
 

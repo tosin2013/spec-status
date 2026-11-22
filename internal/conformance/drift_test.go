@@ -35,20 +35,23 @@ type pin struct {
 }
 
 // pinnedTemplates maps each project to its current pin's template files,
-// read from pinsFile.
-var pinnedTemplates = func() map[string][]string {
+// read from pinsFile when a test needs it, so a broken pins file fails the
+// tests that use it (and TestPinsFile says why) instead of panicking at
+// package start.
+func pinnedTemplates(t *testing.T) map[string][]string {
+	t.Helper()
 	pins, err := loadPins()
 	if err != nil {
-		panic(err)
+		t.Fatalf("read pins: %v", err)
 	}
 	m := map[string][]string{}
 	for _, p := range pins {
-		for _, t := range p.Templates {
-			m[p.Name] = append(m[p.Name], t.Pinned)
+		for _, tm := range p.Templates {
+			m[p.Name] = append(m[p.Name], tm.Pinned)
 		}
 	}
 	return m
-}()
+}
 
 func loadPins() ([]pin, error) {
 	data, err := os.ReadFile(filepath.Join(repoRoot, pinsFile))
@@ -77,6 +80,28 @@ func TestPinsFile(t *testing.T) {
 	if len(pins) == 0 {
 		t.Fatal("no pins")
 	}
+	// The dispatch choices in drift.yml cannot read pins.json, so they are
+	// checked here: they must be "all" plus exactly the pinned projects.
+	wf, err := os.ReadFile(filepath.Join(repoRoot, ".github", "workflows", "drift.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := regexp.MustCompile(`(?m)^\s*options:\s*\[([^\]]*)\]`).FindSubmatch(wf)
+	if m == nil {
+		t.Fatal("drift.yml: no project options list")
+	}
+	var opts []string
+	for _, o := range strings.Split(string(m[1]), ",") {
+		opts = append(opts, strings.TrimSpace(o))
+	}
+	want := []string{"all"}
+	for _, p := range pins {
+		want = append(want, p.Name)
+	}
+	if strings.Join(opts, ",") != strings.Join(want, ",") {
+		t.Errorf("drift.yml project options %v, want %v (all, then pins.json order)", opts, want)
+	}
+
 	seen := map[string]bool{}
 	for _, p := range pins {
 		if p.Name == "" || seen[p.Name] {
@@ -190,7 +215,7 @@ func TestPinnedInventory(t *testing.T) {
 		listed[r.section+" "+r.key] = r
 	}
 	sectionOf := map[string]string{"spec-kit": "tasks", "speckit-roadmap": "roadmap"}
-	for project, files := range pinnedTemplates {
+	for project, files := range pinnedTemplates(t) {
 		for _, f := range files {
 			data, err := os.ReadFile(filepath.Join(repoRoot, "testdata", "upstream", f))
 			if err != nil {
@@ -313,10 +338,11 @@ func resolved(t *testing.T, project string) map[string]bool {
 // own pinned copy.
 func pinnedShapes(t *testing.T, project string, index int) map[string]shape {
 	t.Helper()
-	files, ok := pinnedTemplates[project]
+	pinned := pinnedTemplates(t)
+	files, ok := pinned[project]
 	if !ok {
-		names := make([]string, 0, len(pinnedTemplates))
-		for n := range pinnedTemplates {
+		names := make([]string, 0, len(pinned))
+		for n := range pinned {
 			names = append(names, n)
 		}
 		sort.Strings(names)

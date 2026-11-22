@@ -167,7 +167,7 @@ func TestInventoryTextSanitizesAndStaysPlain(t *testing.T) {
 }
 
 // Feature 008 US4: human text shows status counts, invalid supersession and
-// shared tasks; status.JSON is unchanged.
+// shared tasks; JSON is unchanged.
 func TestHumanTextStatusesInvalidAndShared(t *testing.T) {
 	root := filepath.Join("..", "..", "testdata", "example-roadmap")
 	text := Text(status.Evaluate(status.Option{Root: root}), View{Width: 80})

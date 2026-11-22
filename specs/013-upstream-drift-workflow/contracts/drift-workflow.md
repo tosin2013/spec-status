@@ -42,4 +42,5 @@ Result values: `same tag as the pin`, `no unresolved change`, `N unresolved chan
 - Each template is compared with its own pinned copy: the script passes `-template=N`, the template's index in `pins.json`, to `TestDrift`.
 - A run in which `TestDrift` did not actually execute (renamed, filtered out or skipped) is a `check error`. The log must contain `--- PASS: TestDrift` or `--- FAIL: TestDrift`.
 - Unresolved lines in the summary are fenced with more backticks than any run inside them, so upstream text cannot close the code block.
-- The dispatch input's project list in `drift.yml` is written out by hand, because GitHub choice inputs cannot read a file. Scheduled runs and the tests use `pins.json` alone. When adding a pin, add its name to the `project` options too.
+- The dispatch input's project list in `drift.yml` is written out by hand, because GitHub choice inputs cannot read a file. `TestPinsFile` fails unless it is `all` followed by the `pins.json` names in order.
+- The tag returned by `releases/latest` is upstream-controlled, so it passes the same checks as `--tag`, and the resolved commit must be 40 hex characters; otherwise the result is a fetch error and nothing is downloaded.

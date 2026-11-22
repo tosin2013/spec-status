@@ -118,14 +118,17 @@ func TestPhasesHeadingRules(t *testing.T) {
 
 func TestPhaseStory(t *testing.T) {
 	cases := map[string]string{
-		"Phase 3: User Story 1 - x":              "1",
-		"Phase 9: User Story 12 (Priority)":      "12",
-		"Phase 9: User Story 123456789":          "123456789",
-		"Phase 9: User Story 1234567890":         "null",
-		"Phase 9: User Story x":                  "null",
-		"Phase 9: user story 3":                  "null",
-		"Phase 2: Foundational":                  "null",
-		"Phase 5: User Story 2 and User Story 3": "2",
+		"Phase 3: User Story 1 - x":                      "1",
+		"Phase 9: User Story 12 (Priority)":              "12",
+		"Phase 9: User Story 123456789":                  "123456789",
+		"Phase 9: User Story 1234567890":                 "null",
+		"Phase 9: User Story x":                          "null",
+		"Phase 9: user story 3":                          "null",
+		"Phase 2: Foundational":                          "null",
+		"Phase 5: User Story 2 and User Story 3":         "2",
+		"Phase 5: User Story cleanup, then User Story 2": "2",
+		"Phase 5: User Story 1234567890 / User Story 3":  "3",
+		"Phase 5: User Story x and User Story y":         "null",
 	}
 	for h, want := range cases {
 		got := "null"

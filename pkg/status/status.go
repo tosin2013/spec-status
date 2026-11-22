@@ -64,9 +64,12 @@ func Load(root string, opts Options) (Report, error) {
 }
 
 // Marshal returns the exact bytes `spec status --json` prints for the
-// report, including the trailing newline.
+// report, including the trailing newline. For a hand-built or filtered
+// report, nil Items, Diagnostics, Dependencies and Related are written as
+// [] as the schema requires; a nil Tasks.Phases stays null.
 func Marshal(r Report) []byte { return schema.Marshal(r) }
 
 // ExitCode returns the exit code `spec status` uses for the report: 2 for a
 // fatal report, 1 when a diagnostic reaches Configuration.FailOn, else 0.
+// An empty or unrecognized FailOn compares as "error", the CLI default.
 func ExitCode(r Report) int { return schema.ExitCode(r) }

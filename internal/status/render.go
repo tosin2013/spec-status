@@ -1,12 +1,6 @@
 package status
 
-import (
-	"sort"
-	"strconv"
-	"strings"
-
-	"github.com/tosin2013/spec-status/internal/schema"
-)
+import "github.com/tosin2013/spec-status/internal/schema"
 
 // JSON renders one UTF-8 document and a trailing newline. The CLI and
 // pkg/status both produce it through toSchema and schema.Marshal.
@@ -70,22 +64,6 @@ func toSchema(rep Report) schema.Report {
 	return out
 }
 
-func formatCounts(m map[string]int) string {
-	if len(m) == 0 {
-		return "none"
-	}
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	parts := make([]string, 0, len(keys))
-	for _, k := range keys {
-		parts = append(parts, k+" "+strconv.Itoa(m[k]))
-	}
-	return strings.Join(parts, ", ")
-}
-
 func itemToSchema(it Item) schema.Item {
 	deps := make([]schema.Dependency, 0, len(it.Dependencies))
 	for _, d := range it.Dependencies {
@@ -127,16 +105,7 @@ func phasesToSchema(t ItemTasks) []schema.Phase {
 	if t.State != "read" {
 		return nil
 	}
-	out := make([]schema.Phase, 0, len(t.Phases))
-	for _, ph := range t.Phases {
-		p := schema.Phase{Heading: ph.Heading, Line: ph.Line, Checked: ph.Checked, Total: ph.Total}
-		if ph.Story != nil {
-			v := *ph.Story
-			p.Story = &v
-		}
-		out = append(out, p)
-	}
-	return out
+	return clonePhases(t.Phases)
 }
 
 func diagToSchema(d Diagnostic) schema.Diagnostic {
@@ -150,7 +119,7 @@ func diagToSchema(d Diagnostic) schema.Diagnostic {
 	}
 }
 
-// locationOf is the schema form of sourceRef: nil when both parts are
+// locationOf is a diagnostic or error source: nil when both parts are
 // absent, otherwise each absent part is null.
 func locationOf(path string, line int) *schema.Location {
 	if path == "" && line == 0 {
@@ -175,47 +144,9 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func sourceRef(path string, line int) any {
-	if path == "" && line == 0 {
-		return nil
-	}
-	var lineVal any
-	if line > 0 {
-		lineVal = line
-	}
-	var pathVal any
-	if path != "" {
-		pathVal = path
-	}
-	return srcAny{Path: pathVal, Line: lineVal}
-}
-
-type srcAny struct {
-	Path any `json:"path"`
-	Line any `json:"line"`
-}
-
-func nullString(s string) any {
-	if s == "" {
-		return nil
-	}
-	return s
-}
-
 func or(s, fallback string) string {
 	if s == "" {
 		return fallback
 	}
 	return s
-}
-
-type srcView struct {
-	Path string `json:"path"`
-	Line int    `json:"line"`
-}
-
-type errView struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	Source  any    `json:"source"`
 }

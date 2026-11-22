@@ -121,14 +121,9 @@ type ItemTasks struct {
 }
 
 // Phase is the recorded checkboxes under one `## Phase …` heading of a tasks
-// file (feature 011). It says nothing about status or verification.
-type Phase struct {
-	Heading string
-	Line    int
-	Story   *int
-	Checked int
-	Total   int
-}
+// file (feature 011). It is the schema type, so text, JSON and pkg/status
+// share one definition.
+type Phase = schema.Phase
 
 // TaskCheck is text-only evidence. It is not part of the JSON schema.
 type TaskCheck struct {
@@ -165,4 +160,18 @@ func fatalReport(code, message, roadmap, failOn string) Report {
 		Diagnostics: []Diagnostic{d},
 		Fatal:       &d,
 	}
+}
+
+// clonePhases copies phases, including each Story, so items that share a
+// tasks file and the schema view never alias one another.
+func clonePhases(in []Phase) []Phase {
+	out := make([]Phase, len(in))
+	for k, ph := range in {
+		out[k] = ph
+		if ph.Story != nil {
+			v := *ph.Story
+			out[k].Story = &v
+		}
+	}
+	return out
 }
