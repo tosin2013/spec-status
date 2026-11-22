@@ -17,6 +17,7 @@ CGO_ENABLED=0 go build -o spec ./cmd/spec
 ./spec status --color=never --root testdata/example-roadmap --human-review --explain
 CGO_ENABLED=0 go test ./internal/conformance                  # hand-counted conformance fixtures + shape inventory
 CGO_ENABLED=0 go test ./internal/conformance -run TestDrift$ -v -args -project=spec-kit -candidate=PATH   # upstream drift check
+scripts/check-upstream-drift.sh                               # drift check against the latest upstream releases (also weekly in .github/workflows/drift.yml); pins live in testdata/upstream/pins.json
 ```
 
 Supported input is pinned to the upstream templates in `testdata/upstream/` (github/spec-kit v1.2.0, srobroek/speckit-roadmap v0.1.0); see `specs/002-upstream-format-conformance/`. Every `expected.json` under `testdata/conformance/` is a hand count — never regenerate one from `spec` output. The acceptance bar is decision D-2026-11-07-09 in `specs/001-spec-status/decisions.md`.

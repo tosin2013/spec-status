@@ -1,10 +1,12 @@
 package conformance
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -15,10 +17,92 @@ var (
 	driftCandidate = flag.String("candidate", "", "drift check: path to a downloaded candidate template")
 )
 
-// pinnedTemplates maps each project to its current pin's template files.
-var pinnedTemplates = map[string][]string{
-	"spec-kit":        {"spec-kit/v1.2.0/templates/tasks-template.md"},
-	"speckit-roadmap": {"speckit-roadmap/v0.1.0/templates/roadmap-template.md"},
+// pinsFile is the single list of upstream pins, shared with
+// scripts/check-upstream-drift.sh and the drift workflow (feature 013).
+const pinsFile = "testdata/upstream/pins.json"
+
+type pinTemplate struct {
+	Path   string `json:"path"`   // repository path at the tag
+	Pinned string `json:"pinned"` // copy under testdata/upstream/
+}
+
+type pin struct {
+	Name      string        `json:"name"`
+	Repo      string        `json:"repo"`
+	Tag       string        `json:"tag"`
+	Templates []pinTemplate `json:"templates"`
+}
+
+// pinnedTemplates maps each project to its current pin's template files,
+// read from pinsFile.
+var pinnedTemplates = func() map[string][]string {
+	pins, err := loadPins()
+	if err != nil {
+		panic(err)
+	}
+	m := map[string][]string{}
+	for _, p := range pins {
+		for _, t := range p.Templates {
+			m[p.Name] = append(m[p.Name], t.Pinned)
+		}
+	}
+	return m
+}()
+
+func loadPins() ([]pin, error) {
+	data, err := os.ReadFile(filepath.Join(repoRoot, pinsFile))
+	if err != nil {
+		return nil, err
+	}
+	var doc struct {
+		Projects []pin `json:"projects"`
+	}
+	dec := json.NewDecoder(strings.NewReader(string(data)))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&doc); err != nil {
+		return nil, fmt.Errorf("%s: %w", pinsFile, err)
+	}
+	return doc.Projects, nil
+}
+
+var repoPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$`)
+
+// TestPinsFile checks the shared pin list against the pinned copies.
+func TestPinsFile(t *testing.T) {
+	pins, err := loadPins()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(pins) == 0 {
+		t.Fatal("no pins")
+	}
+	seen := map[string]bool{}
+	for _, p := range pins {
+		if p.Name == "" || seen[p.Name] {
+			t.Errorf("empty or duplicate project name %q", p.Name)
+		}
+		seen[p.Name] = true
+		if !repoPattern.MatchString(p.Repo) {
+			t.Errorf("%s: repo %q is not owner/name", p.Name, p.Repo)
+		}
+		if p.Tag == "" || len(p.Templates) == 0 {
+			t.Errorf("%s: tag and templates are required", p.Name)
+		}
+		if _, err := os.Stat(filepath.Join(repoRoot, "testdata", "upstream", p.Name, "resolutions.md")); err != nil {
+			t.Errorf("%s: no resolutions.md: %v", p.Name, err)
+		}
+		for _, tm := range p.Templates {
+			if !strings.HasPrefix(tm.Pinned, p.Name+"/"+p.Tag+"/") {
+				t.Errorf("%s: pinned copy %q is not under %s/%s/", p.Name, tm.Pinned, p.Name, p.Tag)
+			}
+			if tm.Path == "" || strings.HasPrefix(tm.Path, "/") || strings.Contains(tm.Path, "..") {
+				t.Errorf("%s: repository path %q must be relative", p.Name, tm.Path)
+			}
+			if _, err := os.Stat(filepath.Join(repoRoot, "testdata", "upstream", filepath.FromSlash(tm.Pinned))); err != nil {
+				t.Errorf("%s: pinned copy missing: %v", p.Name, err)
+			}
+		}
+	}
 }
 
 const inventoryPath = "specs/002-upstream-format-conformance/contracts/shape-inventory.md"
