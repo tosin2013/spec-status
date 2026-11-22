@@ -224,3 +224,45 @@ func TestConcurrentLoads(t *testing.T) {
 		t.Error(e)
 	}
 }
+
+// ExitCode treats an empty FailOn as "error", as Options documents, and
+// Marshal writes the arrays the schema requires even for a hand-built report.
+func TestHandBuiltReports(t *testing.T) {
+	rep := status.Report{
+		SchemaVersion: status.SchemaVersion, Outcome: "report", Complete: true,
+		Diagnostics: []status.Diagnostic{{Code: "SS_X", Severity: "error", Message: "m"}},
+	}
+	if got := status.ExitCode(rep); got != 1 {
+		t.Errorf("empty FailOn with an error diagnostic: exit %d, want 1", got)
+	}
+	rep.Configuration.FailOn = "warn" // not a valid threshold: compared as error
+	if got := status.ExitCode(rep); got != 1 {
+		t.Errorf("unknown FailOn: exit %d, want 1", got)
+	}
+	rep.Configuration.FailOn = "none"
+	if got := status.ExitCode(rep); got != 0 {
+		t.Errorf("fail-on none: exit %d, want 0", got)
+	}
+
+	var empty status.Report
+	out := string(status.Marshal(empty))
+	for _, frag := range []string{`"items":[]`, `"diagnostics":[]`} {
+		if !strings.Contains(out, frag) {
+			t.Errorf("Marshal(Report{}) lacks %s: %s", frag, out)
+		}
+	}
+	withNils := status.Report{
+		Outcome: "report", Complete: true, Summary: &status.Summary{},
+		Items:       []status.Item{{ID: "001"}},
+		Diagnostics: []status.Diagnostic{{Code: "SS_X"}},
+	}
+	out = string(status.Marshal(withNils))
+	for _, frag := range []string{`"dependencies":[]`, `"related":[]`, `"status_counts":{}`, `"phases":null`} {
+		if !strings.Contains(out, frag) {
+			t.Errorf("Marshal lacks %s: %s", frag, out)
+		}
+	}
+	if withNils.Items[0].Dependencies != nil || withNils.Diagnostics[0].Related != nil || withNils.Summary.StatusCounts != nil {
+		t.Error("Marshal modified the caller's report")
+	}
+}

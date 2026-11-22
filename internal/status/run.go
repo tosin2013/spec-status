@@ -166,5 +166,9 @@ func resolveRoot(cwd, explicit string) (string, string, *rootErr) {
 
 // ExitCode applies the threshold. Fatal reports always return 2.
 func ExitCode(rep Report) int {
-	return schema.ExitCode(toSchema(rep))
+	severities := make([]string, len(rep.Diagnostics))
+	for i, d := range rep.Diagnostics {
+		severities[i] = d.Severity
+	}
+	return schema.ExitCodeFor(rep.Outcome, rep.Complete, rep.FailOn, severities)
 }

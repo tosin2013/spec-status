@@ -52,8 +52,8 @@ func main() {
 | Function | Behaves like |
 |---|---|
 | `Load(root, Options{Roadmap, FailOn})` | `spec status --json --root root [--roadmap …] [--fail-on …]`. A relative path resolves against the process working directory |
-| `Marshal(report)` | The exact bytes that command prints, including the trailing newline |
-| `ExitCode(report)` | Its exit code: 0 below the threshold, 1 when a finding reaches it, 2 when fatal |
+| `Marshal(report)` | The exact bytes that command prints, including the trailing newline. For a report you built or filtered yourself, nil `Items`, `Diagnostics`, `Dependencies` and `Related` are written as `[]`, as the schema requires |
+| `ExitCode(report)` | Its exit code: 0 below the threshold, 1 when a finding reaches it, 2 when fatal. An empty or unrecognized `Configuration.FailOn` is treated as `error`, the CLI default |
 
 **Errors versus fatal reports:**
 - `Load` returns a Go `error` (wrapping `status.ErrInvalidInput`) only when the CLI would reject the flags themselves.

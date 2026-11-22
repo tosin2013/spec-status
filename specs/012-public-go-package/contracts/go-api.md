@@ -22,10 +22,12 @@ type Options struct {
 func Load(root string, opts Options) (Report, error)
 
 // Marshal returns the exact bytes `spec status --json` prints for the report,
-// including the trailing newline.
+// including the trailing newline. Nil Items, Diagnostics, Dependencies and
+// Related are written as [] (Tasks.Phases nil stays null).
 func Marshal(r Report) []byte
 
 // ExitCode returns the exit code the binary uses for the report: 0, 1 or 2.
+// An empty or unrecognized Configuration.FailOn compares as "error".
 func ExitCode(r Report) int
 
 // Report, Source, Configuration, Summary, TaskSummary, Item, Ref, Supersession,

@@ -602,14 +602,7 @@ func inspectSpec(fs *safeio.FS, roadmap string, it rawItem, rep *Report, reads m
 		tasks.Total = tf.Total
 		tasks.Percent = percentOf(tf.Checked, tf.Total)
 		tasks.Checks = append([]TaskCheck(nil), tf.Checks...)
-		tasks.Phases = make([]Phase, len(tf.Phases))
-		for k, ph := range tf.Phases {
-			tasks.Phases[k] = ph
-			if ph.Story != nil {
-				v := *ph.Story
-				tasks.Phases[k].Story = &v
-			}
-		}
+		tasks.Phases = clonePhases(tf.Phases)
 	}
 	return diags, tasks, specDir
 }
