@@ -1,6 +1,21 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.7.3 → 1.7.4
+Bump rationale: PATCH — status transitions.
+
+Changes this revision:
+  - 017 status: implemented → verified (v0.4.0 published 2026-11-22; release
+    run 45041977827; post-release checks; owner approval 2026-11-22)
+  - 018 status: implemented → verified (same evidence, including a scratch
+    module on pkg/status@v0.4.0; 017 verified first, C-07)
+  - 010 status: implemented → verified (same release evidence)
+
+Specs affected: 011-phase-task-counts, 012-public-go-package,
+  013-upstream-drift-workflow
+Open questions added/resolved: none
+
+Previous revision (1.7.3, 2026-11-22):
 Version change: 1.7.2 → 1.7.3
 Bump rationale: PATCH — status transition.
 
@@ -670,7 +685,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   lookup, README install, `go install @latest`, extension zip with six
   skills).
 
-### 017 — Per-phase task counts [status: implemented]
+### 017 — Per-phase task counts [status: verified]
 
 - **Description:** Each item's `tasks` object in `spec status --json` gains a
   `phases` array: the level-2 `## Phase …` sections of its tasks.md, with
@@ -691,8 +706,13 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   implementation record in specs/001-spec-status/tasks.md). The Doomer review
   did not complete (review_failed twice). Not verified until the v0.4.0
   release checks.
+  Verified on 2026-11-22 with owner approval: v0.4.0 published 2026-11-22
+  (release run 45041977827) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip with six
+  skills, and a scratch module on pkg/status@v0.4.0 matching the binary in
+  10/10 comparisons).
 
-### 018 — Public Go package [status: implemented]
+### 018 — Public Go package [status: verified]
 
 - **Description:** A public package, `github.com/tosin2013/spec-status/pkg/status`,
   that evaluates a project exactly as `spec status --json` does and returns the
@@ -717,6 +737,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   The Doomer review did not complete (review_failed). Not verified until the
   v0.4.0 release checks, including a scratch module built against
   pkg/status@v0.4.0.
+  Verified on 2026-11-22 with owner approval: v0.4.0 published 2026-11-22
+  (release run 45041977827) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip with six
+  skills, and a scratch module on pkg/status@v0.4.0 matching the binary in
+  10/10 comparisons).
+  017 recorded verified the same day, so C-07 holds.
 
 ### Evidence and distribution
 
@@ -822,7 +848,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   feature's `reclassification.md`. Roadmap 1.3.4 is a hand-counted fixture
   (`testdata/conformance/this-repo-1.3.4`).
 
-### 010 — Upstream drift automation [status: implemented]
+### 010 — Upstream drift automation [status: verified]
 
 - **Description:** A scheduled workflow that fetches the latest spec-kit and
   speckit-roadmap templates and runs the conformance drift check (`TestDrift`)
@@ -844,6 +870,12 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   v0.1.1 show no unresolved change against the pins; no pin moved. The Doomer
   review did not complete; a local code review of PR #75 found the issues
   fixed in #76. Not verified until the v0.4.0 release checks.
+  Verified on 2026-11-22 with owner approval: v0.4.0 published 2026-11-22
+  (release run 45041977827) and its post-release checks passed (latest
+  lookup, README install, `go install @latest`, extension zip with six
+  skills, and a scratch module on pkg/status@v0.4.0 matching the binary in
+  10/10 comparisons).
+  First CI run 44982112510 and the weekly schedule are active.
 
 ### 011 — README sample test [status: verified]
 
@@ -976,4 +1008,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.7.3 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-22
+**Version**: 1.7.4 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-22
