@@ -4,7 +4,7 @@
     "speckit-roadmap@v0.1.0"
   ],
   "origin": "template-filled",
-  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07; 2026-11-14: + SS_STATUS_AHEAD_OF_TASKS for 001 (recorded implemented, 6 of 10 tasks checked in specs/001-sample/tasks.md, counted by hand; feature 007, D-2026-11-14-01)",
+  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07; 2026-11-14: + SS_STATUS_AHEAD_OF_TASKS for 001 (recorded implemented, 6 of 10 tasks checked in specs/001-sample/tasks.md, counted by hand; feature 007, D-2026-11-14-01); phases (feature 011) hand-counted 2026-11-21 from each tasks.md: checkbox lines between ## Phase headings and the next level-1/2 heading, fenced lines excluded, headings copied from the file",
   "outcome": "report",
   "exit": 0,
   "items": [
@@ -20,7 +20,13 @@
       ],
       "tasks": {
         "checked": 6,
-        "total": 10
+        "total": 10,
+        "phases": [
+          {"heading": "Phase 1: Setup (Shared Infrastructure)", "line": 25, "story": null, "checked": 2, "total": 2},
+          {"heading": "Phase 2: Foundational (Blocking Prerequisites)", "line": 32, "story": null, "checked": 1, "total": 1},
+          {"heading": "Phase 3: User Story 1 - Report status (Priority: P1) 🎯 MVP", "line": 38, "story": 1, "checked": 3, "total": 5},
+          {"heading": "Phase 4: Polish & Cross-Cutting Concerns", "line": 55, "story": null, "checked": 0, "total": 2}
+        ]
       },
       "spec_dir": "specs/001-sample",
       "superseded_by": null
@@ -53,7 +59,10 @@
       "dependencies": [],
       "tasks": {
         "checked": 3,
-        "total": 3
+        "total": 3,
+        "phases": [
+          {"heading": "Phase 1: Setup", "line": 8, "story": null, "checked": 3, "total": 3}
+        ]
       },
       "spec_dir": "specs/004-base",
       "superseded_by": null

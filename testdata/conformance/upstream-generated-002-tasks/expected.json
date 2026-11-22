@@ -3,7 +3,7 @@
     "spec-kit@v1.2.0"
   ],
   "origin": "upstream-generated",
-  "counted_by": "implementer (Claude Code), hand count of the tasks.md that /speckit-tasks produced for feature 002, stored unedited, 2026-11-07",
+  "counted_by": "implementer (Claude Code), hand count of the tasks.md that /speckit-tasks produced for feature 002, stored unedited, 2026-11-07; phases (feature 011) hand-counted 2026-11-21 by counting checkbox lines between the seven ## Phase headings (lines 33, 44, 58, 79, 96, 112, 129) and ## Dependencies (line 140), headings copied from the file",
   "outcome": "report",
   "exit": 0,
   "items": [
@@ -14,7 +14,16 @@
       "dependencies": [],
       "tasks": {
         "checked": 0,
-        "total": 30
+        "total": 30,
+        "phases": [
+          {"heading": "Phase 1: Setup (Shared Infrastructure)", "line": 33, "story": null, "checked": 0, "total": 4},
+          {"heading": "Phase 2: Foundational (Blocking Prerequisites)", "line": 44, "story": null, "checked": 0, "total": 3},
+          {"heading": "Phase 3: User Story 1 - Trust counts on real Spec Kit files (Priority: P1) 🎯 MVP", "line": 58, "story": 1, "checked": 0, "total": 8},
+          {"heading": "Phase 4: User Story 2 - Know exactly which upstream versions are supported (Priority: P2)", "line": 79, "story": 2, "checked": 0, "total": 4},
+          {"heading": "Phase 5: User Story 3 - Handle upstream changes deliberately (Priority: P2)", "line": 96, "story": 3, "checked": 0, "total": 3},
+          {"heading": "Phase 6: User Story 4 - A clear, finite acceptance bar (Priority: P3)", "line": 112, "story": 4, "checked": 0, "total": 4},
+          {"heading": "Phase 7: Polish & Cross-Cutting Concerns", "line": 129, "story": null, "checked": 0, "total": 4}
+        ]
       },
       "spec_dir": "specs/002-sample",
       "superseded_by": null

@@ -42,6 +42,7 @@ Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input out
   - when there is a `>` inside an attribute.
 
   So checkboxes that renderers show as raw text may be counted.
+- Per-phase task counts (`tasks.phases` in the JSON) see only ATX headings: a phase is a `## Phase …` heading. Setext headings (text underlined with `---` or `===`) neither open nor end a phase, and `## phase 1` (lower case) or `## Phases overview` is not a phase.
 - Lookalike normalization covers Unicode spaces, dashes, invisible characters, and common Cyrillic and Greek letters that look like Latin ones. Other homoglyphs in a field label are not recognized.
 - Open non-blocking defects from review:
   - A FIFO or directory where a tasks file is expected is reported as absent.

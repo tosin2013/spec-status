@@ -50,6 +50,17 @@ type expectedTasks struct {
 	Checked   *int `json:"checked"`
 	Total     *int `json:"total"`
 	FilesRead *int `json:"files_read"`
+	// Phases is compared when present (feature 011): JSON null means the
+	// tasks file was not read; a list is compared entry by entry, in order.
+	Phases json.RawMessage `json:"phases"`
+}
+
+type expectedPhase struct {
+	Heading string `json:"heading"`
+	Line    int    `json:"line"`
+	Story   *int   `json:"story"`
+	Checked int    `json:"checked"`
+	Total   int    `json:"total"`
 }
 
 type expectedSum struct {
@@ -205,6 +216,9 @@ func compareItem(w expectedItem, it status.Item) []string {
 		if w.Tasks.Total != nil && it.Tasks.Total != *w.Tasks.Total {
 			add("tasks.total: got %d, want %d", it.Tasks.Total, *w.Tasks.Total)
 		}
+		for _, d := range comparePhases(w.Tasks.Phases, it.Tasks) {
+			add("%s", d)
+		}
 	}
 	return diffs
 }
@@ -241,4 +255,43 @@ func optionalString(raw json.RawMessage) (string, bool, error) {
 	var v string
 	err := json.Unmarshal(raw, &v)
 	return v, true, err
+}
+
+// comparePhases checks an item's phases against a hand-counted expectation
+// (feature 011). An absent expectation is not checked.
+func comparePhases(raw json.RawMessage, t status.ItemTasks) []string {
+	if len(raw) == 0 {
+		return nil
+	}
+	if string(raw) == "null" {
+		if t.State == "read" {
+			return []string{"tasks.phases: got a list, want null (file not read)"}
+		}
+		return nil
+	}
+	var want []expectedPhase
+	if err := json.Unmarshal(raw, &want); err != nil {
+		return []string{fmt.Sprintf("tasks.phases: %v", err)}
+	}
+	if t.State != "read" {
+		return []string{fmt.Sprintf("tasks.phases: got null (state %s), want %d phases", t.State, len(want))}
+	}
+	if len(t.Phases) != len(want) {
+		return []string{fmt.Sprintf("tasks.phases: got %d phases, want %d", len(t.Phases), len(want))}
+	}
+	var diffs []string
+	for k, w := range want {
+		g := t.Phases[k]
+		story := func(p *int) string {
+			if p == nil {
+				return "null"
+			}
+			return fmt.Sprint(*p)
+		}
+		if g.Heading != w.Heading || g.Line != w.Line || story(g.Story) != story(w.Story) || g.Checked != w.Checked || g.Total != w.Total {
+			diffs = append(diffs, fmt.Sprintf("tasks.phases[%d]: got {%q line %d story %s %d/%d}, want {%q line %d story %s %d/%d}",
+				k, g.Heading, g.Line, story(g.Story), g.Checked, g.Total, w.Heading, w.Line, story(w.Story), w.Checked, w.Total))
+		}
+	}
+	return diffs
 }

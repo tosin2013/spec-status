@@ -134,8 +134,20 @@ func itemToView(it Item) itemView {
 		SpecDir: nullString(it.SpecDir), SupersededBy: nullString(it.SupersededBy),
 		Supersession: superView{Supplied: it.Supersession.Supplied, RawReference: raw, Valid: valid, TerminalID: nullString(it.Supersession.TerminalID)},
 		Dependencies: deps,
-		Tasks:        itemTaskView{Checked: checked, Total: total, Percent: it.Tasks.Percent, Source: nullString(it.Tasks.Source), State: or(it.Tasks.State, "not_linked")},
+		Tasks:        itemTaskView{Checked: checked, Total: total, Percent: it.Tasks.Percent, Source: nullString(it.Tasks.Source), State: or(it.Tasks.State, "not_linked"), Phases: phasesToView(it.Tasks)},
 	}
+}
+
+// phasesToView returns nil (JSON null) unless the tasks file was read.
+func phasesToView(t ItemTasks) *[]phaseView {
+	if t.State != "read" {
+		return nil
+	}
+	out := make([]phaseView, 0, len(t.Phases))
+	for _, ph := range t.Phases {
+		out = append(out, phaseView{Heading: ph.Heading, Line: ph.Line, Story: ph.Story, Checked: ph.Checked, Total: ph.Total})
+	}
+	return &out
 }
 
 func diagToView(d Diagnostic) diagView {
@@ -272,6 +284,16 @@ type itemTaskView struct {
 	Percent Percent `json:"percent"`
 	Source  any     `json:"source"`
 	State   string  `json:"state"`
+	// Phases is null unless the tasks file was read (feature 011).
+	Phases *[]phaseView `json:"phases"`
+}
+
+type phaseView struct {
+	Heading string `json:"heading"`
+	Line    int    `json:"line"`
+	Story   *int   `json:"story"`
+	Checked int    `json:"checked"`
+	Total   int    `json:"total"`
 }
 
 type diagView struct {

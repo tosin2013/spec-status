@@ -1,6 +1,7 @@
 package status
 
 import (
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -622,6 +623,7 @@ type taskFile struct {
 	Total   int
 	Links   []taskLink
 	Checks  []TaskCheck
+	Phases  []Phase
 }
 
 type taskLink struct {
@@ -649,6 +651,7 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 	allLines := strings.Split(text, "\n")
 	refs := referenceDefinitions(allLines)
 	inTask, taskChecked := false, false
+	phase := -1 // index of the open phase in tf.Phases, or -1 (feature 011)
 	// Narrow tasks dialect (owner decision, 7 November 2026). items holds the
 	// open list items; indentation is measured from the innermost item's
 	// content column. Where the answer would depend on CommonMark container
@@ -711,8 +714,17 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 			}
 			continue
 		}
-		if _, _, _, isHeading := heading(line); isHeading && width <= 3 {
+		if level, _, htext, isHeading := heading(line); isHeading && width <= 3 {
 			items, inTask, lastPara = nil, false, false
+			// Feature 011: a level-1 or level-2 heading ends the open phase;
+			// a qualifying level-2 heading opens the next one.
+			if level <= 2 {
+				phase = -1
+				if h, ok := phaseHeading(level, htext); ok {
+					tf.Phases = append(tf.Phases, Phase{Heading: h, Line: i + 1, Story: phaseStory(h)})
+					phase = len(tf.Phases) - 1
+				}
+			}
 			continue
 		}
 		closesItems := strings.HasPrefix(line[b:], ">") || thematicBreak(line) || strings.HasPrefix(line[b:], "<") || func() bool { _, _, ok := openFence(line); return ok }()
@@ -845,6 +857,12 @@ func parseTasks(rel string, data []byte) (taskFile, *Diagnostic) {
 		}
 		tf.Total++
 		tf.Checks = append(tf.Checks, TaskCheck{Line: i + 1, Checked: checked})
+		if phase >= 0 {
+			tf.Phases[phase].Total++
+			if checked {
+				tf.Phases[phase].Checked++
+			}
+		}
 		if tf.Total > maxTasks {
 			d := Diagnostic{Code: "SS_INPUT_LIMIT", Severity: "error", Message: "Task checkbox limit exceeded.", Path: rel, Line: i + 1}
 			return taskFile{}, &d
@@ -1377,4 +1395,52 @@ func startsBlock(line string, b int) bool {
 	}
 	return strings.HasPrefix(rest, "<!--") || strings.HasPrefix(rest, ">") ||
 		rawHTMLBlock(rest) || otherHTMLBlock(rest) || htmlBlockStart(rest, false)
+}
+
+// phaseHeading reports whether an ATX heading opens a tasks phase (feature
+// 011): level 2, and its text, without a CommonMark closing sequence, is
+// "Phase" or starts with "Phase" followed by a space, a tab or a colon.
+func phaseHeading(level int, text string) (string, bool) {
+	if level != 2 {
+		return "", false
+	}
+	h := strings.TrimRight(text, " \t")
+	if t := strings.TrimRight(h, "#"); t != h {
+		if t == "" {
+			h = ""
+		} else if last := t[len(t)-1]; last == ' ' || last == '\t' {
+			h = t
+		}
+	}
+	h = strings.TrimSpace(h)
+	if h == "Phase" {
+		return h, true
+	}
+	if strings.HasPrefix(h, "Phase") && len(h) > 5 && (h[5] == ' ' || h[5] == '\t' || h[5] == ':') {
+		return h, true
+	}
+	return "", false
+}
+
+// phaseStory returns N from the first "User Story N" in a phase heading,
+// where N has 1 to 9 decimal digits followed by a non-digit or the end.
+func phaseStory(h string) *int {
+	const key = "User Story "
+	i := strings.Index(h, key)
+	if i < 0 {
+		return nil
+	}
+	rest := h[i+len(key):]
+	n := 0
+	for n < len(rest) && rest[n] >= '0' && rest[n] <= '9' {
+		n++
+	}
+	if n == 0 || n > 9 {
+		return nil
+	}
+	v, err := strconv.Atoi(rest[:n])
+	if err != nil {
+		return nil
+	}
+	return &v
 }

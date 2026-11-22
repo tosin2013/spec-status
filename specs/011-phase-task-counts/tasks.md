@@ -15,7 +15,7 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Build the pre-change baseline: `CGO_ENABLED=0 go build -o $TMPDIR/spec-base ./cmd/spec` from `main`. Save the text output (`--color=never`, plus `--explain`) and the `--json` output for every fixture root under `testdata/` (each directory with `.specify/`) into `$TMPDIR/phases-baseline/`, for SC-002.
+- [X] T001 Build the pre-change baseline: `CGO_ENABLED=0 go build -o $TMPDIR/spec-base ./cmd/spec` from `main`. Save the text output (`--color=never`, plus `--explain`) and the `--json` output for every fixture root under `testdata/` (each directory with `.specify/`) into `$TMPDIR/phases-baseline/`, for SC-002.
 
 ---
 
@@ -23,15 +23,15 @@
 
 **Purpose**: The model and parser change that both P1 stories use.
 
-- [ ] T002 Add the `Phase` type (`Heading string; Line int; Story *int; Checked, Total int`) and `ItemTasks.Phases []Phase` in `internal/status/model.go`. Doc comment: "recorded checkboxes under a `## Phase` heading; says nothing about status".
-- [ ] T003 Add `Phases []Phase` to `taskFile`, and recognize phases in `parseTasks` in `internal/status/parse.go`:
+- [X] T002 Add the `Phase` type (`Heading string; Line int; Story *int; Checked, Total int`) and `ItemTasks.Phases []Phase` in `internal/status/model.go`. Doc comment: "recorded checkboxes under a `## Phase` heading; says nothing about status".
+- [X] T003 Add `Phases []Phase` to `taskFile`, and recognize phases in `parseTasks` in `internal/status/parse.go`:
   - In the existing branch `if _, _, _, isHeading := heading(line); isHeading && width <= 3` (around line 714), any level 1 or 2 heading closes the open phase.
   - A level-2 heading whose text, after a CommonMark closing `#` sequence is removed and the text is trimmed, is `Phase` or starts with `Phase` followed by a space, a tab or `:` (case-sensitive), opens a new phase at line `i+1` (research R2, R3).
   - Add a helper `phaseHeading(level int, text string) (heading string, ok bool)`.
   - Add a helper `phaseStory(text string) *int`: the first `User Story ` followed by 1–9 digits and then a non-digit or the end of the text, otherwise nil (FR-006).
-- [ ] T004 In `parseTasks`, where `tf.Checks` gets a `TaskCheck` (around line 847), increment the open phase's `Total`, and its `Checked` if the box is checked (R4), in `internal/status/parse.go`.
-- [ ] T005 Copy `tf.Phases` into `ItemTasks.Phases` for read files, next to the `Checks` copy (around line 604), in `internal/status/analyze.go`. Use a fresh slice per item so shared files never alias.
-- [ ] T006 Add `phaseView` (fields in this order: `heading`, `line`, `story` as `*int`, `checked`, `total`) and `itemTaskView.Phases *[]phaseView` (`json:"phases"`, after `state`) in `internal/status/render.go`. `itemToView` sets a non-nil slice (`[]` when empty) only when the state is `read`, and leaves it nil (`null`) otherwise (R5).
+- [X] T004 In `parseTasks`, where `tf.Checks` gets a `TaskCheck` (around line 847), increment the open phase's `Total`, and its `Checked` if the box is checked (R4), in `internal/status/parse.go`.
+- [X] T005 Copy `tf.Phases` into `ItemTasks.Phases` for read files, next to the `Checks` copy (around line 604), in `internal/status/analyze.go`. Use a fresh slice per item so shared files never alias.
+- [X] T006 Add `phaseView` (fields in this order: `heading`, `line`, `story` as `*int`, `checked`, `total`) and `itemTaskView.Phases *[]phaseView` (`json:"phases"`, after `state`) in `internal/status/render.go`. `itemToView` sets a non-nil slice (`[]` when empty) only when the state is `read`, and leaves it nil (`null`) otherwise (R5).
 
 **Checkpoint**: `go build ./...` passes. Every existing test passes except the JSON byte expectations that now include `phases`.
 
@@ -45,9 +45,9 @@
 
 ### Tests for User Story 1
 
-- [ ] T007 [P] [US1] Extend `expectedTasks` with an optional `Phases *[]expectedPhase` (`heading`, `line`, `story`, `checked`, `total`), and make `compareItem` compare them in order (count, then each field), in `internal/conformance/expected_test.go`.
-- [ ] T008 [US1] Hand-count the seven phases of `testdata/conformance/upstream-generated-002-tasks/specs/002-sample/tasks.md` (headings at lines 33, 44, 58, 79, 96, 112, 129; stories 1–4 at 58–112) by reading the file, not `spec` output. Add them to `testdata/conformance/upstream-generated-002-tasks/expected.json`, and note the count method in `counted_by`.
-- [ ] T009 [P] [US1] Unit tests in `internal/status/phases_test.go`:
+- [X] T007 [P] [US1] Extend `expectedTasks` with an optional `Phases *[]expectedPhase` (`heading`, `line`, `story`, `checked`, `total`), and make `compareItem` compare them in order (count, then each field), in `internal/conformance/expected_test.go`.
+- [X] T008 [US1] Hand-count the seven phases of `testdata/conformance/upstream-generated-002-tasks/specs/002-sample/tasks.md` (headings at lines 33, 44, 58, 79, 96, 112, 129; stories 1–4 at 58–112) by reading the file, not `spec` output. Add them to `testdata/conformance/upstream-generated-002-tasks/expected.json`, and note the count method in `counted_by`.
+- [X] T009 [P] [US1] Unit tests in `internal/status/phases_test.go`:
   - generated layout with level-3 subsections inside a phase;
   - `## Dependencies` ends the last phase;
   - a level-1 heading ends a phase;
@@ -59,7 +59,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Run `go test ./internal/status ./internal/conformance`, and fix `internal/status/parse.go` until T007–T009 pass.
+- [X] T010 [US1] Run `go test ./internal/status ./internal/conformance`, and fix `internal/status/parse.go` until T007–T009 pass.
 
 **Checkpoint**: US1 is independently testable on the real generated fixture.
 
@@ -73,7 +73,7 @@
 
 ### Tests for User Story 2
 
-- [ ] T011 [P] [US2] Create the fixture `testdata/phases/` with `.specify/memory/roadmap.md` and `specs/*/tasks.md`. It covers:
+- [X] T011 [P] [US2] Create the fixture `testdata/phases/` with `.specify/memory/roadmap.md` and `specs/*/tasks.md`. It covers:
   - a read file with no phase headings;
   - a fenced ```` ``` ```` block containing `## Phase 9` and a checkbox;
   - a `## Phase` inside an HTML comment;
@@ -85,11 +85,11 @@
   - two items sharing one tasks file.
 
   Write a `testdata/phases/README.md` that lists the hand-counted expected `phases` per item.
-- [ ] T012 [US2] Add tests in `internal/status/phases_test.go` that evaluate `testdata/phases` and assert the README's hand counts, including JSON `"phases":[]` and `"phases":null` byte fragments from `status.JSON`.
+- [X] T012 [US2] Add tests in `internal/status/phases_test.go` that evaluate `testdata/phases` and assert the README's hand counts, including JSON `"phases":[]` and `"phases":null` byte fragments from `status.JSON`.
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Run the tests, and fix `internal/status/parse.go` and `internal/status/render.go` until T011–T012 pass.
+- [X] T013 [US2] Run the tests, and fix `internal/status/parse.go` and `internal/status/render.go` until T011–T012 pass.
 
 **Checkpoint**: US1 and US2 both pass.
 
@@ -101,27 +101,27 @@
 
 **Independent Test**: Compare against the T001 baseline.
 
-- [ ] T014 [US3] Rebuild `spec` and compare with `$TMPDIR/phases-baseline/` for every fixture root:
+- [X] T014 [US3] Rebuild `spec` and compare with `$TMPDIR/phases-baseline/` for every fixture root:
   - the text output and exit codes are byte-identical;
   - the JSON is identical after `jq -S 'del(.items[].tasks.phases)'`.
 
   Record the root count and result for the implementation record.
-- [ ] T015 [P] [US3] Hand-add `phases` to the other conformance fixtures with read tasks files, counted from each tasks.md:
+- [X] T015 [P] [US3] Hand-add `phases` to the other conformance fixtures with read tasks files, counted from each tasks.md:
   - `testdata/conformance/hand-edits/expected.json`
   - `testdata/conformance/template-filled/expected.json`
   - `testdata/conformance/this-repo/expected.json`
   - `testdata/conformance/this-repo-1.3.4/expected.json`
-- [ ] T016 [US3] Run `go test ./internal/cli -run TestReadmeSamples`, and update any labeled JSON sample in `README.md` or `docs/*.md` that now shows `phases`. Run the command for the real output; do not hand-edit samples.
+- [X] T016 [US3] Run `go test ./internal/cli -run TestReadmeSamples`, and update any labeled JSON sample in `README.md` or `docs/*.md` that now shows `phases`. Run the command for the real output; do not hand-edit samples.
 
 ---
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T017 [P] Document the `phases` field and its null/empty rule in the item `tasks` row of `specs/001-spec-status/json-contract.md`, linking `specs/011-phase-task-counts/contracts/phases-json.md`.
-- [ ] T018 [P] Add the phase grammar to the tasks section of `specs/001-spec-status/roadmap-format.md`.
-- [ ] T019 [P] Add to `docs/limits.md`: setext headings neither open nor end a phase, and only `## Phase…` ATX headings are phases.
-- [ ] T020 [P] Add a row "Per-phase task counts (feature 011, roadmap 017)" to the implementation record in `specs/001-spec-status/tasks.md`, with the T014 result. Mark it "implemented by the implementer, not independently verified".
-- [ ] T021 Run `CGO_ENABLED=0 go test ./...`, gofmt and `go vet ./...`, and the quickstart steps in `specs/011-phase-task-counts/quickstart.md`.
+- [X] T017 [P] Document the `phases` field and its null/empty rule in the item `tasks` row of `specs/001-spec-status/json-contract.md`, linking `specs/011-phase-task-counts/contracts/phases-json.md`.
+- [X] T018 [P] Add the phase grammar to the tasks section of `specs/001-spec-status/roadmap-format.md`.
+- [X] T019 [P] Add to `docs/limits.md`: setext headings neither open nor end a phase, and only `## Phase…` ATX headings are phases.
+- [X] T020 [P] Add a row "Per-phase task counts (feature 011, roadmap 017)" to the implementation record in `specs/001-spec-status/tasks.md`, with the T014 result. Mark it "implemented by the implementer, not independently verified".
+- [X] T021 Run `CGO_ENABLED=0 go test ./...`, gofmt and `go vet ./...`, and the quickstart steps in `specs/011-phase-task-counts/quickstart.md`.
 
 ---
 

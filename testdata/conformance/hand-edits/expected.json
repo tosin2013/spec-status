@@ -1,17 +1,18 @@
 {
   "pins": ["spec-kit@v1.2.0", "speckit-roadmap@v0.1.0"],
   "origin": "hand-edit",
-  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07; item 004 added after review 8",
+  "counted_by": "implementer (Claude Code), hand count from the files, 2026-11-07; item 004 added after review 8; phases (feature 011) hand-counted 2026-11-21 from each tasks.md: checkbox lines between ## Phase headings and the next level-1/2 heading, fenced lines excluded, headings copied from the file",
   "outcome": "report",
   "exit": 0,
   "items": [
     {"id": "001", "status": "verified", "active": true, "dependencies": [],
      "spec_dir": "specs/001-base", "superseded_by": null,
-     "tasks": {"checked": 2, "total": 2}},
+     "tasks": {"checked": 2, "total": 2, "phases": []}},
     {"id": "002", "status": "planned", "active": true,
      "dependencies": [{"id": "001", "state": "satisfied"}, {"id": "003", "state": "unfinished"}],
      "spec_dir": "specs/002-edits", "superseded_by": null,
-     "tasks": {"checked": 5, "total": 8}},
+     "tasks": {"checked": 5, "total": 8, "phases": [
+       {"heading": "Phase 1: Hand edits", "line": 3, "story": null, "checked": 5, "total": 8}]}},
     {"id": "003", "status": "undecided", "active": true,
      "dependencies": [{"id": "004", "state": "human_review"}],
      "spec_dir": null, "superseded_by": null},
