@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.7.1 → 1.7.2
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 018 status: planned → implemented (feature 012; spec PR #71,
+    implementation PR #72); Spec dir added
+
+Specs affected: 012-public-go-package
+Open questions added/resolved: none
+
+Previous revision (1.7.1, 2026-11-21):
 Version change: 1.7.0 → 1.7.1
 Bump rationale: PATCH — status transition.
 
@@ -669,7 +680,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   did not complete (review_failed twice). Not verified until the v0.4.0
   release checks.
 
-### 018 — Public Go package [status: planned]
+### 018 — Public Go package [status: implemented]
 
 - **Description:** A public package, `github.com/tosin2013/spec-status/pkg/status`,
   that evaluates a project exactly as `spec status --json` does and returns the
@@ -683,9 +694,17 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   network or AI path.
 - **Depends on:** 001, 017
 - **Governed by:** C-02, C-05
+- **Spec dir:** specs/012-public-go-package
 - **Notes:** Issue #65. Owner choice of 2026-11-21 (D-2026-11-21-01): the Go
   API is experimental until 1.0; report fields follow schema 1.0. Targets
-  v0.4.0.
+  v0.4.0. Specced on 2026-11-21 (feature 012, PR #71): shared types in
+  internal/schema, aliases in pkg/status, fatal problems in the report.
+  Implemented on 2026-11-21 (PR #72; implementation record in
+  specs/001-spec-status/tasks.md); human text moved to internal/human so the
+  library links only the standard library and this module (research R8).
+  The Doomer review did not complete (review_failed). Not verified until the
+  v0.4.0 release checks, including a scratch module built against
+  pkg/status@v0.4.0.
 
 ### Evidence and distribution
 
@@ -936,4 +955,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.7.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-21
+**Version**: 1.7.2 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-21
