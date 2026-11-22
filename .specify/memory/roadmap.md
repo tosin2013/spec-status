@@ -1,6 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.7.0 → 1.7.1
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 017 status: planned → implemented (feature 011; spec PR #68,
+    implementation PR #69); Spec dir added
+
+Specs affected: 011-phase-task-counts
+Open questions added/resolved: none
+
+Previous revision (1.7.0, 2026-11-21):
 Version change: 1.6.9 → 1.7.0
 Bump rationale: MINOR — two new planned specs (017, 018); also status
 transitions.
@@ -636,7 +647,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   lookup, README install, `go install @latest`, extension zip with six
   skills).
 
-### 017 — Per-phase task counts [status: planned]
+### 017 — Per-phase task counts [status: implemented]
 
 - **Description:** Each item's `tasks` object in `spec status --json` gains a
   `phases` array: the level-2 `## Phase …` sections of its tasks.md, with
@@ -649,8 +660,14 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** human-text phase output; inferring status from phases.
 - **Depends on:** 001, 014
 - **Governed by:** C-01, C-05
+- **Spec dir:** specs/011-phase-task-counts
 - **Notes:** Issue #66. Owner choice of 2026-11-21 (D-2026-11-21-01). Targets
-  v0.4.0.
+  v0.4.0. Specced on 2026-11-21 (feature 011, PR #68): `[]` for a read file
+  without phases, `null` when unread; level-1/2 headings end a phase; setext
+  headings are a listed limit. Implemented on 2026-11-21 (PR #69;
+  implementation record in specs/001-spec-status/tasks.md). The Doomer review
+  did not complete (review_failed twice). Not verified until the v0.4.0
+  release checks.
 
 ### 018 — Public Go package [status: planned]
 
@@ -919,4 +936,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.7.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-21
+**Version**: 1.7.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-21
