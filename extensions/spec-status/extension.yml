@@ -2,7 +2,7 @@ schema_version: '1.0'
 extension:
   id: spec-status
   name: Spec Status
-  version: 0.3.0
+  version: 0.4.0
   description: >-
     Agent skills that read `spec status` output: review a roadmap (with pm,
     developer, qa and architect views), explain findings, reconcile recorded
