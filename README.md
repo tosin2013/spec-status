@@ -214,8 +214,8 @@ Releases are published on [GitHub Releases](https://github.com/tosin2013/spec-st
 |---|---|---|
 | Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` | v0.1.2 ([smoke test](https://github.com/tosin2013/spec-status/actions/runs/43160883770/job/130992118717)) |
 | macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` | v0.1.2 ([smoke test](https://github.com/tosin2013/spec-status/actions/runs/43160883770/job/130992118760)) |
-| Linux, arm64 (linux/arm64) | `spec_<version>_linux_arm64.tar.gz` | v0.4.1 |
-| macOS, Intel (darwin/amd64) | `spec_<version>_darwin_amd64.tar.gz` | v0.4.1 |
+| Linux, arm64 (linux/arm64) | `spec_<version>_linux_arm64.tar.gz` | v0.4.1 ([smoke test](https://github.com/tosin2013/spec-status/actions/runs/45421265401/job/138542914868)) |
+| macOS, Intel (darwin/amd64) | `spec_<version>_darwin_amd64.tar.gz` | v0.4.1 ([smoke test](https://github.com/tosin2013/spec-status/actions/runs/45421265401/job/138542914828)) |
 
 Windows is not provided yet; it is planned for v0.5.0 (roadmap item 020).
 
