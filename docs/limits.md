@@ -19,6 +19,7 @@ Under the acceptance bar (decision D-2026-11-07-09), a wrong result on input out
   - Layouts whose count would depend on block-quote, list-nesting or raw HTML rules stop the report with an error. The cases are in roadmap-format.md §3.
   - Only inline links with a simple local path are checked. Other link forms are reported as unsupported, not checked. Link-like text inside inline code is ignored.
 - Reads are not an atomic snapshot. A change that keeps the same size and modification time may go undetected.
+- Release archives exist for linux/amd64, linux/arm64, darwin/arm64 and darwin/amd64, each smoke-tested natively. Other platforms are untested. A Windows build compiles, but it cannot read any file: the safe-read layer has no Windows implementation yet (`CodeUnsupported`), which roadmap item 020 adds.
 - On Darwin there is no `/proc/self/fd` check after a file is opened, so a parent directory swapped between the checks and the open is not detected. Reads there rely on `O_NOFOLLOW`, the symlink-component check and the device check.
 - The sensitive-name matcher is incomplete by design. For example, `id_rsa` is not matched.
 - A hard link inside the root that points at a file outside it can't be told apart from an ordinary file, so it is read. Symlinks are rejected.

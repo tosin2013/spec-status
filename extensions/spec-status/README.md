@@ -1,4 +1,4 @@
-# spec-status extension v0.4.0
+# spec-status extension v0.4.1
 
 **Agent skills that turn `spec status` output into next actions.** This [Spec Kit](https://github.com/github/spec-kit) extension adds six skills to your AI coding agent (Claude Code, Cursor, Codex, Copilot and the others Spec Kit supports). They read your roadmap through the read-only [`spec status`](https://github.com/tosin2013/spec-status) CLI, explain what it found, catch records that disagree with each other, and help you fix them. Every change is proposed and needs your approval.
 

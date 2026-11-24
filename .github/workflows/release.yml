@@ -95,7 +95,7 @@ jobs:
           go version
           echo "go_version=$(go version)" >> "$GITHUB_OUTPUT"
           mkdir -p dist
-          for target in linux/amd64 darwin/arm64; do
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
             os="${target%/*}"; arch="${target#*/}"
             name="spec_${VERSION}_${os}_${arch}"
             mkdir -p "dist/$name"
@@ -124,7 +124,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # One native runner per archive (feature 014, D-2026-11-24-01).
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -143,7 +144,9 @@ jobs:
           set -euo pipefail
           case "$(uname -s) $(uname -m)" in
             "Linux x86_64")  os=linux;  arch=amd64; sum="sha256sum" ;;
+            "Linux aarch64") os=linux;  arch=arm64; sum="sha256sum" ;;
             "Darwin arm64")  os=darwin; arch=arm64; sum="shasum -a 256" ;;
+            "Darwin x86_64") os=darwin; arch=amd64; sum="shasum -a 256" ;;
             *) echo "::error::unexpected runner platform $(uname -s) $(uname -m)"; exit 1 ;;
           esac
           name="spec_${VERSION}_${os}_${arch}"
@@ -191,7 +194,7 @@ jobs:
           grep -qx "$zipname: OK" <<<"$check" || { echo "::error::checksum for $zipname did not verify"; exit 1; }
           mkdir ext && cd ext && unzip -q "../$zipname"
           [ -f spec-status/extension.yml ] || { echo "::error::extension.yml missing from $zipname"; exit 1; }
-          n="$(ls spec-status/commands/*.md | wc -l | tr -d ' ')"
+          n="$(find spec-status/commands -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')"
           [ "$n" = 6 ] || { echo "::error::expected 6 command files, found $n"; exit 1; }
           grep -q "version: $VERSION\$" spec-status/extension.yml || { echo "::error::extension version is not $VERSION"; exit 1; }
           echo "extension archive ok"
@@ -226,8 +229,25 @@ jobs:
             echo "::error::a release for $TAG already exists"; exit 1
           fi
           jobs="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --paginate --jq '.jobs[] | "\(.name)\t\(.html_url)"')"
-          linux_url="$(awk -F'\t' '$1=="smoke (ubuntu-latest)"{print $2}' <<<"$jobs")"
-          darwin_url="$(awk -F'\t' '$1=="smoke (macos-latest)"{print $2}' <<<"$jobs")"
+          # One row per archive: smoke job name and platform (feature 014).
+          # Every archive must have its own passing native smoke job.
+          platforms=(
+            "smoke (ubuntu-latest)|linux/amd64"
+            "smoke (ubuntu-24.04-arm)|linux/arm64"
+            "smoke (macos-latest)|darwin/arm64"
+            "smoke (macos-15-intel)|darwin/amd64"
+          )
+          archive_lines=""
+          assets=()
+          for row in "${platforms[@]}"; do
+            job="${row%|*}"; platform="${row#*|}"
+            url="$(awk -F'\t' -v j="$job" '$1==j{print $2}' <<<"$jobs")"
+            [ -n "$url" ] || { echo "::error::no smoke job '$job' for $platform; the release is not drafted"; exit 1; }
+            file="spec_${VERSION}_${platform%/*}_${platform#*/}.tar.gz"
+            [ -f "dist/$file" ] || { echo "::error::dist/$file is missing"; exit 1; }
+            archive_lines+="  - \`$file\`: smoke-tested on $platform ($url)"$'\n'
+            assets+=("dist/$file")
+          done
           heading="## spec $VERSION"
           extra=()
           if [ "$PRERELEASE" = "true" ]; then heading="$heading (release candidate)"; extra=(--prerelease); fi
@@ -237,8 +257,7 @@ jobs:
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- Built with: $GO_VERSION, \`CGO_ENABLED=0\`, \`-trimpath\`"
             echo "- Archives:"
-            echo "  - \`spec_${VERSION}_linux_amd64.tar.gz\`: smoke-tested on linux/amd64 ($linux_url)"
-            echo "  - \`spec_${VERSION}_darwin_arm64.tar.gz\`: smoke-tested on darwin/arm64 ($darwin_url)"
+            printf '%s' "$archive_lines"
             echo "- Checksums: \`spec_${VERSION}_checksums.txt\` (SHA-256). Verify before use, as described in the README install section."
             echo
             echo "**Compatibility (pre-1.0):** before v1.0.0, a minor version may change CLI flags, exit codes or the JSON schema. Any such change is listed in these notes. Patch versions do not break compatibility. JSON schema: 1.0."
@@ -261,8 +280,7 @@ jobs:
           } > notes.md
           cat notes.md
           gh release create "$TAG" \
-            "dist/spec_${VERSION}_linux_amd64.tar.gz" \
-            "dist/spec_${VERSION}_darwin_arm64.tar.gz" \
+            "${assets[@]}" \
             "dist/spec-status-extension_${VERSION}.zip" \
             "dist/spec_${VERSION}_checksums.txt" \
             --repo "$GITHUB_REPOSITORY" --draft --verify-tag --title "$TAG" \

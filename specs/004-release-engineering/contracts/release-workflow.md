@@ -16,18 +16,18 @@
    - Outputs: `version` (the tag without `v`) and `prerelease` (`true` for `-rc.N`).
 2. **ci**: `uses: ./.github/workflows/ci.yml`. These are the same test, hygiene and scan jobs as on pull requests. `dependency-review` is skipped because the event is not a pull request.
 3. **build** (`ubuntu-latest`): setup-go with `stable` and `check-latest: true`.
-   - For each of `linux/amd64` and `darwin/arm64`: `CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X github.com/tosin2013/spec-status/internal/cli.Version=<version> -X …cli.Commit=$GITHUB_SHA -X …cli.Kind=release"`.
+   - For each of `linux/amd64`, `linux/arm64`, `darwin/amd64` and `darwin/arm64` (four since v0.4.1, feature 014): `CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X github.com/tosin2013/spec-status/internal/cli.Version=<version> -X …cli.Commit=$GITHUB_SHA -X …cli.Kind=release"`.
    - Package per [release-assets.md](release-assets.md), then write the checksum file once.
    - Print `go version` and save it as output `go_version`.
-   - Upload all three files as one artifact.
-4. **smoke** (matrix `ubuntu-latest` and `macos-latest`, `fail-fast: false`):
-   - Assert the platform: `linux amd64` or `darwin arm64`.
+   - Upload all release files as one artifact.
+4. **smoke** (matrix `ubuntu-latest`, `ubuntu-24.04-arm`, `macos-latest`, `macos-15-intel`, `fail-fast: false`):
+   - Assert the platform from `uname -s -m`: `Linux x86_64`, `Linux aarch64`, `Darwin arm64` or `Darwin x86_64`; anything else fails.
    - Download the artifact and verify the checksums. Extract only this platform's archive and check its file list.
    - Run the checks in [research.md](../research.md) R6. Any mismatch fails the job.
 5. **release** (`ubuntu-latest`, `permissions: contents: write`):
    - Download the artifact. Re-check that no release exists.
-   - Render `notes.md` from the template in [release-assets.md](release-assets.md).
-   - Run `gh release create "$GITHUB_REF_NAME" <3 files> --draft --verify-tag --title "$GITHUB_REF_NAME" --generate-notes --notes-file notes.md`, adding `--prerelease` when needed.
+   - Render `notes.md` from the template in [release-assets.md](release-assets.md), one archive line per smoke job. Fail if any expected smoke job URL or archive is missing.
+   - Run `gh release create "$GITHUB_REF_NAME" <4 archives, extension zip, checksums> --draft --verify-tag --title "$GITHUB_REF_NAME" --generate-notes --notes-file notes.md`, adding `--prerelease` when needed.
 
 ## Must not
 

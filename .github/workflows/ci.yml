@@ -22,7 +22,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # Every supported release platform (D-2026-11-24-01).
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel]
         go: ['1.26.x', 'stable']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,15 +37,23 @@ jobs:
 
       - name: Assert platform
         shell: bash
+        env:
+          RUNNER_LABEL: ${{ matrix.os }}
         run: |
           got="$(go env GOOS GOARCH | tr '\n' ' ' | sed 's/ $//')"
-          case "${{ matrix.os }}" in
-            ubuntu-latest) want="linux amd64" ;;
-            macos-latest)  want="darwin arm64" ;;
-            *)             want="unknown" ;;
+          machine="$(uname -s) $(uname -m)"
+          # Both the Go toolchain and the machine must match, so a toolchain
+          # running under emulation cannot pass for a native run.
+          case "$RUNNER_LABEL" in
+            ubuntu-latest)    want="linux amd64";  want_machine="Linux x86_64" ;;
+            ubuntu-24.04-arm) want="linux arm64";  want_machine="Linux aarch64" ;;
+            macos-latest)     want="darwin arm64"; want_machine="Darwin arm64" ;;
+            macos-15-intel)   want="darwin amd64"; want_machine="Darwin x86_64" ;;
+            *)                want="unknown";      want_machine="unknown" ;;
           esac
-          echo "runner ${{ matrix.os }}: $got (want $want); $(go version)"
-          [ "$got" = "$want" ] || { echo "::error::expected $want, got $got"; exit 1; }
+          echo "runner $RUNNER_LABEL: go $got, machine $machine (want $want, $want_machine); $(go version)"
+          [ "$got" = "$want" ] || { echo "::error::expected Go platform $want, got $got"; exit 1; }
+          [ "$machine" = "$want_machine" ] || { echo "::error::expected machine $want_machine, got $machine"; exit 1; }
 
       - name: Assert go.mod minimum is Go 1.26
         shell: bash

@@ -34,12 +34,12 @@ A file name does not prove the bytes match that template. A missing roadmap stop
 
 ## Quick start
 
-Install the latest release binary. You do not need Go, a git checkout, or root. The first line looks up the latest version on [Releases](https://github.com/tosin2013/spec-status/releases); to pin one instead, set it yourself (for example `V=0.2.0`). This block is Linux x86-64; macOS on Apple silicon uses `darwin_arm64` and `shasum -a 256 -c`. See [Install](#install) for details.
+Install the latest release binary. You do not need Go, a git checkout, or root. The first line looks up the latest version on [Releases](https://github.com/tosin2013/spec-status/releases); to pin one instead, set it yourself (for example `V=0.2.0`). This block is Linux x86-64; Linux arm64 uses `linux_arm64`, and macOS uses `darwin_arm64` (Apple silicon) or `darwin_amd64` (Intel) with `shasum -a 256 -c`. See [Install](#install) for details.
 
 ```sh
 V=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/tosin2013/spec-status/releases/latest | sed 's#.*/tag/v##')   # latest release, without the v
 printf '%s\n' "$V" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || echo "Could not look up the latest version (got '$V'); set it yourself, for example V=0.2.0" >&2
-OS_ARCH=linux_amd64          # or darwin_arm64
+OS_ARCH=linux_amd64          # or linux_arm64, darwin_arm64, darwin_amd64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
 curl -fLO "$base/spec_${V}_checksums.txt"
@@ -214,6 +214,10 @@ Releases are published on [GitHub Releases](https://github.com/tosin2013/spec-st
 |---|---|---|
 | Linux, x86-64 (linux/amd64) | `spec_<version>_linux_amd64.tar.gz` | v0.1.2 ([smoke test](https://github.com/tosin2013/spec-status/actions/runs/43160883770/job/130992118717)) |
 | macOS, Apple silicon (darwin/arm64) | `spec_<version>_darwin_arm64.tar.gz` | v0.1.2 ([smoke test](https://github.com/tosin2013/spec-status/actions/runs/43160883770/job/130992118760)) |
+| Linux, arm64 (linux/arm64) | `spec_<version>_linux_arm64.tar.gz` | v0.4.1 |
+| macOS, Intel (darwin/amd64) | `spec_<version>_darwin_amd64.tar.gz` | v0.4.1 |
+
+Windows is not provided yet; it is planned for v0.5.0 (roadmap item 020).
 
 The first release is `v0.1.2`. Version `v0.1.0` was published directly rather than through the release workflow, with untested archives that included unsupported platforms. It was withdrawn and should not be used (decision D-2026-11-12-02). The `v0.1.1` tag was built by the workflow but never published, because the agent prompt and the `v0.1.0` retraction landed right after it (D-2026-11-12-03).
 
@@ -222,7 +226,7 @@ You need neither root nor Go. The first line looks up the latest release; to ins
 ```sh
 V=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/tosin2013/spec-status/releases/latest | sed 's#.*/tag/v##')   # latest release, without the v
 printf '%s\n' "$V" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || echo "Could not look up the latest version (got '$V'); set it yourself, for example V=0.2.0" >&2
-OS_ARCH=linux_amd64          # or darwin_arm64
+OS_ARCH=linux_amd64          # or linux_arm64, darwin_arm64, darwin_amd64
 base=https://github.com/tosin2013/spec-status/releases/download/v$V
 curl -fLO "$base/spec_${V}_${OS_ARCH}.tar.gz"
 curl -fLO "$base/spec_${V}_checksums.txt"
@@ -284,7 +288,7 @@ The short version:
 
 - `spec` reads a narrow, pinned format, not general Markdown. Anything it can't read reliably stops the report with an error or is listed in [docs/limits.md](docs/limits.md).
 - `verified` means the roadmap says so. It is not an independent review, and exit 0 does not mean the work is done.
-- Only linux/amd64 and darwin/arm64 are supported, each since v0.1.2 after its release smoke test. Releases carry SHA-256 checksums and are not signed or notarized (decision D-2026-11-11-02).
+- Only linux/amd64 and darwin/arm64 (since v0.1.2) and linux/arm64 and darwin/amd64 (since v0.4.1) are supported, each after a native release smoke test. Windows is planned (roadmap item 020). Releases carry SHA-256 checksums and are not signed or notarized (decision D-2026-11-11-02).
 - The sensitive-file filter and symlink checks are safeguards, not a guarantee that every secret or mount escape is caught.
 - Performance: on one Linux amd64 development machine, nine runs over a 100-item, 10,000-task fixture had a median of about 3.9 ms. That is not a performance promise.
 - The roadmap is recognized only by an item heading or the template's exact `## Planned Specs` line. A roadmap written in another layout stops with `SS_ROADMAP_UNRECOGNIZED`, even if a person would call it a roadmap.

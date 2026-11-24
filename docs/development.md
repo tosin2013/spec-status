@@ -18,7 +18,7 @@ CGO_ENABLED=0 go build -o spec ./cmd/spec
 A binary built from a source checkout reports itself as a `development build`.
 
 Every pull request and push to `main` runs [CI](../.github/workflows/ci.yml):
-- `go vet`, the tests and `govulncheck`, on linux/amd64 and darwin/arm64, with the newest Go 1.26 patch and the current stable Go;
+- `go vet`, the tests and `govulncheck`, on linux/amd64, linux/arm64, darwin/arm64 and darwin/amd64 (native runners), with the newest Go 1.26 patch and the current stable Go;
 - a hygiene job: formatting, `go.mod`/`go.sum` tidiness and integrity, `spec status --fail-on error` on this repository's own roadmap, and compile-only builds for windows/amd64 and linux/arm64;
 - on pull requests, a dependency review.
 
