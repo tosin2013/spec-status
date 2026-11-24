@@ -13,9 +13,11 @@ STEP 1 - INSTALL (ask me before running any install command)
 - If `spec version` already works and its "label:" line starts with
   "release build" or "module build", show me its version and ask whether to
   upgrade; otherwise skip to step 2.
-- Platform: Linux x86-64 -> linux_amd64. macOS Apple silicon -> darwin_arm64.
-  Anything else has no release archive: stop and tell me. If I have Go 1.26+,
-  offer: go install github.com/tosin2013/spec-status/cmd/spec@latest
+- Platform: Linux x86-64 -> linux_amd64. Linux arm64 (aarch64) ->
+  linux_arm64. macOS Apple silicon -> darwin_arm64. macOS Intel ->
+  darwin_amd64. Anything else (Windows included) has no release archive: stop
+  and tell me. If I have Go 1.26+, offer:
+  go install github.com/tosin2013/spec-status/cmd/spec@latest
 - Latest version (without the leading v):
   V=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/tosin2013/spec-status/releases/latest | sed 's#.*/tag/v##')
 - Work in a new empty temporary directory (cd "$(mktemp -d)"). Download

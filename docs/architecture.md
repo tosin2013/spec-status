@@ -52,7 +52,7 @@ The CLI never writes. The only path that changes project files goes through Spec
 | `pkg/status` library | Go package, standard library and this module only; experimental until 1.0 | `Load` evaluates a project in-process; returns the schema 1.0 report, the exact `--json` bytes and the exit code |
 | `spec-status` extension | Spec Kit 1.2.0 extension: six Markdown commands and three reference files | Agent skills: review, explain, reconcile, unblock, verify-readiness, close-gap |
 | Test suites | Go tests in `internal/*`, hand-counted fixtures in `testdata/` | Contracts, conformance with pinned upstream templates, README samples, extension structure |
-| CI and release workflows | GitHub Actions (`.github/workflows/ci.yml`, `release.yml`) | Tests on linux/amd64 and darwin/arm64, govulncheck, hygiene; tag-driven release drafts |
+| CI and release workflows | GitHub Actions (`.github/workflows/ci.yml`, `release.yml`) | Tests on linux/amd64, linux/arm64, darwin/arm64 and darwin/amd64 (native runners), govulncheck, hygiene; tag-driven release drafts |
 
 ```mermaid
 flowchart LR
@@ -160,7 +160,7 @@ flowchart LR
   owner([Owner]) -->|push tag vX.Y.Z on main| rel[release.yml]
   rel --> verify["verify: SemVer, on main, no release yet, extension version = tag"]
   verify --> ci["ci.yml tests"]
-  ci --> build["build: linux/amd64, darwin/arm64 tar.gz, extension zip, checksums"]
+  ci --> build["build: four tar.gz (linux and darwin, amd64 and arm64), extension zip, checksums"]
   build --> smoke[smoke tests on each runner]
   smoke --> draft[draft GitHub release]
   owner -->|review and publish| draft
@@ -175,7 +175,7 @@ flowchart LR
 | Extension archive | `spec-status-extension_<v>.zip` for `specify extension add --from` | n/a |
 | Checkout build | `go build ./cmd/spec` | `development build` |
 
-Only linux/amd64 and darwin/arm64 are supported, each because a release smoke test ran on it. Tag pushes are restricted to the owner by a repository ruleset, and published releases are immutable.
+Only linux/amd64, darwin/arm64 (since v0.1.2), linux/arm64 and darwin/amd64 (since v0.4.1) are supported, each because a native release smoke test ran on it. Windows is planned (roadmap 020). Tag pushes are restricted to the owner by a repository ruleset, and published releases are immutable.
 
 ---
 

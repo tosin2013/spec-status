@@ -44,8 +44,8 @@ If any job fails, no draft is created.
 
 Releases → the draft (a release candidate is marked pre-release):
 
-- [ ] Exactly three assets: `spec_<v>_linux_amd64.tar.gz`, `spec_<v>_darwin_arm64.tar.gz`, `spec_<v>_checksums.txt`.
-- [ ] Download them, then run `sha256sum -c spec_<v>_checksums.txt` (on macOS, `shasum -a 256 -c`). Both lines should say OK.
+- [ ] Exactly six assets: `spec_<v>_linux_amd64.tar.gz`, `spec_<v>_linux_arm64.tar.gz`, `spec_<v>_darwin_arm64.tar.gz`, `spec_<v>_darwin_amd64.tar.gz`, `spec-status-extension_<v>.zip`, `spec_<v>_checksums.txt` (since v0.4.1; v0.2.0–v0.4.0 have four).
+- [ ] Download them, then run `sha256sum -c spec_<v>_checksums.txt` (on macOS, `shasum -a 256 -c`). Every line should say OK.
 - [ ] Extract your platform's archive and run `spec version`. It should show `spec <v>`, the tagged commit, and `label: release build`.
 - [ ] Read the notes. Check the commit, Go version, smoke-test links, the compatibility statement, and the "Not provided" line. Add any breaking changes, and edit wording if needed.
 

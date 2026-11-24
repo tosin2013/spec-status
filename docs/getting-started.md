@@ -6,7 +6,7 @@ You need a terminal. You do not need Go unless you choose `go install`.
 
 ## 1. Install
 
-Download the archive for your platform from the [latest release](https://github.com/tosin2013/spec-status/releases/latest), check its SHA-256 checksum, and put `spec` on your `PATH`. The [README Quick start](../README.md#quick-start) has the exact commands for linux/amd64 and darwin/arm64. With Go 1.26 or newer you can instead run:
+Download the archive for your platform from the [latest release](https://github.com/tosin2013/spec-status/releases/latest), check its SHA-256 checksum, and put `spec` on your `PATH`. The [README Quick start](../README.md#quick-start) has the exact commands for linux/amd64, linux/arm64, darwin/arm64 and darwin/amd64. With Go 1.26 or newer you can instead run:
 
 ```sh
 CGO_ENABLED=0 go install github.com/tosin2013/spec-status/cmd/spec@latest
