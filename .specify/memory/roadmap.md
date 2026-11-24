@@ -1,6 +1,19 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.7.4 → 1.8.0
+Bump rationale: MINOR — two new planned specs.
+
+Changes this revision:
+  - 019 Release archives for linux/arm64 and darwin/amd64 added, planned
+    (issue #82, D-2026-11-24-01; targets v0.4.1)
+  - 020 Windows support (amd64, arm64) added, planned (D-2026-11-24-01;
+    targets v0.5.0)
+
+Specs affected: none yet
+Open questions added/resolved: none
+
+Previous revision (1.7.4, 2026-11-22):
 Version change: 1.7.3 → 1.7.4
 Bump rationale: PATCH — status transitions.
 
@@ -955,6 +968,42 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   lookup, README install, `go install @latest`, extension zip with six
   skills); 014 recorded verified the same day, so C-07 holds.
 
+### 019 — Release archives for linux/arm64 and darwin/amd64 [status: planned]
+
+- **Description:** Two more release archives, `linux/arm64` and `darwin/amd64`,
+  built `CGO_ENABLED=0`, covered by the checksums file, and each smoke-tested
+  on a native runner (`ubuntu-24.04-arm`, `macos-15-intel`); pull-request CI
+  runs the full test suite on both.
+- **Outcome:** Arm64 Linux images (for example Chalkeus's tools image) and
+  Intel Mac users get a verified `spec` binary instead of building from source.
+- **Scope (in):** release build loop, smoke matrix and notes, CI test matrix,
+  install docs and agent-prompt platform mapping, release-engineering contracts.
+- **Scope (out):** Windows (020); any CLI, JSON or library change.
+- **Depends on:** 004
+- **Governed by:** C-06
+- **Notes:** Issue #82. Owner choice of 2026-11-24 (D-2026-11-24-01). Targets
+  v0.4.1, a patch release.
+
+### 020 — Windows support (amd64, arm64) [status: planned]
+
+- **Description:** `spec` and `pkg/status` on Windows: a Windows implementation
+  of the root-confined, no-follow reads in `internal/safeio` (reparse points and
+  junctions rejected, alternate data streams, reserved device names and other
+  Windows path forms refused), the full test suite on `windows-latest` and
+  `windows-11-arm`, and `.zip` release archives with `spec.exe`, each
+  smoke-tested natively.
+- **Outcome:** Windows users get the same read-only report, with the same safety
+  guarantees, as on Linux and macOS.
+- **Scope (in):** safeio Windows open and path rules, CLI terminal and width
+  behavior on Windows, test portability (skips for Unix-only tests, LF line
+  endings for fixtures), CI and release jobs, PowerShell install docs.
+- **Scope (out):** a Windows installer or package manager (006); signing.
+- **Depends on:** 001, 019
+- **Governed by:** C-02, C-03, C-06
+- **Notes:** Owner choice of 2026-11-24 (D-2026-11-24-01). Targets v0.5.0, a
+  minor release. Today a Windows build compiles but every read returns
+  CodeUnsupported (`internal/safeio/open_other.go`).
+
 ### Future
 
 ### 005 — Phase-two write-back [status: deferred]
@@ -1008,4 +1057,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.7.4 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-22
+**Version**: 1.8.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-24
