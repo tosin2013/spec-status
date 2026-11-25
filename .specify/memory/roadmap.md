@@ -1,6 +1,19 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.8.0 → 1.8.1
+Bump rationale: PATCH — status transition.
+
+Changes this revision:
+  - 019 status: planned → verified (feature 014; spec PR #84,
+    implementation PR #85; v0.4.1 published 2026-11-24, release run
+    45421265401; post-release checks; owner approval 2026-11-25);
+    Spec dir added. 020 is no longer blocked by 019.
+
+Specs affected: 014-more-release-platforms
+Open questions added/resolved: none
+
+Previous revision (1.8.0, 2026-11-24):
 Version change: 1.7.4 → 1.8.0
 Bump rationale: MINOR — two new planned specs.
 
@@ -968,7 +981,7 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
   lookup, README install, `go install @latest`, extension zip with six
   skills); 014 recorded verified the same day, so C-07 holds.
 
-### 019 — Release archives for linux/arm64 and darwin/amd64 [status: planned]
+### 019 — Release archives for linux/arm64 and darwin/amd64 [status: verified]
 
 - **Description:** Two more release archives, `linux/arm64` and `darwin/amd64`,
   built `CGO_ENABLED=0`, covered by the checksums file, and each smoke-tested
@@ -981,8 +994,19 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 - **Scope (out):** Windows (020); any CLI, JSON or library change.
 - **Depends on:** 004
 - **Governed by:** C-06
+- **Spec dir:** specs/014-more-release-platforms
 - **Notes:** Issue #82. Owner choice of 2026-11-24 (D-2026-11-24-01). Targets
   v0.4.1, a patch release.
+  Implemented on 2026-11-24 as feature 014 (spec PR #84, implementation PR
+  #85): four release archives, each smoke-tested on its own native runner, and
+  CI on the same four runners. No CLI, JSON or library change.
+  Verified on 2026-11-25 with owner approval: v0.4.1 published 2026-11-24
+  (release run 45421265401) with four passing smoke jobs, each `spec version`
+  showing its own `target:`; post-release checks passed (latest lookup, all
+  checksums, README install, linux/arm64 binary in an aarch64 container,
+  `go install @latest`, extension zip with six skills). The darwin/amd64
+  binary was not run on the development Mac (no Rosetta); its native evidence
+  is the `macos-15-intel` CI leg and smoke job. Issue #82 closed.
 
 ### 020 — Windows support (amd64, arm64) [status: planned]
 
@@ -1057,4 +1081,4 @@ Status legend (lifecycle): **undecided** · **needs-info** · **planned** ·
 
 ---
 
-**Version**: 1.8.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-24
+**Version**: 1.8.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-25
